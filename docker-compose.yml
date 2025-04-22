@@ -1,0 +1,48 @@
+# auto-listings/docker-compose.yml
+services:
+  db:
+    image: postgres:15
+    env_file: .env
+    volumes:
+      - db_data:/var/lib/postgresql/data # том для сохранения данных
+      # - ./db/db_init:/docker-entrypoint-initdb.d # скрипты инициализации
+    networks:
+      - app_network
+    ports:
+      - "5432:5432"
+
+  backend:
+    build: ./backend
+    depends_on:
+      - db
+    env_file: .env
+    volumes:
+      - ./backend:/app # монтируем код с хоста
+    networks:
+      - app_network
+    ports:
+      - "8000:8000"
+    environment:
+      APPLY_MIGRATIONS: "true" # Автозапуск миграций
+    command: fastapi dev main.py --host 0.0.0.0 --port 8000
+
+  frontend:
+    build: ./frontend
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - ./frontend/src/style.css:/app/src/style.css
+      - /app/node_modules
+    networks:
+      - app_network
+    ports:
+      - "3000:5173"
+    command: npm run dev -- --host 0.0.0.0
+
+networks:
+  app_network:
+    driver: bridge
+
+volumes:
+  db_data:
