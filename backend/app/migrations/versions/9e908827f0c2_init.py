@@ -1,8 +1,8 @@
-"""create tables
+"""init
 
-Revision ID: d40ee0b9b949
+Revision ID: 9e908827f0c2
 Revises: 
-Create Date: 2025-04-21 17:44:44.938442
+Create Date: 2025-04-23 19:34:43.925315
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'd40ee0b9b949'
+revision: str = '9e908827f0c2'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -24,58 +24,25 @@ def upgrade() -> None:
     op.create_table('brands',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(), nullable=False),
+    sa.Column('image_url', sa.Text(), nullable=True),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('name')
-    )
-    op.create_table('car_conditions',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('condition', sa.String(), nullable=False),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('condition')
-    )
-    op.create_table('categories',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('name', sa.String(), nullable=False),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('name')
-    )
-    op.create_table('drive_types',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('type', sa.String(), nullable=False),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('type')
-    )
-    op.create_table('fuel_types',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('type', sa.String(), nullable=False),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('type')
-    )
-    op.create_table('steering_sides',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('side', sa.String(), nullable=False),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('side')
-    )
-    op.create_table('transmissions',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('type', sa.String(), nullable=False),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('type')
     )
     op.create_table('users',
     sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('uuid', sa.UUID(), nullable=False),
     sa.Column('name', sa.String(), nullable=False),
     sa.Column('email', sa.String(), nullable=False),
-    sa.Column('password', sa.String(), nullable=False),
+    sa.Column('password', sa.String(length=128), nullable=False),
     sa.Column('phone', sa.String(), nullable=False),
-    sa.Column('registration_date', sa.DateTime(), nullable=False),
+    sa.Column('registration_date', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
     sa.Column('avatar_url', sa.Text(), nullable=True),
     sa.Column('is_admin', sa.Boolean(), nullable=False),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('email')
     )
     op.create_index(op.f('ix_users_id'), 'users', ['id'], unique=False)
+    op.create_index(op.f('ix_users_uuid'), 'users', ['uuid'], unique=True)
     op.create_table('models',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(), nullable=False),
@@ -88,40 +55,35 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('search_criteria', sa.JSON(), nullable=False),
-    sa.Column('saved_at', sa.DateTime(), nullable=True),
+    sa.Column('saved_at', sa.DateTime(), server_default=sa.text('now()'), nullable=True),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('cars',
     sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('uuid', sa.UUID(), nullable=False),
     sa.Column('year', sa.Integer(), nullable=False),
     sa.Column('price', sa.Numeric(precision=12, scale=2), nullable=False),
     sa.Column('description', sa.Text(), nullable=True),
     sa.Column('user_id', sa.Integer(), nullable=False),
-    sa.Column('category_id', sa.Integer(), nullable=False),
+    sa.Column('body_type', sa.Enum('sedan', 'hatchback', 'liftback', 'suv', 'crossover', 'coupe', 'convertible', 'wagon', 'minivan', 'van', 'pickup', 'roadster', 'limousine', 'targa', 'fastback', 'microcar', name='body_type_enum'), nullable=False),
     sa.Column('brand_id', sa.Integer(), nullable=False),
     sa.Column('model_id', sa.Integer(), nullable=False),
-    sa.Column('drive_type_id', sa.Integer(), nullable=False),
-    sa.Column('transmission_id', sa.Integer(), nullable=False),
-    sa.Column('fuel_type_id', sa.Integer(), nullable=False),
-    sa.Column('steering_side_id', sa.Integer(), nullable=False),
-    sa.Column('car_condition_id', sa.Integer(), nullable=False),
+    sa.Column('drive_type', sa.Enum('fwd', 'rwd', 'awd', 'fourwd', name='drive_type_enum'), nullable=False),
+    sa.Column('transmission', sa.Enum('manual', 'automatic', 'cvt', 'robot', name='transmission_enum'), nullable=False),
+    sa.Column('fuel_type', sa.Enum('petrol', 'diesel', 'electric', 'hybrid', name='fuel_type_enum'), nullable=False),
+    sa.Column('steering_side', sa.Enum('left', 'right', name='steering_side_enum'), nullable=False),
+    sa.Column('car_condition', sa.Enum('new', 'used', 'after_repair', 'damaged', 'for_parts', name='car_condition_enum'), nullable=False),
     sa.Column('engine_capacity', sa.Float(), nullable=False),
     sa.Column('engine_power', sa.Integer(), nullable=False),
     sa.Column('is_sold', sa.Boolean(), nullable=True),
     sa.Column('mileage', sa.Integer(), nullable=False),
     sa.Column('color', sa.String(), nullable=False),
-    sa.Column('listing_date', sa.DateTime(), nullable=False),
-    sa.Column('latitude', sa.Float(), nullable=False),
-    sa.Column('longitude', sa.Float(), nullable=False),
+    sa.Column('listing_date', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('latitude', sa.Numeric(precision=8, scale=6), nullable=False),
+    sa.Column('longitude', sa.Numeric(precision=9, scale=6), nullable=False),
     sa.ForeignKeyConstraint(['brand_id'], ['brands.id'], ),
-    sa.ForeignKeyConstraint(['car_condition_id'], ['car_conditions.id'], ),
-    sa.ForeignKeyConstraint(['category_id'], ['categories.id'], ),
-    sa.ForeignKeyConstraint(['drive_type_id'], ['drive_types.id'], ),
-    sa.ForeignKeyConstraint(['fuel_type_id'], ['fuel_types.id'], ),
     sa.ForeignKeyConstraint(['model_id'], ['models.id'], ),
-    sa.ForeignKeyConstraint(['steering_side_id'], ['steering_sides.id'], ),
-    sa.ForeignKeyConstraint(['transmission_id'], ['transmissions.id'], ),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
@@ -130,13 +92,14 @@ def upgrade() -> None:
     op.create_index(op.f('ix_cars_model_id'), 'cars', ['model_id'], unique=False)
     op.create_index(op.f('ix_cars_price'), 'cars', ['price'], unique=False)
     op.create_index(op.f('ix_cars_user_id'), 'cars', ['user_id'], unique=False)
+    op.create_index(op.f('ix_cars_uuid'), 'cars', ['uuid'], unique=True)
     op.create_index(op.f('ix_cars_year'), 'cars', ['year'], unique=False)
     op.create_table('ad_moderation',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('car_id', sa.Integer(), nullable=False),
     sa.Column('status', sa.String(), nullable=False),
     sa.Column('moderator_comment', sa.Text(), nullable=True),
-    sa.Column('moderation_date', sa.DateTime(), nullable=True),
+    sa.Column('moderation_date', sa.DateTime(), server_default=sa.text('now()'), nullable=True),
     sa.ForeignKeyConstraint(['car_id'], ['cars.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('car_id')
@@ -163,7 +126,7 @@ def upgrade() -> None:
     sa.Column('sender_id', sa.Integer(), nullable=False),
     sa.Column('receiver_id', sa.Integer(), nullable=False),
     sa.Column('message_text', sa.Text(), nullable=False),
-    sa.Column('sent_at', sa.DateTime(), nullable=True),
+    sa.Column('sent_at', sa.DateTime(), server_default=sa.text('now()'), nullable=True),
     sa.ForeignKeyConstraint(['car_id'], ['cars.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['receiver_id'], ['users.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['sender_id'], ['users.id'], ondelete='CASCADE'),
@@ -173,7 +136,7 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('car_id', sa.Integer(), nullable=False),
     sa.Column('price', sa.Numeric(precision=12, scale=2), nullable=False),
-    sa.Column('change_date', sa.DateTime(), nullable=True),
+    sa.Column('change_date', sa.DateTime(), server_default=sa.text('now()'), nullable=True),
     sa.ForeignKeyConstraint(['car_id'], ['cars.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
@@ -182,11 +145,12 @@ def upgrade() -> None:
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('car_id', sa.Integer(), nullable=False),
     sa.Column('review_text', sa.Text(), nullable=True),
-    sa.Column('rating', sa.Integer(), nullable=True),
-    sa.Column('review_date', sa.DateTime(), nullable=True),
+    sa.Column('rating', sa.Float(), nullable=True),
+    sa.Column('review_date', sa.DateTime(), server_default=sa.text('now()'), nullable=True),
     sa.ForeignKeyConstraint(['car_id'], ['cars.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('user_id', 'car_id', name='uq_user_car_review')
     )
     # ### end Alembic commands ###
 
@@ -201,6 +165,7 @@ def downgrade() -> None:
     op.drop_table('car_images')
     op.drop_table('ad_moderation')
     op.drop_index(op.f('ix_cars_year'), table_name='cars')
+    op.drop_index(op.f('ix_cars_uuid'), table_name='cars')
     op.drop_index(op.f('ix_cars_user_id'), table_name='cars')
     op.drop_index(op.f('ix_cars_price'), table_name='cars')
     op.drop_index(op.f('ix_cars_model_id'), table_name='cars')
@@ -210,13 +175,8 @@ def downgrade() -> None:
     op.drop_table('saved_searches')
     op.drop_index(op.f('ix_models_brand_id'), table_name='models')
     op.drop_table('models')
+    op.drop_index(op.f('ix_users_uuid'), table_name='users')
     op.drop_index(op.f('ix_users_id'), table_name='users')
     op.drop_table('users')
-    op.drop_table('transmissions')
-    op.drop_table('steering_sides')
-    op.drop_table('fuel_types')
-    op.drop_table('drive_types')
-    op.drop_table('categories')
-    op.drop_table('car_conditions')
     op.drop_table('brands')
     # ### end Alembic commands ###

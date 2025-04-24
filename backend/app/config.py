@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     POSTGRES_HOST: str
     POSTGRES_PORT: str
     JWT_SECRET_KEY: str
+    SALT: str
 
     @property
     def DATABASE_URL(self) -> str:
@@ -21,6 +22,10 @@ class Settings(BaseSettings):
     @property
     def JWT_SECRET_KEY(self) -> str:
         return self.JWT_SECRET_KEY
+    
+    @property
+    def SALT(self) -> str:
+        return self.SALT
 
     model_config = SettingsConfigDict(env_file=".env")
 

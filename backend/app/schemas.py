@@ -1,505 +1,295 @@
 from datetime import datetime
-from typing import List, Optional, Union
-from pydantic import BaseModel, EmailStr, Field
-from pydantic.types import condecimal, confloat, conint
+from typing import List, Optional, Literal
 from decimal import Decimal
+from uuid import UUID
+from pydantic import BaseModel, EmailStr, Field
 
+# ================ Enums ================
+DriveTypeEnum = Literal["Передний", "Задний", "Полный", "4x4"]
+TransmissionEnum = Literal["Механика", "Автомат", "Вариатор", "Робот"]
+FuelTypeEnum = Literal["Бензин", "Дизель", "Электро", "Гибрид"]
+SteeringSideEnum = Literal["Левый", "Правый"]
+CarConditionEnum = Literal["Новый", "Б/У", "После ремонта", "Повреждённый", "На запчасти"]
+BodyTypeEnum = Literal[
+    "Седан", "Хэтчбек", "Лифтбек", "Внедорожник", "Кроссовер", "Купе", "Кабриолет",
+    "Универсал", "Минивэн", "Фургон", "Пикап", "Родстер", "Лимузин", "Тарга",
+    "Фастбэк", "Микрокар"
+]
 
 # ================ User Schemas ================
 class UserBase(BaseModel):
-    name: str = Field(
-        ..., min_length=1, max_length=100, description="Full name of the user"
-    )
-    email: EmailStr = Field(..., description="User's email address")
-    phone: str = Field(
-        ..., min_length=5, max_length=20, description="User's phone number"
-    )
+    name: str
+    email: EmailStr
+    phone: str
 
+class UserWithImage(UserBase):
+    uuid: UUID
+    avatar_url: Optional[str]
+
+    class Config:
+        from_attributes = True
 
 class UserCreate(UserBase):
-    password: str = Field(
-        ..., min_length=8, max_length=100, description="User's password"
-    )
+    password: str
 
+class User(UserWithImage):
+    id: int
+    registration_date: datetime
+    is_admin: bool
+
+    class Config:
+        from_attributes = True
+
+
+class UserMinimal(BaseModel):
+    uuid: UUID
+    name: str
+    avatar_url: Optional[str]
+
+    class Config:
+        from_attributes = True
 
 class UserUpdate(BaseModel):
-    name: Optional[str] = Field(
-        None, min_length=1, max_length=100, description="Full name of the user"
-    )
-    email: Optional[EmailStr] = Field(None, description="User's email address")
-    password: Optional[str] = Field(
-        None, min_length=8, max_length=100, description="User's password"
-    )
-    phone: Optional[str] = Field(
-        None, min_length=5, max_length=20, description="User's phone number"
-    )
-    avatar_url: Optional[str] = Field(None, description="URL to user's avatar image")
-    is_admin: Optional[bool] = Field(None, description="Is user an administrator")
+    name: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    password: Optional[str] = None
+    is_admin: Optional[bool] = None
 
+class UserChangeRights(BaseModel):
+    is_admin: Optional[bool] = None
 
 class UserLogin(BaseModel):
-    email: EmailStr = Field(..., description="User's email address")
-    password: str = Field(
-        ..., min_length=8, max_length=100, description="User's password"
-    )
+    email: EmailStr
+    password: str
 
-
-class User(UserBase):
-    id: int = Field(..., description="Unique user ID")
-    registration_date: datetime = Field(
-        ..., description="Date and time of user registration"
-    )
-    avatar_url: Optional[str] = Field(None, description="URL to user's avatar image")
-    is_admin: bool = Field(False, description="Is user an administrator")
+# ================ Brand & Model ================
+class Brand(BaseModel):
+    id: int
+    name: str
+    image_url: Optional[str]
 
     class Config:
         from_attributes = True
 
+class BrandCreate(BaseModel):
+    name: str
+    image_url: Optional[str] = None
 
-# ================ Brand & Model Schemas ================
-class BrandBase(BaseModel):
-    name: str = Field(..., min_length=1, max_length=50, description="Brand name")
-
-
-class BrandCreate(BrandBase):
-    pass
-
-
-class Brand(BrandBase):
-    id: int = Field(..., description="Unique brand ID")
+class CarModel(BaseModel):
+    id: int
+    name: str
+    brand_id: int
 
     class Config:
         from_attributes = True
 
+class CarModelCreate(BaseModel):
+    name: str
+    brand_id: int
 
-class ModelBase(BaseModel):
-    name: str = Field(..., min_length=1, max_length=50, description="Model name")
-    brand_id: int = Field(
-        ..., gt=0, description="ID of the brand this model belongs to"
-    )
-
-
-class ModelCreate(ModelBase):
-    pass
-
-
-class Model(ModelBase):
-    id: int = Field(..., description="Unique model ID")
-
-    class Config:
-        from_attributes = True
-
-
-# ================ Category Schemas ================
-class CategoryBase(BaseModel):
-    name: str = Field(..., min_length=1, max_length=50, description="Category name")
-
-
-class CategoryCreate(CategoryBase):
-    pass
-
-
-class Category(CategoryBase):
-    id: int = Field(..., description="Unique category ID")
-
-    class Config:
-        from_attributes = True
-
-
-# ================ Car Property Schemas ================
-class DriveTypeBase(BaseModel):
-    type: str = Field(
-        ..., min_length=1, max_length=20, description="Drive type (e.g., FWD, RWD, AWD)"
-    )
-
-
-class DriveTypeCreate(DriveTypeBase):
-    pass
-
-
-class DriveType(DriveTypeBase):
-    id: int = Field(..., description="Unique drive type ID")
-
-    class Config:
-        from_attributes = True
-
-
-class TransmissionBase(BaseModel):
-    type: str = Field(
-        ...,
-        min_length=1,
-        max_length=20,
-        description="Transmission type (e.g., Manual, Automatic)",
-    )
-
-
-class TransmissionCreate(TransmissionBase):
-    pass
-
-
-class Transmission(TransmissionBase):
-    id: int = Field(..., description="Unique transmission ID")
-
-    class Config:
-        from_attributes = True
-
-
-class FuelTypeBase(BaseModel):
-    type: str = Field(
-        ...,
-        min_length=1,
-        max_length=20,
-        description="Fuel type (e.g., Gasoline, Diesel, Electric)",
-    )
-
-
-class FuelTypeCreate(FuelTypeBase):
-    pass
-
-
-class FuelType(FuelTypeBase):
-    id: int = Field(..., description="Unique fuel type ID")
-
-    class Config:
-        from_attributes = True
-
-
-class SteeringSideBase(BaseModel):
-    side: str = Field(
-        ...,
-        min_length=1,
-        max_length=10,
-        description="Steering side (e.g., Left, Right)",
-    )
-
-
-class SteeringSideCreate(SteeringSideBase):
-    pass
-
-
-class SteeringSide(SteeringSideBase):
-    id: int = Field(..., description="Unique steering side ID")
-
-    class Config:
-        from_attributes = True
-
-
-class CarConditionBase(BaseModel):
-    condition: str = Field(
-        ...,
-        min_length=1,
-        max_length=20,
-        description="Car condition (e.g., New, Used, Damaged)",
-    )
-
-
-class CarConditionCreate(CarConditionBase):
-    pass
-
-
-class CarCondition(CarConditionBase):
-    id: int = Field(..., description="Unique car condition ID")
-
-    class Config:
-        from_attributes = True
-
-
-# ================ Car Schemas ================
+# ================ Car ================
 class CarBase(BaseModel):
-    year: int = Field(
-        ...,
-        ge=1900,
-        le=datetime.now().year + 1,
-        description="Manufacturing year of the car",
-    )
-    price: Decimal = Field(
-        ..., max_digits=12, decimal_places=2, description="Current price of the car"
-    )
-    description: Optional[str] = Field(
-        None, max_length=2000, description="Detailed description of the car"
-    )
-    category_id: int = Field(..., gt=0, description="ID of the car category")
-    brand_id: int = Field(..., gt=0, description="ID of the car brand")
-    model_id: int = Field(..., gt=0, description="ID of the car model")
-    drive_type_id: int = Field(..., gt=0, description="ID of the drive type")
-    transmission_id: int = Field(..., gt=0, description="ID of the transmission type")
-    fuel_type_id: int = Field(..., gt=0, description="ID of the fuel type")
-    steering_side_id: int = Field(..., gt=0, description="ID of the steering side")
-    car_condition_id: int = Field(..., gt=0, description="ID of the car condition")
-    engine_capacity: float = Field(..., gt=0, description="Engine capacity in liters")
-    engine_power: int = Field(..., gt=0, description="Engine power in horsepower")
-    mileage: int = Field(..., ge=0, description="Car mileage in kilometers")
-    color: str = Field(..., min_length=1, max_length=30, description="Color of the car")
-    latitude: float = Field(
-        ..., ge=-90, le=90, description="Geographical latitude of the car location"
-    )
-    longitude: float = Field(
-        ..., ge=-180, le=180, description="Geographical longitude of the car location"
-    )
-
+    year: int = Field(..., ge=1900, le=datetime.now().year + 1)
+    price: Decimal = Field(..., max_digits=12, decimal_places=2)
+    description: Optional[str] = Field(None, max_length=2000)
+    body_type: BodyTypeEnum
+    brand_id: int
+    model_id: int
+    drive_type: DriveTypeEnum
+    transmission: TransmissionEnum
+    fuel_type: FuelTypeEnum
+    steering_side: SteeringSideEnum
+    car_condition: CarConditionEnum
+    engine_capacity: float
+    engine_power: int
+    mileage: int
+    color: str
+    latitude: float
+    longitude: float
 
 class CarCreate(CarBase):
     pass
 
-
 class CarUpdate(BaseModel):
-    year: Optional[int] = Field(
-        None,
-        ge=1900,
-        le=datetime.now().year + 1,
-        description="Manufacturing year of the car",
-    )
-    price: Optional[Decimal] = Field(
-        None, max_digits=12, decimal_places=2, description="Current price of the car"
-    )
-    description: Optional[str] = Field(
-        None, max_length=2000, description="Detailed description of the car"
-    )
-    category_id: Optional[int] = Field(None, gt=0, description="ID of the car category")
-    brand_id: Optional[int] = Field(None, gt=0, description="ID of the car brand")
-    model_id: Optional[int] = Field(None, gt=0, description="ID of the car model")
-    drive_type_id: Optional[int] = Field(None, gt=0, description="ID of the drive type")
-    transmission_id: Optional[int] = Field(
-        None, gt=0, description="ID of the transmission type"
-    )
-    fuel_type_id: Optional[int] = Field(None, gt=0, description="ID of the fuel type")
-    steering_side_id: Optional[int] = Field(
-        None, gt=0, description="ID of the steering side"
-    )
-    car_condition_id: Optional[int] = Field(
-        None, gt=0, description="ID of the car condition"
-    )
-    engine_capacity: Optional[float] = Field(
-        None, gt=0, description="Engine capacity in liters"
-    )
-    engine_power: Optional[int] = Field(
-        None, gt=0, description="Engine power in horsepower"
-    )
-    is_sold: Optional[bool] = Field(None, description="Is the car sold")
-    mileage: Optional[int] = Field(None, ge=0, description="Car mileage in kilometers")
-    color: Optional[str] = Field(
-        None, min_length=1, max_length=30, description="Color of the car"
-    )
-    latitude: Optional[float] = Field(
-        None, ge=-90, le=90, description="Geographical latitude of the car location"
-    )
-    longitude: Optional[float] = Field(
-        None, ge=-180, le=180, description="Geographical longitude of the car location"
-    )
-
+    year: Optional[int] = Field(None, ge=1900, le=datetime.now().year + 1)
+    price: Optional[Decimal] = Field(None, max_digits=12, decimal_places=2)
+    description: Optional[str] = Field(None, max_length=2000)
+    body_type: Optional[BodyTypeEnum] = None
+    brand_id: Optional[int] = None
+    model_id: Optional[int] = None
+    drive_type: Optional[DriveTypeEnum] = None
+    transmission: Optional[TransmissionEnum] = None
+    fuel_type: Optional[FuelTypeEnum] = None
+    steering_side: Optional[SteeringSideEnum] = None
+    car_condition: Optional[CarConditionEnum] = None
+    engine_capacity: Optional[float] = None
+    engine_power: Optional[int] = None
+    mileage: Optional[int] = None
+    color: Optional[str] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    is_sold: Optional[bool] = None
 
 class Car(CarBase):
-    id: int = Field(..., description="Unique car ID")
-    user_id: int = Field(..., gt=0, description="ID of the user who listed the car")
-    is_sold: bool = Field(False, description="Is the car sold")
-    listing_date: datetime = Field(
-        ..., description="Date and time when the car was listed"
-    )
-    user: User = Field(..., description="User who listed the car")
-    brand: Brand = Field(..., description="Car brand")
-    model: Model = Field(..., description="Car model")
-    category: Category = Field(..., description="Car category")
-    drive_type: DriveType = Field(..., description="Drive type")
-    transmission: Transmission = Field(..., description="Transmission type")
-    fuel_type: FuelType = Field(..., description="Fuel type")
-    steering_side: SteeringSide = Field(..., description="Steering side")
-    car_condition: CarCondition = Field(..., description="Car condition")
+    id: int
+    user_id: int
+    is_sold: bool
+    listing_date: datetime
 
     class Config:
         from_attributes = True
 
-
-class CarWithImages(Car):
-    images: List["CarImage"] = Field(..., description="List of car images")
-
-
-class CarWithDetails(CarWithImages):
-    price_history: List["PriceHistory"] = Field(
-        ..., description="Price history of the car"
-    )
-    reviews: List["Review"] = Field(..., description="Reviews of the car")
-
-
-# ================ Favorite Schemas ================
-class FavoriteBase(BaseModel):
-    user_id: int = Field(..., gt=0, description="ID of the user who favorited the car")
-    car_id: int = Field(..., gt=0, description="ID of the favorited car")
-
-
-class FavoriteCreate(FavoriteBase):
-    pass
-
-
-class Favorite(FavoriteBase):
-    id: int = Field(..., description="Unique favorite entry ID")
-    car: Car = Field(..., description="Favorited car details")
+class CarImage(BaseModel):
+    id: int
+    car_id: int
+    image_url: str
 
     class Config:
         from_attributes = True
 
+class CarImageCreate(BaseModel):
+    car_id: int
+    image_url: str
 
-# ================ Message Schemas ================
-class MessageBase(BaseModel):
-    car_id: int = Field(..., gt=0, description="ID of the car the message is about")
-    receiver_id: int = Field(..., gt=0, description="ID of the message receiver")
-    message_text: str = Field(
-        ..., min_length=1, max_length=2000, description="Message content"
-    )
-
-
-class MessageCreate(MessageBase):
-    pass
-
-
-class Message(MessageBase):
-    id: int = Field(..., description="Unique message ID")
-    sender_id: int = Field(..., gt=0, description="ID of the message sender")
-    sent_at: datetime = Field(
-        ..., description="Date and time when the message was sent"
-    )
-    car: Car = Field(..., description="Car details the message is about")
-    sender: User = Field(..., description="Message sender details")
-    receiver: User = Field(..., description="Message receiver details")
+class PriceHistory(BaseModel):
+    id: int
+    car_id: int
+    price: Decimal
+    change_date: datetime
 
     class Config:
         from_attributes = True
 
-
-# ================ Ad Moderation Schemas ================
-class AdModerationBase(BaseModel):
-    car_id: int = Field(..., gt=0, description="ID of the car being moderated")
-    status: str = Field(
-        ...,
-        min_length=1,
-        max_length=20,
-        description="Moderation status (e.g., Pending, Approved, Rejected)",
-    )
-    moderator_comment: Optional[str] = Field(
-        None, max_length=1000, description="Comment from the moderator"
-    )
-
-
-class AdModerationCreate(AdModerationBase):
-    pass
-
-
-class AdModerationUpdate(BaseModel):
-    status: Optional[str] = Field(
-        None,
-        min_length=1,
-        max_length=20,
-        description="Moderation status (e.g., Pending, Approved, Rejected)",
-    )
-    moderator_comment: Optional[str] = Field(
-        None, max_length=1000, description="Comment from the moderator"
-    )
-
-
-class AdModeration(AdModerationBase):
-    id: int = Field(..., description="Unique moderation entry ID")
-    moderation_date: datetime = Field(..., description="Date and time of moderation")
-    car: Car = Field(..., description="Car details being moderated")
+class Review(BaseModel):
+    id: int
+    user_id: int
+    car_id: int
+    review_text: Optional[str]
+    rating: Optional[float]
+    review_date: datetime
 
     class Config:
         from_attributes = True
 
-
-# ================ Saved Search Schemas ================
-class SavedSearchBase(BaseModel):
-    user_id: int = Field(..., gt=0, description="ID of the user who saved the search")
-    search_criteria: dict = Field(..., description="Search criteria as a dictionary")
-
-
-class SavedSearchCreate(SavedSearchBase):
-    pass
-
-
-class SavedSearch(SavedSearchBase):
-    id: int = Field(..., description="Unique saved search ID")
-    saved_at: datetime = Field(
-        ..., description="Date and time when the search was saved"
-    )
-
-    class Config:
-        from_attributes = True
-
-
-# ================ Review Schemas ================
-class ReviewBase(BaseModel):
-    car_id: int = Field(..., gt=0, description="ID of the car being reviewed")
-    review_text: Optional[str] = Field(
-        None, max_length=2000, description="Text content of the review"
-    )
-    rating: Optional[int] = Field(
-        None, ge=1, le=5, description="Rating from 1 to 5 stars"
-    )
-
-
-class ReviewCreate(ReviewBase):
-    pass
-
+class ReviewCreate(BaseModel):
+    car_id: int
+    rating: Optional[float] = None
+    review_text: Optional[str] = None
 
 class ReviewUpdate(BaseModel):
-    review_text: Optional[str] = Field(
-        None, max_length=2000, description="Text content of the review"
-    )
-    rating: Optional[int] = Field(
-        None, ge=1, le=5, description="Rating from 1 to 5 stars"
-    )
+    rating: Optional[float] = None
+    review_text: Optional[str] = None
 
+class ReviewDetailed(Review):
+    user: UserMinimal
 
-class Review(ReviewBase):
-    id: int = Field(..., description="Unique review ID")
-    user_id: int = Field(..., gt=0, description="ID of the user who wrote the review")
-    review_date: datetime = Field(
-        ..., description="Date and time when the review was written"
-    )
-    user: User = Field(..., description="User who wrote the review")
-    car: Car = Field(..., description="Car being reviewed")
+class CarWithImages(Car):
+    images: List[CarImage]
 
-    class Config:
-        from_attributes = True
+class CarDetailed(CarWithImages):
+    price_history: List[PriceHistory]
+    reviews: List[ReviewDetailed]
+    user: UserMinimal
+    brand: Brand
+    model: CarModel
 
+class CarCard(BaseModel):
+    id: int
+    uuid: UUID
+    year: int
+    price: Decimal
+    description: Optional[str]
 
-# ================ Price History Schemas ================
-class PriceHistoryBase(BaseModel):
-    car_id: int = Field(..., gt=0, description="ID of the car with price history")
-    price: Decimal = Field(
-        ..., max_digits=12, decimal_places=2, description="Price at this history point"
-    )
+    body_type: BodyTypeEnum
+    drive_type: DriveTypeEnum
+    transmission: TransmissionEnum
+    fuel_type: FuelTypeEnum
+    steering_side: SteeringSideEnum
+    car_condition: CarConditionEnum
 
+    engine_capacity: float
+    engine_power: int
+    is_sold: bool
+    mileage: int
+    color: str
+    listing_date: datetime
+    latitude: float
+    longitude: float
 
-class PriceHistoryCreate(PriceHistoryBase):
-    pass
+    brand_name: str
+    model_name: str
 
-
-class PriceHistory(PriceHistoryBase):
-    id: int = Field(..., description="Unique price history entry ID")
-    change_date: datetime = Field(..., description="Date and time of the price change")
-    car: Car = Field(..., description="Car details with price history")
-
-    class Config:
-        from_attributes = True
-
-
-# ================ Car Image Schemas ================
-class CarImageBase(BaseModel):
-    car_id: int = Field(..., gt=0, description="ID of the car this image belongs to")
-    image_url: str = Field(..., max_length=500, description="URL of the car image")
-
-
-class CarImageCreate(CarImageBase):
-    pass
-
-
-class CarImage(CarImageBase):
-    id: int = Field(..., description="Unique car image ID")
-    car: Car = Field(..., description="Car details this image belongs to")
+    preview_image_url: Optional[str]  # первое изображение машины
 
     class Config:
         from_attributes = True
 
+# ================ Favorite ================
+class Favorite(BaseModel):
+    id: int
+    user_id: int
+    car_id: int
+    car: CarWithImages
 
-# Update forward references for nested models
-CarWithImages.model_rebuild()
-CarWithDetails.model_rebuild()
+    class Config:
+        from_attributes = True
+
+class FavoriteCreate(BaseModel):
+    user_id: int
+    car_id: int
+
+# ================ Message ================
+class Message(BaseModel):
+    id: int
+    car_id: int
+    sender_id: int
+    receiver_id: int
+    message_text: str
+    sent_at: datetime
+    sender: UserMinimal
+    receiver: UserMinimal
+
+
+    class Config:
+        from_attributes = True
+        
+class MessageCreate(BaseModel):
+    receiver_id: int
+    car_id: int
+    message_text: str
+
+# ================ AdModeration ================
+class AdModeration(BaseModel):
+    id: int
+    car_id: int
+    status: str
+    moderator_comment: Optional[str]
+    moderation_date: datetime
+    car: CarWithImages
+
+    class Config:
+        from_attributes = True
+
+class AdModerationCreate(BaseModel):
+    car_id: int
+    is_approved: bool
+    moderator_comment: Optional[str] = None
+
+class AdModerationUpdate(BaseModel):
+    is_approved: Optional[bool] = None
+    moderator_comment: Optional[str] = None
+
+# ================ SavedSearch ================
+class SavedSearch(BaseModel):
+    id: int
+    user_id: int
+    search_criteria: dict
+    saved_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class SavedSearchCreate(BaseModel):
+    user_id: int
+    search_criteria: dict  

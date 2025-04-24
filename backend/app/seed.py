@@ -1,137 +1,128 @@
-# seed.py
-from sqlalchemy.orm import Session
+import uuid
+import random
+from datetime import datetime
 from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
+from faker import Faker
+
+from config import settings
 from database import Base
-from models import *
-import os
+from models import (
+    Brand, CarModel, User, Car, CarImage, PriceHistory, Review,
+    Favorite, Message, SavedSearch, AdModeration,
+    BodyTypeEnum, DriveTypeEnum, TransmissionEnum, FuelTypeEnum,
+    SteeringSideEnum, CarConditionEnum
+)
+from passlib.context import CryptContext
 
-DATABASE_URL = os.getenv("DATABASE_URL")  # берём из .env
-
+DATABASE_URL = settings.DATABASE_URL
 engine = create_engine(DATABASE_URL)
-Base.metadata.create_all(bind=engine)
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+Base.metadata.create_all(bind=engine)
+faker = Faker("ru_RU")
 
 def seed_data(session: Session):
-    # Проверка, чтобы не дублировать
-    if session.query(Brand).first():
-        print("База уже содержит данные. Пропускаем посев.")
-        return False
+    # if session.query(User).first():
+    #     print("Seed already applied.")
+    #     return
 
-    # Примерные данные
-    brands = [
-        Brand(name="Toyota"),
-        Brand(name="BMW"),
-        Brand(name="Mercedes"),
-        Brand(name="Audi"),
-        Brand(name="Volkswagen"),
-        Brand(name="Ford"),
-        Brand(name="Honda"),
-        Brand(name="Hyundai"),
-        Brand(name="Kia"),
-        Brand(name="Nissan"),
-        Brand(name="Jeep"),
-        Brand(name="Subaru"),
-        Brand(name="Mazda"),
-        Brand(name="Lexus"),
-        Brand(name="Mitsubishi"),
-        Brand(name="Infiniti"),
-        Brand(name="Tesla"),
-        Brand(name="Porsche"),
-        Brand(name="Lamborghini"),
-        Brand(name="Ferrari"),
-        Brand(name="McLaren"),
-        Brand(name="Bugatti"),
-        Brand(name="Rolls-Royce"),
-        Brand(name="Bentley"),
-        Brand(name="Jaguar"),
-        Brand(name="Volvo"),
-    ]
-    session.add_all(brands)
-
-    models = [
-        Model(name="Camry", brand=brands[0]),
-        Model(name="Corolla", brand=brands[0]),
-        Model(name="X5", brand=brands[1]),
-        Model(name="E-Class", brand=brands[2]),
-        Model(name="A4", brand=brands[3]),
-        Model(name="Golf", brand=brands[4]),
-        Model(name="Focus", brand=brands[5]),
-        Model(name="Civic", brand=brands[6]),
-        Model(name="Elantra", brand=brands[7]),
-        Model(name="Sportage", brand=brands[8]),
-        Model(name="Qashqai", brand=brands[9]),
-        Model(name="Wrangler", brand=brands[10]),
-        Model(name="Forester", brand=brands[11]),
-        Model(name="CX-5", brand=brands[12]),
-    ]
-    session.add_all(models)
-
-    categories = [
-        Category(name="Седан"),
-        Category(name="Внедорожник"),
-        Category(name="Хэтчбек"),
-        Category(name="Купе"),
-        Category(name="Универсал"),
-        Category(name="Пикап"),
-        Category(name="Кабриолет"),
-        Category(name="Спорткар"),
-        Category(name="Микроавтобус"),
-    ]
-    drive_types = [
-        DriveType(type="Передний"),
-        DriveType(type="Полный"),
-        DriveType(type="Задний"),
-    ]
-    transmissions = [
-        Transmission(type="Автомат"),
-        Transmission(type="Механика"),
-        Transmission(type="Робот"),
-    ]
-    fuel_types = [
-        FuelType(type="Бензин"),
-        FuelType(type="Дизель"),
-        FuelType(type="Электрический"),
-        FuelType(type="Гибрид"),
-        FuelType(type="Газ"),
-    ]
-    steering_sides = [SteeringSide(side="Левый"), SteeringSide(side="Правый")]
-    car_conditions = [
-        CarCondition(condition="Новый"),
-        CarCondition(condition="Б/У"),
-        CarCondition(condition="Ремонт"),
-    ]
-
-    session.add_all(
-        categories
-        + drive_types
-        + transmissions
-        + fuel_types
-        + steering_sides
-        + car_conditions
-    )
-
-    users = [
-        User(
-            name="Иван Иванов",
-            email="ivan@example.com",
-            password="password",
-            phone="1234567890",
-            registration_date=datetime.utcnow(),
-            is_admin=False,
-        ),
-        User(
-            name="Петр Петров",
-            email="petr@example.com",
-            password="password",
-            phone="9876543210",
-            registration_date=datetime.utcnow(),
-            is_admin=True,
-        ),
-    ]
-    session.add_all(users)
+    
+    print("⚠ Очистка таблиц...")
+    session.query(CarImage).delete()
+    session.query(PriceHistory).delete()
+    session.query(Message).delete()
+    session.query(Favorite).delete()
+    session.query(Review).delete()
+    session.query(AdModeration).delete()
+    session.query(Car).delete()
+    session.query(CarModel).delete()
+    session.query(Brand).delete()
+    session.query(SavedSearch).delete()
+    session.query(User).delete()
     session.commit()
-    print("Посев данных завершён.")
+    print("✅ Очистка завершена, создаём новые данные...")
 
+    # Users
+    users = [
+        User(name="Админ", email="admin@example.com", phone="+79990001122",
+            password=pwd_context.hash("admin123" + settings.SALT), is_admin=True),
+        User(name="Обычный", email="user@example.com", phone="+79998887766",
+            password=pwd_context.hash("user123" + settings.SALT))
+    ]
+    # Добавим ещё пользователей
+    for i in range(3):
+        users.append(User(
+            name=faker.name(),
+            email=faker.email(),
+            phone=faker.phone_number(),
+            password=pwd_context.hash("pass" + settings.SALT)
+        ))
+    session.add_all(users)
+
+    # Brands & Models
+    toyota = Brand(name="Toyota")
+    bmw = Brand(name="BMW")
+    audi = Brand(name="Audi")
+    session.add_all([toyota, bmw, audi])
+
+    camry = CarModel(name="Camry", brand=toyota)
+    corolla = CarModel(name="Corolla", brand=toyota)
+    x5 = CarModel(name="X5", brand=bmw)
+    a4 = CarModel(name="A4", brand=audi)
+    session.add_all([camry, corolla, x5, a4])
+
+    session.flush()  # Чтобы у всех моделей и пользователей были ID
+
+    models = [camry, corolla, x5, a4]
+    brands = [toyota, bmw, audi]
+
+    # Cars + Related
+    for i in range(10):
+        user = random.choice(users)
+        model = random.choice(models)
+        car = Car(
+            uuid=uuid.uuid4(),
+            year=random.randint(2005, 2024),
+            price=random.randint(500_000, 5_000_000),
+            description=faker.text(120),
+            user=user,
+            body_type=random.choice(list(BodyTypeEnum)),
+            brand=model.brand,
+            model=model,
+            drive_type=random.choice(list(DriveTypeEnum)),
+            transmission=random.choice(list(TransmissionEnum)),
+            fuel_type=random.choice(list(FuelTypeEnum)),
+            steering_side=random.choice(list(SteeringSideEnum)),
+            car_condition=random.choice(list(CarConditionEnum)),
+            engine_capacity=round(random.uniform(1.3, 4.0), 1),
+            engine_power=random.randint(80, 400),
+            is_sold=random.choice([False, False, True]),
+            mileage=random.randint(0, 300_000),
+            color=faker.color_name(),
+            listing_date=datetime.now(),
+            latitude=faker.latitude(),
+            longitude=faker.longitude()
+        )
+        session.add(car)
+        session.flush()
+
+        session.add(PriceHistory(car=car, price=car.price, change_date=datetime.now()))
+        session.add(CarImage(car=car, image_url="uploads/example.jpg"))
+        session.add(Review(user=random.choice(users), car=car, rating=random.uniform(3.0, 5.0), review_text=faker.sentence(), review_date=datetime.now()))
+        session.add(AdModeration(car=car, status="approved", moderator_comment="OK"))
+
+        # Favorite и Message
+        sender = random.choice(users)
+        receiver = random.choice([u for u in users if u != sender])
+        session.add(Favorite(user=sender, car=car))
+        session.add(Message(sender_id=sender.id, receiver_id=receiver.id, car=car, message_text=faker.sentence(), sent_at=datetime.now()))
+
+    # Saved Search
+    for u in users:
+        session.add(SavedSearch(user=u, search_criteria={"q" : f"{random.choice(['Toyota', 'BMW'])} до 3 млн"}))
+
+    session.commit()
 
 if __name__ == "__main__":
     with Session(engine) as session:

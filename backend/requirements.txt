@@ -10,3 +10,6 @@ passlib
 bcrypt
 authx
 python-jose[cryptography]
+faker
+fastapi_pagination
+pillow
