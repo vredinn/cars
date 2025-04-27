@@ -5,7 +5,6 @@ services:
     env_file: .env
     volumes:
       - db_data:/var/lib/postgresql/data # том для сохранения данных
-      # - ./db/db_init:/docker-entrypoint-initdb.d # скрипты инициализации
     networks:
       - app_network
     ports:

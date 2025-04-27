@@ -1,410 +1,360 @@
 from datetime import datetime
 from typing import List, Optional
+from pydantic import EmailStr
+from sqlalchemy.orm import Session, selectinload
 from passlib.context import CryptContext
-from sqlalchemy.orm import Session
-from schemas import *
-from models import *
+from uuid import uuid4
+from fastapi_pagination.ext.sqlalchemy import paginate
+from fastapi_pagination import Page, Params
+from sqlalchemy import asc, desc
+from pathlib import Path
+
+import models as m
+from schemas import (
+    CarCard, UserChangeRights, UserCreate, UserUpdate,
+    BrandCreate, CarModelCreate,
+    CarCreate, CarUpdate,
+    ReviewCreate, ReviewUpdate,
+    MessageCreate,
+    FavoriteCreate,
+    CarImageCreate,
+    SavedSearchCreate,
+    AdModerationCreate, AdModerationUpdate
+)
+from config import settings
+
+UPLOAD_DIR = Path("uploads/car_images")
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-
 # ================ User CRUD ================
-def get_user(db: Session, user_id: int) -> Optional[User]:
-    return db.query(User).filter(User.id == user_id).first()
+def get_user(db: Session, user_id: int):
+    return db.query(m.User).filter(m.User.id == user_id).first()
 
+def get_user_by_email(db: Session, email: str):
+    return db.query(m.User).filter(m.User.email == email).first()
 
-def get_user_by_email(db: Session, email: str) -> Optional[User]:
-    return db.query(User).filter(User.email == email).first()
+def get_users_paginated(db: Session, params: Params):
+    q =db.query(m.User)
+    return paginate(q, params)
 
+def get_users(db: Session):
+    return db.query(m.User).all()
 
-def get_users(db: Session, skip: int = 0, limit: int = 100) -> List[User]:
-    return db.query(User).offset(skip).limit(limit).all()
-
-
-def create_user(db: Session, user: UserCreate) -> User:
-    hashed_password = pwd_context.hash(user.password)
-    db_user = User(
-        name=user.name,
-        email=user.email,
-        phone=user.phone,
-        password=hashed_password,
-        registration_date=datetime.now(),
-        is_admin=False,
-    )
+def create_user(db: Session, user: UserCreate):
+    hashed_password = pwd_context.hash(user.password + settings.SALT)
+    db_user = m.User(uuid=uuid4(), name=user.name, email=user.email, phone=user.phone, password=hashed_password)
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
     return db_user
 
-
-def update_user(db: Session, user_id: int, user_update: UserUpdate) -> Optional[User]:
-    db_user = db.query(User).filter(User.id == user_id).first()
+def update_user(db: Session, user_id: int, user_update: UserUpdate):
+    db_user = db.query(m.User).filter(m.User.id == user_id).first()
     if not db_user:
         return None
-
     update_data = user_update.dict(exclude_unset=True)
-
     if "password" in update_data:
-        hashed_password = pwd_context.hash(update_data["password"])
-        del update_data["password"]
-        update_data["password"] = hashed_password
-
-    for field, value in update_data.items():
-        setattr(db_user, field, value)
-
+        update_data["password"] = pwd_context.hash(update_data["password"] + settings.SALT)
+    for key, value in update_data.items():
+        setattr(db_user, key, value)
     db.commit()
     db.refresh(db_user)
     return db_user
 
+def user_change_rights(db: Session, user_id: int, user_update: UserChangeRights):    
+    db_user = db.query(m.User).filter(m.User.id == user_id).first()
+    if not db_user:
+        return None
+    update_data = user_update.dict(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(db_user, key, value)
+    db.commit()
+    db.refresh(db_user)
+    return db_user
 
-def delete_user(db: Session, user_id: int) -> bool:
-    db_user = db.query(User).filter(User.id == user_id).first()
+def delete_user(db: Session, user_id: int):
+    db_user = db.query(m.User).filter(m.User.id == user_id).first()
     if not db_user:
         return False
     db.delete(db_user)
     db.commit()
     return True
 
-
-def authenticate_user(db: Session, email: str, password: str) -> Optional[User]:
+def authenticate_user(db: Session, email: EmailStr, password: str):
     user = get_user_by_email(db, email)
-    if not user:
-        return None
-    if not pwd_context.verify(password, user.password):
-        return None
-    return user
-
+    if user and pwd_context.verify(password + settings.SALT, user.password):
+        return user
+    return None
 
 # ================ Brand CRUD ================
-def get_brand(db: Session, brand_id: int) -> Optional[Brand]:
-    return db.query(Brand).filter(Brand.id == brand_id).first()
+def get_brands(db: Session):
+    return db.query(m.Brand).all()
 
+def get_brand(db: Session, brand_id: int):
+    return db.query(m.Brand).filter(m.Brand.id == brand_id).first()
 
-def get_brands(db: Session, skip: int = 0, limit: int = 100) -> List[Brand]:
-    return db.query(Brand).offset(skip).limit(limit).all()
-
-
-def create_brand(db: Session, brand: BrandCreate) -> Brand:
-    db_brand = Brand(name=brand.name)
-    db.add(db_brand)
+def create_brand(db: Session, brand: BrandCreate):
+    obj = m.Brand(**brand.dict())
+    db.add(obj)
     db.commit()
-    db.refresh(db_brand)
-    return db_brand
+    db.refresh(obj)
+    return obj
 
-
-def update_brand(db: Session, brand_id: int, brand_name: str) -> Optional[Brand]:
-    db_brand = db.query(Brand).filter(Brand.id == brand_id).first()
-    if not db_brand:
+def update_brand(db: Session, brand_id: int, brand: BrandCreate):
+    obj = db.query(m.Brand).filter(m.Brand.id == brand_id).first()
+    if not obj:
         return None
-    db_brand.name = brand_name
+    for key, value in brand.dict().items():
+        setattr(obj, key, value)
     db.commit()
-    db.refresh(db_brand)
-    return db_brand
+    db.refresh(obj)
+    return obj
 
-
-def delete_brand(db: Session, brand_id: int) -> bool:
-    db_brand = db.query(Brand).filter(Brand.id == brand_id).first()
-    if not db_brand:
+def delete_brand(db: Session, brand_id: int):
+    obj = db.query(m.Brand).filter(m.Brand.id == brand_id).first()
+    if not obj:
         return False
-    db.delete(db_brand)
+    db.delete(obj)
     db.commit()
     return True
 
+# ================ CarModel CRUD ================
+def get_model(db: Session, model_id: int):
+    return db.query(m.CarModel).filter(m.CarModel.id == model_id).first()
 
-# ================ Model CRUD ================
-def get_model(db: Session, model_id: int) -> Optional[Model]:
-    return db.query(Model).filter(Model.id == model_id).first()
+def get_models_by_brand(db: Session, brand_id: Optional[int]):
+    q = db.query(m.CarModel)
+    if brand_id:
+        q = q.filter(m.CarModel.brand_id == brand_id)
+    return q.all()
 
-
-def get_models_by_brand(
-    db: Session, brand_id: int, skip: int = 0, limit: int = 100
-) -> List[Model]:
-    return (
-        db.query(Model)
-        .filter(Model.brand_id == brand_id)
-        .offset(skip)
-        .limit(limit)
-        .all()
-    )
-
-
-def create_model(db: Session, model: ModelCreate) -> Model:
-    db_model = Model(name=model.name, brand_id=model.brand_id)
-    db.add(db_model)
+def create_model(db: Session, model: CarModelCreate):
+    obj = m.CarModel(**model.dict())
+    db.add(obj)
     db.commit()
-    db.refresh(db_model)
-    return db_model
+    db.refresh(obj)
+    return obj
 
-
-def update_model(db: Session, model_id: int, model: ModelCreate) -> Optional[Model]:
-    db_model = db.query(Model).filter(Model.id == model_id).first()
-    if not db_model:
+def update_model(db: Session, model_id: int, model: CarModelCreate):
+    obj = db.query(m.CarModel).filter(m.CarModel.id == model_id).first()
+    if not obj:
         return None
-    db_model.name = model.name
-    db_model.brand_id = model.brand_id
+    for key, value in model.dict().items():
+        setattr(obj, key, value)
     db.commit()
-    db.refresh(db_model)
-    return db_model
+    db.refresh(obj)
+    return obj
 
-
-def delete_model(db: Session, model_id: int) -> bool:
-    db_model = db.query(Model).filter(Model.id == model_id).first()
-    if not db_model:
+def delete_model(db: Session, model_id: int):
+    obj = db.query(m.CarModel).filter(m.CarModel.id == model_id).first()
+    if not obj:
         return False
-    db.delete(db_model)
+    db.delete(obj)
     db.commit()
     return True
-
 
 # ================ Car CRUD ================
-def get_car(db: Session, car_id: int) -> Optional[Car]:
-    return db.query(Car).filter(Car.id == car_id).first()
+def get_car(db: Session, car_id: int):
+    return db.query(m.Car).options(selectinload(m.Car.images)).filter(m.Car.id == car_id).first()
 
-
-def get_cars(
-    db: Session, skip: int = 0, limit: int = 100, filters: dict = None
-) -> List[Car]:
-    query = db.query(Car)
-
+def get_all_cars_paginated(
+    db: Session,
+    filters: dict,
+    sort_by: Optional[str],
+    sort_order: str,
+    params: Params
+):
+    q = db.query(m.Car)
     if filters:
-        # Пример фильтрации (можно расширить)
-        if "brand_id" in filters:
-            query = query.filter(Car.brand_id == filters["brand_id"])
-        if "model_id" in filters:
-            query = query.filter(Car.model_id == filters["model_id"])
-        if "min_price" in filters:
-            query = query.filter(Car.price >= filters["min_price"])
-        if "max_price" in filters:
-            query = query.filter(Car.price <= filters["max_price"])
-        if "is_sold" in filters:
-            query = query.filter(Car.is_sold == filters["is_sold"])
+        for attr, value in filters.items():
+            if hasattr(m.Car, attr):
+                q = q.filter(getattr(m.Car, attr) == value)
+    if sort_by and hasattr(m.Car, sort_by):
+        sort_column = getattr(m.Car, sort_by)
+        q = q.order_by(asc(sort_column) if sort_order == "asc" else desc(sort_column))
+    return paginate(q, params)
 
-    return query.offset(skip).limit(limit).all()
-
-
-def create_car(db: Session, car: CarCreate, user_id: int) -> Car:
-    db_car = Car(
-        **car.dict(), user_id=user_id, listing_date=datetime.now(), is_sold=False
+def get_car_cards_query(db: Session):
+    return (
+        db.query(m.Car)
+        .options(
+            selectinload(m.Car.brand),
+            selectinload(m.Car.model),
+            selectinload(m.Car.images)
+        )
+        .order_by(m.Car.listing_date.desc()).all()  
     )
-    db.add(db_car)
+
+def create_car(db: Session, car: CarCreate, user_id: int):
+    obj = m.Car(**car.dict(), user_id=user_id, uuid=uuid4())
+    db.add(obj)
     db.commit()
-    db.refresh(db_car)
+    db.refresh(obj)
+    return obj
 
-    # Создаем запись в истории цен
-    create_price_history(db, car_id=db_car.id, price=car.price)
-
-    return db_car
-
-
-def update_car(db: Session, car_id: int, car_update: CarUpdate) -> Optional[Car]:
-    db_car = db.query(Car).filter(Car.id == car_id).first()
-    if not db_car:
+def update_car(db: Session, car_id: int, car: CarUpdate):
+    obj = db.query(m.Car).filter(m.Car.id == car_id).first()
+    if not obj:
         return None
-
-    update_data = car_update.dict(exclude_unset=True)
-
-    # Если обновляется цена, добавляем запись в историю цен
-    if "price" in update_data and update_data["price"] != db_car.price:
-        create_price_history(db, car_id=car_id, price=update_data["price"])
-
-    for field, value in update_data.items():
-        setattr(db_car, field, value)
-
+    for key, value in car.dict(exclude_unset=True).items():
+        setattr(obj, key, value)
     db.commit()
-    db.refresh(db_car)
-    return db_car
+    db.refresh(obj)
+    return obj
 
-
-def delete_car(db: Session, car_id: int) -> bool:
-    db_car = db.query(Car).filter(Car.id == car_id).first()
-    if not db_car:
+def delete_car(db: Session, car_id: int):
+    obj = db.query(m.Car).filter(m.Car.id == car_id).first()
+    if not obj:
         return False
-    db.delete(db_car)
+    db.delete(obj)
     db.commit()
     return True
-
-
-# ================ Favorite CRUD ================
-def get_favorites_by_user(
-    db: Session, user_id: int, skip: int = 0, limit: int = 100
-) -> List[Favorite]:
-    return (
-        db.query(Favorite)
-        .filter(Favorite.user_id == user_id)
-        .offset(skip)
-        .limit(limit)
-        .all()
-    )
-
-
-def create_favorite(db: Session, favorite: FavoriteCreate) -> Favorite:
-    db_favorite = Favorite(**favorite.dict())
-    db.add(db_favorite)
-    db.commit()
-    db.refresh(db_favorite)
-    return db_favorite
-
-
-def delete_favorite(db: Session, user_id: int, car_id: int) -> bool:
-    db_favorite = (
-        db.query(Favorite)
-        .filter(Favorite.user_id == user_id, Favorite.car_id == car_id)
-        .first()
-    )
-    if not db_favorite:
-        return False
-    db.delete(db_favorite)
-    db.commit()
-    return True
-
-
-# ================ Message CRUD ================
-def get_messages(
-    db: Session, user_id: int, skip: int = 0, limit: int = 100
-) -> List[Message]:
-    return (
-        db.query(Message)
-        .filter((Message.sender_id == user_id) | (Message.receiver_id == user_id))
-        .offset(skip)
-        .limit(limit)
-        .all()
-    )
-
-
-def create_message(db: Session, message: MessageCreate, sender_id: int) -> Message:
-    db_message = Message(**message.dict(), sender_id=sender_id, sent_at=datetime.now())
-    db.add(db_message)
-    db.commit()
-    db.refresh(db_message)
-    return db_message
-
-
-# ================ Ad Moderation CRUD ================
-def get_moderation_entries(
-    db: Session, skip: int = 0, limit: int = 100
-) -> List[AdModeration]:
-    return db.query(AdModeration).offset(skip).limit(limit).all()
-
-
-def create_moderation_entry(
-    db: Session, moderation: AdModerationCreate
-) -> AdModeration:
-    db_moderation = AdModeration(**moderation.dict(), moderation_date=datetime.now())
-    db.add(db_moderation)
-    db.commit()
-    db.refresh(db_moderation)
-    return db_moderation
-
-
-def update_moderation_entry(
-    db: Session, moderation_id: int, moderation_update: AdModerationUpdate
-) -> Optional[AdModeration]:
-    db_moderation = (
-        db.query(AdModeration).filter(AdModeration.id == moderation_id).first()
-    )
-    if not db_moderation:
-        return None
-
-    update_data = moderation_update.dict(exclude_unset=True)
-    for field, value in update_data.items():
-        setattr(db_moderation, field, value)
-
-    db.commit()
-    db.refresh(db_moderation)
-    return db_moderation
-
 
 # ================ Review CRUD ================
-def get_reviews_by_car(
-    db: Session, car_id: int, skip: int = 0, limit: int = 100
-) -> List[Review]:
-    return (
-        db.query(Review).filter(Review.car_id == car_id).offset(skip).limit(limit).all()
-    )
+def get_reviews_by_user(db: Session, user_id: int, params: Params):
+    q = db.query(m.Review).filter(m.Review.user_id == user_id)
+    return paginate(q, params)
 
-
-def create_review(db: Session, review: ReviewCreate, user_id: int) -> Review:
-    db_review = Review(**review.dict(), user_id=user_id, review_date=datetime.now())
-    db.add(db_review)
+def create_review(db: Session, review: ReviewCreate, user_id: int):
+    obj = m.Review(**review.dict(), user_id=user_id)
+    db.add(obj)
     db.commit()
-    db.refresh(db_review)
-    return db_review
+    db.refresh(obj)
+    return obj
 
-
-def update_review(
-    db: Session, review_id: int, review_update: ReviewUpdate
-) -> Optional[Review]:
-    db_review = db.query(Review).filter(Review.id == review_id).first()
-    if not db_review:
+def update_review(db: Session, review_id: int, data: ReviewUpdate):
+    obj = db.query(m.Review).filter(m.Review.id == review_id).first()
+    if not obj:
         return None
-
-    update_data = review_update.dict(exclude_unset=True)
-    for field, value in update_data.items():
-        setattr(db_review, field, value)
-
+    for key, value in data.dict(exclude_unset=True).items():
+        setattr(obj, key, value)
     db.commit()
-    db.refresh(db_review)
-    return db_review
+    db.refresh(obj)
+    return obj
 
-
-def delete_review(db: Session, review_id: int) -> bool:
-    db_review = db.query(Review).filter(Review.id == review_id).first()
-    if not db_review:
+def delete_review(db: Session, review_id: int):
+    obj = db.query(m.Review).filter(m.Review.id == review_id).first()
+    if not obj:
         return False
-    db.delete(db_review)
+    db.delete(obj)
     db.commit()
     return True
 
-
-# ================ Price History CRUD ================
-def get_price_history(
-    db: Session, car_id: int, skip: int = 0, limit: int = 100
-) -> List[PriceHistory]:
-    return (
-        db.query(PriceHistory)
-        .filter(PriceHistory.car_id == car_id)
-        .order_by(PriceHistory.change_date.desc())
-        .offset(skip)
-        .limit(limit)
-        .all()
-    )
-
-
-def create_price_history(db: Session, car_id: int, price: float) -> PriceHistory:
-    db_price_history = PriceHistory(
-        car_id=car_id, price=price, change_date=datetime.now()
-    )
-    db.add(db_price_history)
+# ================ Message CRUD ================
+def create_message(db: Session, msg: MessageCreate):
+    obj = m.Message(**msg.dict())
+    db.add(obj)
     db.commit()
-    db.refresh(db_price_history)
-    return db_price_history
+    db.refresh(obj)
+    return obj
 
+def get_messages(db: Session, user_id: int):
+    return db.query(m.Message).filter((m.Message.sender_id == user_id) | (m.Message.receiver_id == user_id)).all()
 
-# ================ Car Image CRUD ================
-def get_car_images(
-    db: Session, car_id: int, skip: int = 0, limit: int = 100
-) -> List[CarImage]:
-    return (
-        db.query(CarImage)
-        .filter(CarImage.car_id == car_id)
-        .offset(skip)
-        .limit(limit)
-        .all()
-    )
-
-
-def create_car_image(db: Session, car_image: CarImageCreate) -> CarImage:
-    db_car_image = CarImage(**car_image.dict())
-    db.add(db_car_image)
+def delete_message(db: Session, message_id: int):
+    obj = db.query(m.Message).filter(m.Message.id == message_id).first()
+    if not obj:
+        return False
+    db.delete(obj)
     db.commit()
-    db.refresh(db_car_image)
-    return db_car_image
+    return True
 
+# ================ Favorite CRUD ================
+def create_favorite(db: Session, fav: FavoriteCreate):
+    obj = m.Favorite(**fav.dict())
+    db.add(obj)
+    db.commit()
+    db.refresh(obj)
+    return obj
+
+def get_user_favorites(db: Session, user_id: int, params: Params):
+    q = db.query(m.Favorite).filter(m.Favorite.user_id == user_id)
+    return paginate(q, params)
+
+def delete_favorite(db: Session, user_id: int, car_id: int):
+    obj = db.query(m.Favorite).filter(m.Favorite.user_id == user_id, m.Favorite.car_id == car_id).first()
+    if not obj:
+        return False
+    db.delete(obj)
+    db.commit()
+    return True
+
+# ================ CarImage CRUD ================
+def add_car_image(db: Session, image: CarImageCreate):
+    obj = m.CarImage(**image.dict())
+    db.add(obj)
+    db.commit()
+    db.refresh(obj)
+    return obj
+
+def get_car_images(db: Session, car_id: int):
+    return db.query(m.CarImage).filter(m.CarImage.car_id == car_id).all()
 
 def delete_car_image(db: Session, image_id: int) -> bool:
-    db_car_image = db.query(CarImage).filter(CarImage.id == image_id).first()
-    if not db_car_image:
+    image = db.query(m.CarImage).filter(m.CarImage.id == image_id).first()
+    if not image:
         return False
-    db.delete(db_car_image)
+
+    # Удаляем файл
+    if image.image_url:
+        try:
+            # Преобразуем URL в путь
+            filename = image.image_url
+            if filename.exists():
+                filename.unlink()
+        except Exception as e:
+            print(f"Ошибка при удалении файла изображения: {e}")
+
+    # Удаляем из базы
+    db.delete(image)
+    db.commit()
+    return True
+
+# ================ SavedSearch CRUD ================
+def get_saved_searches(db: Session, user_id: int):
+    return db.query(m.SavedSearch).filter(m.SavedSearch.user_id == user_id).all()
+
+def create_saved_search(db: Session, data: SavedSearchCreate):
+    obj = m.SavedSearch(**data.dict())
+    db.add(obj)
+    db.commit()
+    db.refresh(obj)
+    return obj
+
+def delete_saved_search(db: Session, search_id: int):
+    obj = db.query(m.SavedSearch).filter(m.SavedSearch.id == search_id).first()
+    if not obj:
+        return False
+    db.delete(obj)
+    db.commit()
+    return True
+
+# ================ AdModeration CRUD ================
+def get_ad_moderation(db: Session, car_id: int):
+    return db.query(m.AdModeration).filter(m.AdModeration.car_id == car_id).first()
+
+def create_ad_moderation(db: Session, entry: AdModerationCreate):
+    obj = m.AdModeration(**entry.dict())
+    db.add(obj)
+    db.commit()
+    db.refresh(obj)
+    return obj
+
+def update_ad_moderation(db: Session, moderation_id: int, data: AdModerationUpdate):
+    obj = db.query(m.AdModeration).filter(m.AdModeration.id == moderation_id).first()
+    if not obj:
+        return None
+    for key, value in data.dict(exclude_unset=True).items():
+        setattr(obj, key, value)
+    db.commit()
+    db.refresh(obj)
+    return obj
+
+def delete_ad_moderation(db: Session, moderation_id: int):
+    obj = db.query(m.AdModeration).filter(m.AdModeration.id == moderation_id).first()
+    if not obj:
+        return False
+    db.delete(obj)
     db.commit()
     return True
