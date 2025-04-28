@@ -81,6 +81,7 @@ class User(Base):
     registration_date = Column(DateTime, server_default=func.now(), nullable=False)
     avatar_url = Column(Text, nullable=True)
     is_admin = Column(Boolean, default=False, nullable=False)
+    rating = Column(Float, CheckConstraint("rating >= 0 AND rating <= 5"), nullable=False, default=0)
 
     cars = relationship("Car", back_populates="user", cascade="all, delete")
     favorites = relationship("Favorite", backref="user", cascade="all, delete-orphan")

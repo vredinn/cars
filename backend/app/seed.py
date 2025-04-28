@@ -46,9 +46,11 @@ def seed_data(session: Session):
     # Users
     users = [
         User(name="Админ", email="admin@example.com", phone="+79990001122",
-            password=pwd_context.hash("admin123" + settings.SALT), is_admin=True),
+            password=pwd_context.hash("admin123" + settings.SALT), is_admin=True,
+            rating=random.uniform(0, 5)),
         User(name="Обычный", email="user@example.com", phone="+79998887766",
-            password=pwd_context.hash("user123" + settings.SALT))
+            password=pwd_context.hash("user123" + settings.SALT),
+            rating=random.uniform(0, 5))
     ]
     # Добавим ещё пользователей
     for i in range(3):
@@ -56,7 +58,8 @@ def seed_data(session: Session):
             name=faker.name(),
             email=faker.email(),
             phone=faker.phone_number(),
-            password=pwd_context.hash("pass" + settings.SALT)
+            password=pwd_context.hash("pass" + settings.SALT),
+            rating=random.uniform(0, 5)
         ))
     session.add_all(users)
 

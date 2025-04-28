@@ -5,8 +5,7 @@ from fastapi_pagination import add_pagination
 import os
 
 from endpoints import (
-    user, brand, car, review, message, favorite,
-    car_image, saved_search, moderation, enum, auth
+    user, moderation, auth, brand, car, review, message, favorite, car_image, saved_search, enum
 )
 
 def create_app():
