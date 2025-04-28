@@ -29,7 +29,6 @@ services:
       - backend
     volumes:
       - ./frontend:/app
-      - ./frontend/src/style.css:/app/src/style.css
       - /app/node_modules
     networks:
       - app_network
