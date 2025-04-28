@@ -64,7 +64,7 @@ def seed_data(session: Session):
     bmw = Brand(name="BMW", image_url="brand_logos/bmw.png")
     audi = Brand(name="Audi", image_url="brand_logos/audi.png")
     volkswagen = Brand(name="Volkswagen", image_url="brand_logos/volkswagen.png")
-    ford = Brand(name="Ford", image_url="brand_logos/frod.png")
+    ford = Brand(name="Ford", image_url="brand_logos/ford.png")
     peugeot = Brand(name="Peugeot", image_url="brand_logos/peugeot.png")
     session.add_all([toyota, bmw, audi, volkswagen, ford, peugeot])
 

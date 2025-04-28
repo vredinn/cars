@@ -31,7 +31,7 @@
 
     <!-- Популярные объявления -->
     <section class="py-20 container mx-auto px-4 bg-white relative">
-      <h2 class="text-3xl font-bold text-center mb-10 ">Популярные объявления</h2>
+      <h2 class="text-3xl font-bold text-center mb-10 text-black">Популярные объявления</h2>
 
       <!-- Обертка слайдера -->
       <div class="relative overflow-hidden bg-neutral rounded-box py-4">
@@ -140,15 +140,111 @@
         </div>
       </div>
     </section>
+    <section class="py-20 container mx-auto px-4 bg-white text-black">
+    <h2 class="text-3xl font-bold text-center mb-10">Популярные продавцы</h2>
+    
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+      <!-- Карточка продавца 1 -->
+      <div class="card bg-white shadow-md h-[400px] w-full mx-auto">
+        <figure class="h-[306px] overflow-hidden">
+          <img 
+            src="/src/assets/sellers/Muhamed.png" 
+            alt="Мухаммед"
+            class="w-full h-full object-cover"
+          >
+        </figure>
+        <div class="card-body p-4 text-center">
+          <h3 class="card-title text-lg">Мухаммед</h3>
+          <div class="rating rating-sm justify-center my-2">
+            <input type="radio" name="rating-1" class="mask mask-star-2 bg-orange-400" checked disabled/>
+            <input type="radio" name="rating-1" class="mask mask-star-2 bg-orange-400" checked disabled/>
+            <input type="radio" name="rating-1" class="mask mask-star-2 bg-orange-400" checked disabled/>
+            <input type="radio" name="rating-1" class="mask mask-star-2 bg-orange-400" checked disabled />
+            <input type="radio" name="rating-1" class="mask mask-star-2 bg-orange-400" checked disabled/>
+          </div>
+          <button class="btn btn-outline btn-sm mt-2">Подробнее</button>
+        </div>
+      </div>
+      
+      <!-- Карточка продавца 2 -->
+      <div class="card bg-white shadow-md h-[400px] w-full mx-auto">
+        <figure class="h-[306px] overflow-hidden">
+          <img 
+            src="/src/assets/sellers/Dmitry.jpg" 
+            alt="Дмитрий"
+            class="w-full h-full object-cover"
+          >
+        </figure>
+        <div class="card-body p-4 text-center">
+          <h3 class="card-title text-lg">Дмитрий</h3>
+          <div class="rating rating-sm justify-center my-2">
+            <input type="radio" name="rating-2" class="mask mask-star-2 bg-orange-400" checked disabled />
+            <input type="radio" name="rating-2" class="mask mask-star-2 bg-orange-400" checked disabled />
+            <input type="radio" name="rating-2" class="mask mask-star-2 bg-orange-400" checked disabled />
+            <input type="radio" name="rating-2" class="mask mask-star-2 bg-orange-400" checked disabled />
+            <input type="radio" name="rating-2" class="mask mask-star-2 bg-orange-400" checked disabled/>
+          </div>
+          <button class="btn btn-outline btn-sm mt-2">Подробнее</button>
+        </div>
+      </div>
+      
+      <!-- Карточка продавца 3 -->
+      <div class="card bg-white shadow-md h-[400px] w-full mx-auto">
+        <figure class="h-[306px] overflow-hidden">
+          <img 
+            src="/src/assets/sellers/Kiril.jpg" 
+            alt="Кирилл"
+            class="w-full h-full object-cover"
+          >
+        </figure>
+        <div class="card-body p-4 text-center">
+          <h3 class="card-title text-lg">Кирилл</h3>
+          <div class="rating rating-sm justify-center my-2">
+            <input type="radio" name="rating-3" class="mask mask-star-2 bg-orange-400" checked disabled />
+            <input type="radio" name="rating-3" class="mask mask-star-2 bg-orange-400" checked disabled />
+            <input type="radio" name="rating-3" class="mask mask-star-2 bg-orange-400" checked disabled />
+            <input type="radio" name="rating-3" class="mask mask-star-2 bg-orange-400" checked disabled/>
+            <input type="radio" name="rating-3" class="mask mask-star-2 bg-orange-400" checked disabled/>
+          </div>
+          <button class="btn btn-outline btn-sm mt-2">Подробнее</button>
+        </div>
+      </div>
+      
+      <!-- Карточка продавца 4 -->
+      <div class="card bg-white shadow-md h-[400px] w-full mx-auto">
+        <figure class="h-[306px] overflow-hidden">
+          <img 
+            src="/src/assets/sellers/Andrey.jpg" 
+            alt="Андрей"
+            class="w-full h-full object-cover"
+          >
+        </figure>
+        <div class="card-body p-4 text-center">
+          <h3 class="card-title text-lg">Андрей</h3>
+          <div class="rating rating-sm justify-center my-2">
+            <input type="radio" name="rating-4" class="mask mask-star-2 bg-orange-400" checked disabled />
+            <input type="radio" name="rating-4" class="mask mask-star-2 bg-orange-400" checked disabled />
+            <input type="radio" name="rating-4" class="mask mask-star-2 bg-orange-400" checked disabled />
+            <input type="radio" name="rating-4" class="mask mask-star-2 bg-orange-400" checked disabled />
+            <input type="radio" name="rating-4" class="mask mask-star-2 bg-orange-400" checked disabled />
+          </div>
+          <button class="btn btn-outline btn-sm mt-2">Подробнее</button>
+        </div>
+      </div>
+    </div>
+  </section>
+    <Footer />
   </div>
 </template>
 
 <script>
 import HeroSection from '@/components/HeroSection.vue'
+import footer from '../components/footer.vue'
+import Footer from '../components/footer.vue'
 
 export default {
   name: 'HomeView',
-  components: { HeroSection },
+  components: { HeroSection, Footer},
   data() {
     return {
       brands: [],
@@ -293,7 +389,7 @@ export default {
     /* Уменьшаем текст на мобилках */
   }
 
-  /* карточки автомобилей */
+  /* карточки автомобилей 
   .card {
     width: 136px !important;
     height: 245.75px !important;
@@ -309,7 +405,7 @@ export default {
 
   .card-title {
     font-size: 0.875rem !important;
-  }
+  }*/
 
   .text-sm {
     font-size: 0.75rem !important;
@@ -358,7 +454,21 @@ export default {
     margin-bottom: 2rem;
   }
 }
-
+@media (max-width: 768px) {
+  .card {
+    height: 306px !important;
+  }
+  figure {
+    height: 300px !important;
+  }
+  .card-title {
+    font-size: 1rem !important;
+  }
+  .btn-sm {
+    padding: 0.25rem 0.5rem !important;
+    font-size: 0.75rem !important;
+  }
+}
 /* Плавные переходы */
 .transition-transform {
   transition-property: transform;

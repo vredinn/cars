@@ -1,9 +1,9 @@
 <template>
   <!-- Прозрачный хедер -->
   <header class="navbar px-8 py-4 bg-transparent absolute top-0 w-full z-10">
-    <div class="flex-1">
-      <img src="/src/assets/logo_White.svg" alt="СагРivot" class="h-10">
-
+    <div class="flex-1 ">
+      <img src="/src/assets/logo_White.svg" alt="СагРivot" class="h-10" >
+      
     </div>
     <nav class="flex-none hidden lg:flex">
       <ul class="menu menu-horizontal space-x-2 text-white">
