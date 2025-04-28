@@ -4,7 +4,7 @@ from decimal import Decimal
 from uuid import UUID
 from pydantic import BaseModel, EmailStr, Field
 
-from .car_scheme import CarWithImages
+from .car_scheme import Car
 
 # ================ AdModeration ================
 class AdModeration(BaseModel):
@@ -13,7 +13,7 @@ class AdModeration(BaseModel):
     status: str
     moderator_comment: Optional[str]
     moderation_date: datetime
-    car: CarWithImages
+    car: Car
 
     class Config:
         from_attributes = True
