@@ -1,10 +1,20 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
+from pathlib import Path
+import io
 
 from database import get_db
 from schemas import Brand, BrandCreate
 import crud
+
+ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png"]
+MAX_IMAGE_SIZE = 20 * 1024 * 1024  # 20MB
+BRANDS_DIR = Path("brand_logos/")
+CAR_IMAGE_WIDTH = 416 * 3
+CAR_IMAGE_HEIGHT = 215 * 3
+
+BRANDS_DIR.mkdir(parents=True, exist_ok=True)
 
 router = APIRouter(prefix="/brands", tags=["Brands"])
 

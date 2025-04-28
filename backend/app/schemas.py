@@ -18,12 +18,12 @@ BodyTypeEnum = Literal[
 
 # ================ User Schemas ================
 class UserBase(BaseModel):
+    uuid: UUID
     name: str
     email: EmailStr
     phone: str
 
 class UserWithImage(UserBase):
-    uuid: UUID
     avatar_url: Optional[str]
 
     class Config:
@@ -42,7 +42,6 @@ class User(UserWithImage):
 
 
 class UserMinimal(BaseModel):
-    uuid: UUID
     name: str
     avatar_url: Optional[str]
 
@@ -90,6 +89,7 @@ class CarModelCreate(BaseModel):
 
 # ================ Car ================
 class CarBase(BaseModel):
+    uuid: UUID
     year: int = Field(..., ge=1900, le=datetime.now().year + 1)
     price: Decimal = Field(..., max_digits=12, decimal_places=2)
     description: Optional[str] = Field(None, max_length=2000)
@@ -194,31 +194,7 @@ class CarDetailed(CarWithImages):
     brand: Brand
     model: CarModel
 
-class CarCard(BaseModel):
-    id: int
-    uuid: UUID
-    year: int
-    price: Decimal
-    description: Optional[str]
-
-    body_type: BodyTypeEnum
-    drive_type: DriveTypeEnum
-    transmission: TransmissionEnum
-    fuel_type: FuelTypeEnum
-    steering_side: SteeringSideEnum
-    car_condition: CarConditionEnum
-
-    engine_capacity: float
-    engine_power: int
-    is_sold: bool
-    mileage: int
-    color: str
-    listing_date: datetime
-    latitude: float
-    longitude: float
-
-    brand_name: str
-    model_name: str
+class CarCard(CarBase):
 
     preview_image_url: Optional[str]  # первое изображение машины
 

@@ -179,8 +179,6 @@ def get_car_cards_query(db: Session):
     return (
         db.query(m.Car)
         .options(
-            selectinload(m.Car.brand),
-            selectinload(m.Car.model),
             selectinload(m.Car.images)
         )
         .order_by(m.Car.listing_date.desc()).all()  

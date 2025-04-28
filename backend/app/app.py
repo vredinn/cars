@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi_pagination import add_pagination
 import os
 
@@ -10,6 +11,15 @@ from endpoints import (
 
 def create_app():
     app = FastAPI(title="Car Ads API")
+
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],  # Разрешить всем (для разработки)
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
     app.include_router(user.router)
     app.include_router(brand.router)
     app.include_router(car.router)
@@ -23,8 +33,10 @@ def create_app():
     app.include_router(auth.router)
 
     # статика
-    app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
-    os.makedirs("uploads", exist_ok=True)
+    app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")    
+    app.mount("/brand_logos", StaticFiles(directory="brand_logos"), name="brand_logos")
+    os.makedirs("uploads", exist_ok=True)    
+    os.makedirs("brand_logos", exist_ok=True)
     
 
     add_pagination(app) 

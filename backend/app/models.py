@@ -144,13 +144,6 @@ class Car(Base):
     favorites = relationship("Favorite", backref="car", cascade="all, delete-orphan")
     messages = relationship("Message", backref="car", cascade="all, delete-orphan")
     moderation = relationship("AdModeration", backref="car", uselist=False, cascade="all, delete-orphan")
-    @property
-    def brand_name(self):
-        return self.brand.name if self.brand else ""
-
-    @property
-    def model_name(self):
-        return self.model.name if self.model else ""
 
     @property
     def preview_image_url(self):
