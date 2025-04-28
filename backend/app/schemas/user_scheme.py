@@ -33,6 +33,7 @@ class User(UserWithImage):
 
 
 class UserMinimal(BaseModel):
+    uuid: UUID
     name: str
     avatar_url: Optional[str]
 

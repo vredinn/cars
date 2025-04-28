@@ -1,18 +1,29 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import SQLAlchemyError
 from fastapi_pagination import Page, Params, paginate
-from typing import Optional
+from typing import Dict, Optional
 
 from database import get_db
 from schemas import Car, CarCard, CarCreate, CarUpdate, CarDetailed
 import crud
+from enum import Enum
+
+# Модели Enum
+from models import DriveTypeEnum, TransmissionEnum, FuelTypeEnum, SteeringSideEnum, CarConditionEnum, BodyTypeEnum
 
 router = APIRouter(prefix="/cars", tags=["Cars"])
 
-@router.get("/", response_model=Page[Car])
+def get_enum_value(enum_class: Enum, value: str) -> Enum:
+    try:
+        return enum_class(value)
+    except ValueError:
+        raise HTTPException(status_code=400, detail=f"Неверное значение для {enum_class.__name__}: {value}")
+
+@router.get("/", response_model=Page[CarCard])
 def get_all_cars(
     db: Session = Depends(get_db),
-    params: Params = Depends(),  # ✅ обязательно
+    params: Params = Depends(),
     brand_id: Optional[int] = None,
     model_id: Optional[int] = None,
     min_price: Optional[float] = None,
@@ -40,6 +51,29 @@ def get_all_cars(
     sort_by: Optional[str] = None,
     sort_order: Optional[str] = "desc"
 ):
+    filters = build_filters(
+        brand_id, model_id, min_price, max_price, min_year, max_year,
+        min_mileage, max_mileage, min_engine_capacity, max_engine_capacity,
+        min_engine_power, max_engine_power, min_latitude, max_latitude,
+        min_longitude, max_longitude, color, drive_type, transmission,
+        fuel_type, steering_side, car_condition, is_sold, body_type
+    )
+
+    # Удаляем фильтры со значением None
+    filters = {k: v for k, v in filters.items() if v is not None}
+
+    try:
+        return crud.get_all_cars_paginated(db, filters, sort_by, sort_order, params=params)
+    except SQLAlchemyError as e:
+        raise HTTPException(status_code=500, detail="Database error: " + str(e))
+
+def build_filters(
+    brand_id, model_id, min_price, max_price, min_year, max_year,
+    min_mileage, max_mileage, min_engine_capacity, max_engine_capacity,
+    min_engine_power, max_engine_power, min_latitude, max_latitude,
+    min_longitude, max_longitude, color, drive_type, transmission,
+    fuel_type, steering_side, car_condition, is_sold, body_type
+) -> Dict:
     filters = {
         "brand_id": brand_id,
         "model_id": model_id,
@@ -47,38 +81,39 @@ def get_all_cars(
         "body_type": body_type,
     }
 
-    # Фильтры с диапазонами
-    if min_price is not None or max_price is not None:
-        filters["price"] = (min_price, max_price)
-    if min_year is not None or max_year is not None:
-        filters["year"] = (min_year, max_year)
-    if min_mileage is not None or max_mileage is not None:
-        filters["mileage"] = (min_mileage, max_mileage)
-    if min_engine_capacity is not None or max_engine_capacity is not None:
-        filters["engine_capacity"] = (min_engine_capacity, max_engine_capacity)
-    if min_engine_power is not None or max_engine_power is not None:
-        filters["engine_power"] = (min_engine_power, max_engine_power)
-    if min_latitude is not None or max_latitude is not None:
-        filters["latitude"] = (min_latitude, max_latitude)
-    if min_longitude is not None or max_longitude is not None:
-        filters["longitude"] = (min_longitude, max_longitude)
-    # Фильтры с точными значениями
-    if color is not None:
-        filters["color"] = color
-    if drive_type is not None:  
-        filters["drive_type"] = drive_type
-    if transmission is not None:
-        filters["transmission"] = transmission
-    if fuel_type is not None:
-        filters["fuel_type"] = fuel_type
-    if steering_side is not None:
-        filters["steering_side"] = steering_side
-    if car_condition is not None:
-        filters["car_condition"] = car_condition
-    # Удаляем фильтры со значением None
+    # Добавляем фильтры с диапазонами
+    add_range_filter(filters, "price", min_price, max_price)
+    add_range_filter(filters, "year", min_year, max_year)
+    add_range_filter(filters, "mileage", min_mileage, max_mileage)
+    add_range_filter(filters, "engine_capacity", min_engine_capacity, max_engine_capacity)
+    add_range_filter(filters, "engine_power", min_engine_power, max_engine_power)
+    add_range_filter(filters, "latitude", min_latitude, max_latitude)
+    add_range_filter(filters, "longitude", min_longitude, max_longitude)
 
-    filters = {k: v for k, v in filters.items() if v is not None}
-    return crud.get_all_cars_paginated(db, filters, sort_by, sort_order, params=params)
+    # Добавляем точные фильтры с Enum-переводом
+    if drive_type:
+        filters["drive_type"] = get_enum_value(DriveTypeEnum, drive_type)
+    if transmission:
+        filters["transmission"] = get_enum_value(TransmissionEnum, transmission)
+    if fuel_type:
+        filters["fuel_type"] = get_enum_value(FuelTypeEnum, fuel_type)
+    if steering_side:
+        filters["steering_side"] = get_enum_value(SteeringSideEnum, steering_side)
+    if car_condition:
+        filters["car_condition"] = get_enum_value(CarConditionEnum, car_condition)
+
+    # Добавляем точные фильтры для строковых значений
+    add_exact_filter(filters, "color", color)
+
+    return filters
+
+def add_range_filter(filters, field, min_value, max_value):
+    if min_value is not None or max_value is not None:
+        filters[field] = (min_value, max_value)
+
+def add_exact_filter(filters, field, value):
+    if value is not None:
+        filters[field] = value
 
 @router.get("/cards", response_model=Page[CarCard])
 def get_car_cards(params: Params = Depends(), db: Session = Depends(get_db)):

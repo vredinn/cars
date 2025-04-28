@@ -12,7 +12,6 @@ from .price_history_scheme import *
 from .review_scheme import *
 # ================ Car ================
 class CarBase(BaseModel):
-    uuid: UUID
     year: int = Field(..., ge=1900, le=datetime.now().year + 1)
     price: Decimal = Field(..., max_digits=12, decimal_places=2)
     description: Optional[str] = Field(None, max_length=2000)
@@ -55,6 +54,7 @@ class CarUpdate(BaseModel):
     is_sold: Optional[bool] = None
 
 class Car(CarBase):
+    uuid: UUID
     id: int
     user_id: int
     is_sold: bool
@@ -63,17 +63,13 @@ class Car(CarBase):
     class Config:
         from_attributes = True
 
-class CarWithImages(Car):
+class CarDetailed(Car):
     images: List[CarImage]
-
-class CarDetailed(CarWithImages):
+    user: UserMinimal
     price_history: List[PriceHistory]
     reviews: List[ReviewDetailed]
-    user: UserMinimal
-    brand: Brand
-    model: CarModel
 
-class CarCard(CarBase):
+class CarCard(Car):
 
     preview_image_url: Optional[str]  # первое изображение машины
 
