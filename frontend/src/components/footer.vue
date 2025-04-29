@@ -9,19 +9,7 @@
             <img src="/src/assets/logo_White.svg" alt="CarPivot" class="h-10">
           </div>
           
-          <!-- Форма подписки -->
-          <div class="w-full md:w-auto">
-            <div class="join">
-              <input 
-                type="email" 
-                placeholder="Ваш Email адрес" 
-                class="input input-bordered join-item w-full md:w-64 bg-neutral border-primary text-white"
-              >
-              <button class="btn btn-primary join-item">
-                Отправить
-              </button>
-            </div>
-          </div>
+         
         </div>
         
         <!-- Разделительная линия -->
@@ -73,8 +61,6 @@
       width: 100% !important;
     }
     
-    .join-item:first-child {
-      margin-bottom: 0.5rem;
-    }
+    
   }
   </style>

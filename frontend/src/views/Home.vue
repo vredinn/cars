@@ -44,15 +44,20 @@
               <p class="text-sm">{{ car.specs }}</p>
               <div class="flex flex-wrap gap-2 my-2">
                 
-                <div class="badge badge-outline border-gray-300 text-gray-800">{{ car.car_condition }}</div>
-                <div class="badge badge-outline border-gray-300 text-gray-800">{{ car.mileage }}</div>
-                <div class="badge badge-outline border-gray-300 text-gray-800">{{ car.fuel_type }}</div>
-                <div class="badge badge-outline border-gray-300 text-gray-800">{{ car.transmission }}</div>
-                <div class="badge badge-outline border-gray-300 text-gray-800">{{ car.engine_power }} л.с.</div>
+                <div class="badge badge-outline border-gray-300 ">{{ car.car_condition }}</div>
+                <div class="badge badge-outline border-gray-300 ">{{ car.mileage }}</div>
+                <div class="badge badge-outline border-gray-300 ">{{ car.fuel_type }}</div>
+                <div class="badge badge-outline border-gray-300 ">{{ car.transmission }}</div>
+                <div class="badge badge-outline border-gray-300 ">{{ car.engine_power }} л.с.</div>
               </div>
               <div class="card-actions justify-between items-center mt-auto">
                 <span class="text-xl font-bold">{{ car.price }} руб.</span>
-                <button class="btn btn-sm bg-black text-white hover:bg-gray-800">Подробнее</button>
+                <router-link 
+  :to="`/car/${car.uuid}`" 
+  class="btn btn-sm bg-black text-white hover:bg-gray-800"
+>
+  Подробнее
+</router-link>
               </div>
             </div>
           </div>
