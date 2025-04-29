@@ -1,6 +1,5 @@
 <template>
-  <div id="app" class="bg-white">
-    <Header />
+  <div id="app" class="">
     <main>
       <router-view />
     </main>

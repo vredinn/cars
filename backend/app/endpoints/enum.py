@@ -16,16 +16,16 @@ def get_car_conditions():
 
 @router.get("/drive-types", response_model=list[str])
 def get_drive_types():
-    return [d.value for d in DriveTypeEnum]
+    return list(DriveTypeEnum.__args__)
 
 @router.get("/transmissions", response_model=list[str])
 def get_transmissions():
-    return [t.value for t in TransmissionEnum]
+    return list(TransmissionEnum.__args__)
 
 @router.get("/fuel-types", response_model=list[str])
 def get_fuel_types():
-    return [f.value for f in FuelTypeEnum]
+    return list(FuelTypeEnum.__args__)
 
 @router.get("/steering-sides", response_model=list[str])
 def get_steering_sides():
-    return [s.value for s in SteeringSideEnum]
+    return list(SteeringSideEnum.__args__)
