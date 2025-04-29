@@ -3,6 +3,7 @@
     <!-- Фоновое изображение -->
     <div class="hero-bg absolute inset-0 bg-cover bg-center" :style="{ backgroundImage: 'url(/src/assets/i.webp)' }">
     </div>
+    
 
 
 
@@ -14,6 +15,7 @@
           быстро и удобно!</p>
         <h2 class="text-5xl font-bold ">Найдите свой идеальный автомобиль</h2>
       </div>
+      
 
       <!-- Поисковая форма -->
       <div class="container mx-auto py-8">
@@ -47,51 +49,9 @@
       </div>
 
     </div>
+    <div class="absolute bottom-0 left-0 w-full h-[200px] 
+              bg-gradient-to-b from-transparent from-50% to-base-100 to-100%
+              rounded-t-[50px] z-[1] pointer-events-none">
+  </div>
   </section>
 </template>
-
-<script>
-export default {
-  name: 'HeroSection'
-}
-</script>
-
-<style scoped>
-.hero-bg {
-  z-index: 0;
-}
-
-/* Градиент внизу для плавного перехода к следующей секции */
-.hero::after {
-  border-radius: 50px 50px 0 0;
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 150px;
-  background: linear-gradient(to bottom, transparent 50%, white 100%);
-  z-index: 1;
-}
-
-/* Адаптация для мобильных */
-@media (max-width: 768px) {
-  .hero {
-    min-height: 90vh;
-  }
-
-  .hero-content {
-    padding-top: 6rem;
-    padding-bottom: 4rem;
-  }
-
-  .flex-col.md\:flex-row {
-    flex-direction: column;
-  }
-
-  .select,
-  .btn {
-    width: 100%;
-  }
-}
-</style>
