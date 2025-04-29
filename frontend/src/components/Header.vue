@@ -1,8 +1,8 @@
 <template>
   <!-- Фиксированный хедер с прозрачностью -->
-  <header class="navbar px-8 py-4 w-full z-50 border-b border-base-200/10 bg-transparent">
+  <header class="container mx-auto navbar px-4 w-full p-0">
     <div class="flex-1">
-      <div class="h-10">
+      <div class="h-8">
         <img src="/src/assets/logo_White.svg" 
             alt="Logo"
             class="h-full dark:block hidden">
