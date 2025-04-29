@@ -27,7 +27,7 @@
     <div class="flex-none hidden lg:flex space-x-2">
       <button class="btn btn-ghost hover:bg-white/10 flex items-center">
   <!-- Для темной темы - белая иконка -->
-        <img src="/src/assets/avatar.png" 
+        <img src="/src/assets/avatar.svg" 
             class="h-3 w-3 mr-1 dark:block hidden" 
             alt="Вход">    
         <!-- Для светлой темы - черная иконка -->
