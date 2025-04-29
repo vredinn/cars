@@ -149,6 +149,13 @@ class Car(Base):
     @property
     def preview_image_url(self):
         return self.images[0].image_url if self.images else None
+    
+    @property
+    def brand_name(self):
+        return self.brand.name if self.brand else None
+    @property
+    def model_name(self):
+        return self.model.name if self.model else None
 
 class Favorite(Base):
     __tablename__ = "favorites"

@@ -1,9 +1,10 @@
+from datetime import datetime, timezone
 from typing import Optional
 from sqlalchemy.orm import Session, selectinload
-from uuid import uuid4
+from uuid import UUID, uuid4
 from fastapi_pagination.ext.sqlalchemy import paginate
 from fastapi_pagination import Params
-from sqlalchemy import and_, asc, desc
+from sqlalchemy import and_, asc, desc, func
 from pathlib import Path
 
 import models as m
@@ -14,6 +15,9 @@ from schemas import (
 # ================ Car CRUD ================
 def get_car(db: Session, car_id: int):
     return db.query(m.Car).options(selectinload(m.Car.images)).filter(m.Car.id == car_id).first()
+
+def get_car_by_uuid(db: Session, car_uuid: UUID):
+    return db.query(m.Car).options(selectinload(m.Car.images)).filter(m.Car.uuid == car_uuid).first()
 
 def get_all_cars_paginated(
     db: Session,
@@ -65,10 +69,25 @@ def update_car(db: Session, car_id: int, car: CarUpdate):
     obj = db.query(m.Car).filter(m.Car.id == car_id).first()
     if not obj:
         return None
-    for key, value in car.dict(exclude_unset=True).items():
+
+    old_price = obj.price  # 🔥 Сохраняем старую цену
+
+    for key, value in car.model_dump(exclude_unset=True).items():
         setattr(obj, key, value)
+
     db.commit()
     db.refresh(obj)
+
+    # 🔥 Если цена изменилась — добавляем запись в PriceHistory
+    if 'price' in car.model_dump(exclude_unset=True) and obj.price != old_price:
+        price_history = m.PriceHistory(
+            car_id=obj.id,
+            price=obj.price,
+            change_date=datetime.now(timezone.utc)
+        )
+        db.add(price_history)
+        db.commit()
+
     return obj
 
 def delete_car(db: Session, car_id: int):
@@ -78,3 +97,22 @@ def delete_car(db: Session, car_id: int):
     db.delete(obj)
     db.commit()
     return True
+
+def get_most_popular_cars(db: Session, limit: int = 10):
+    subquery = (
+        db.query(
+            m.Favorite.car_id,
+            func.count(m.Favorite.id).label("fav_count")
+        )
+        .group_by(m.Favorite.car_id)
+        .subquery()
+    )
+
+    query = (
+        db.query(m.Car)
+        .join(subquery, m.Car.id == subquery.c.car_id)
+        .order_by(subquery.c.fav_count.desc())
+        .limit(limit)
+    )
+
+    return query.all()

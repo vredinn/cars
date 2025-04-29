@@ -65,13 +65,14 @@ class Car(CarBase):
 
 class CarDetailed(Car):
     images: List[CarImage]
-    user: UserMinimal
-    price_history: List[PriceHistory]
-    reviews: List[ReviewDetailed]
+    user: User
+    price_history: List[PriceHistoryBase]
 
 class CarCard(Car):
 
     preview_image_url: Optional[str]  # первое изображение машины
+    brand_name: str
+    model_name: str
 
     class Config:
         from_attributes = True

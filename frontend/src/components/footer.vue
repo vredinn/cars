@@ -1,5 +1,5 @@
 <template>
-    <footer class="bg-gray-900 text-white py-10">
+    <footer class="bg-neutral text-white py-10">
       <!-- Основное содержимое футера -->
       <div class="container mx-auto px-4">
         <!-- Верхняя часть с лого и формой -->
@@ -15,7 +15,7 @@
               <input 
                 type="email" 
                 placeholder="Ваш Email адрес" 
-                class="input input-bordered join-item w-full md:w-64 bg-gray-800 border-gray-700 text-white"
+                class="input input-bordered join-item w-full md:w-64 bg-neutral border-primary text-white"
               >
               <button class="btn btn-primary join-item">
                 Отправить

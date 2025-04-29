@@ -21,7 +21,7 @@
         <div v-for="brand in brands" :key="brand.id" class="flex flex-col items-center">
           <div
             class="w-full aspect-square rounded-full bg-white flex flex-col items-center justify-center p-4 hover:shadow-lg transition-all shadow-md">
-            <img :src="`http://127.0.0.1:8000/${brand.image_url}`" :alt="brand.name" class="w-1/2 h-auto mb-2">
+            <img :src="`http://192.168.0.101:8000/${brand.image_url}`" :alt="brand.name" class="w-1/2 h-auto mb-2">
             <span class="text-sm font-medium text-center text-black">{{ brand.name }}</span>
           </div>
         </div>
@@ -33,47 +33,46 @@
     <section class="py-20 container mx-auto px-4 bg-white relative">
       <h2 class="text-3xl font-bold text-center mb-10 text-black">Популярные объявления</h2>
 
-      <!-- Обертка слайдера -->
-      <div class="relative overflow-hidden bg-neutral rounded-box py-4">
-        <!-- Контейнер карточек -->
-        <div class="flex transition-transform duration-500 ease-in-out"
-          :style="{ transform: `translateX(-${currentSlide * (100 / visibleCards)}%)` }" ref="slider">
-          <!-- Карточки автомобилей -->
-          <div v-for="(car, index) in popularCars" :key="index" class="flex-shrink-0 px-3"
-            :style="{ width: `${100 / visibleCards}%` }">
-            <div class="card bg-white border border-gray-300 h-[400px] w-[306px] mx-auto">
-              <figure class="h-[200px]">
-                <img :src="car.image" :alt="car.title" class="object-cover w-full h-full">
-              </figure>
-              <div class="card-body p-4 text-black">
-                <h3 class="card-title text-lg">{{ car.title }}</h3>
-                <p class="text-sm">{{ car.specs }}</p>
-                <div class="flex flex-wrap gap-2 my-2">
-                  <div class="badge badge-outline border-gray-300 text-gray-800">{{ car.mileage }}</div>
-                  <div class="badge badge-outline border-gray-300 text-gray-800">{{ car.fuel }}</div>
-                  <div class="badge badge-outline border-gray-300 text-gray-800">{{ car.transmission }}</div>
-                </div>
-                <div class="card-actions justify-between items-center mt-auto">
-                  <span class="text-xl font-bold">{{ car.price }}</span>
-                  <button class="btn btn-sm bg-black text-white hover:bg-gray-800">Подробнее</button>
-                </div>
+      <div ref="carousel" class="carousel bg-neutral w-full rounded-box space-x-4 p-4 scroll-p-4">
+        <div v-for="(car, uuid) in popularCars" :key="uuid" class="flex-shrink-0">
+          <div class="card carousel-item bg-base-100 border border-base-300 h-[400px] w-[306px]">
+            <figure class="h-[200px]">
+              <img :src="getImageUrl(car.preview_image_url)" :alt="car.title" class="object-cover w-full h-full">
+            </figure>
+            <div class="card-body p-4 text-base-content">
+              <h3 class="card-title text-lg">{{ car.brand_name }} {{ car.model_name }}</h3>
+              <p class="text-sm">{{ car.specs }}</p>
+              <div class="flex flex-wrap gap-2 my-2">
+                
+                <div class="badge badge-outline border-gray-300 text-gray-800">{{ car.car_condition }}</div>
+                <div class="badge badge-outline border-gray-300 text-gray-800">{{ car.mileage }}</div>
+                <div class="badge badge-outline border-gray-300 text-gray-800">{{ car.fuel_type }}</div>
+                <div class="badge badge-outline border-gray-300 text-gray-800">{{ car.transmission }}</div>
+                <div class="badge badge-outline border-gray-300 text-gray-800">{{ car.engine_power }} л.с.</div>
+              </div>
+              <div class="card-actions justify-between items-center mt-auto">
+                <span class="text-xl font-bold">{{ car.price }} руб.</span>
+                <button class="btn btn-sm bg-black text-white hover:bg-gray-800">Подробнее</button>
               </div>
             </div>
           </div>
+        </div>
+        <div v-if="!isLoadingCars" class="btn carousel-item bg-base-100 border border-base-300 h-[400px] w-[306px] text-xl">
+          Посмотреть все объявления
         </div>
       </div>
 
       <!-- Навигационные кнопки -->
       <div class="flex justify-center gap-6 mt-12 " :style="{ marginTop: '44px' }">
-        <button @click="prevSlide"
-          class="btn btn-circle btn-outline border-gray-300 text-black hover:bg-black hover:text-white w-[60px] h-[40px] min-h-[40px]">
+        <button @click="prevSlide" :class="{ 'btn-disabled': !canScrollLeft}"
+          class="btn btn-neutral btn-circle w-[60px] h-[40px] min-h-[40px]">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M15 18l-6-6 6-6" />
           </svg>
         </button>
-        <button @click="nextSlide"
-          class="btn btn-circle btn-outline border-gray-300 text-black hover:bg-black hover:text-white w-[60px] h-[40px] min-h-[40px]">
+        <button @click="nextSlide" :class="{ 'btn-disabled': !canScrollRight}"
+          class="btn btn-neutral btn-circle w-[60px] h-[40px] min-h-[40px]">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M9 18l6-6-6-6" />
@@ -83,39 +82,39 @@
     </section>
 
     <!-- Новая секция "Получите справедливую цену" -->
-    <section class="py-20 container mx-auto px-4 bg-white ">
+    <section class="py-20 container mx-auto px-4 bg-white">
       <!-- Верхняя часть: изображение и текст -->
-      <div class="flex flex-col lg:flex-row gap-10 mb-16  ">
+      <div class="flex flex-col lg:flex-row mb-16  ">
         <!-- Изображение машины (левая часть) -->
-        <div class="lg:w-1/2 ">
-          <img src="/src/assets/cars/Background.png" alt="Продажа автомобиля"
-            class="w-full h-full  shadow-md rounded-l-[24px]">
+        <div class="lg:w-1/2 shadow-md rounded-none">
+          <img src="/src/assets/cars/Background.jpg" alt="Продажа автомобиля"
+            class="w-full h-full rounded-t-[24px] lg:rounded-none lg:rounded-l-[24px]">
         </div>
 
         <!-- Текст (правая часть) -->
-        <div class="lg:w-1/2 flex flex-col justify-center bg-[#EDEDED] rounded-r-[24px]">
-          <h2 class="text-3xl font-bold mb-4 text-black">ПОЛУЧИТЕ СПРАВЕДЛИВУЮ ЦЕНУ ЗА СВОЙ АВТОМОБИЛЬ</h2>
-          <h3 class="text-2xl mb-6 font-semibold text-black">Продайте его сегодня</h3>
+        <div class="lg:w-1/2 flex flex-col justify-center bg-base-300 rounded-b-[24px] lg:rounded-none lg:rounded-r-[24px] p-4">
+          <h2 class="text-3xl font-bold mb-4">ПОЛУЧИТЕ СПРАВЕДЛИВУЮ ЦЕНУ ЗА СВОЙ АВТОМОБИЛЬ</h2>
+          <h3 class="text-2xl mb-6 font-semibold">Продайте его сегодня</h3>
 
-          <p class="mb-8 text-gray-700 text-black">Мы стремимся предоставлять нашим клиентам исключительный сервис,
+          <p class="mb-8">Мы стремимся предоставлять нашим клиентам исключительный сервис,
             конкурентоспособные цены и широкий ассортимент</p>
 
           <ul class="space-y-4 mb-8">
             <li class="flex items-center">
               <input type="checkbox" checked class="checkbox checkbox-black mr-3" disabled />
-              <span class="text-gray-700 text-black">Бесплатная оценка автомобиля онлайн за 5 минут</span>
+              <span class="">Бесплатная оценка автомобиля онлайн за 5 минут</span>
             </li>
             <li class="flex items-center">
               <input type="checkbox" checked class="checkbox checkbox-black mr-3" disabled />
-              <span class="text-gray-700 text-black">Продажа авто в любом состоянии — даже после аварии</span>
+              <span class="">Продажа авто в любом состоянии — даже после аварии</span>
             </li>
             <li class="flex items-center">
               <input type="checkbox" checked class="checkbox checkbox-black mr-3" disabled />
-              <span class="text-gray-700 text-black">Удобное общение с покупателями</span>
+              <span class="">Удобное общение с покупателями</span>
             </li>
           </ul>
 
-          <button class="btn btn-black px-8 py-3 text-lg w-fit">Начать</button>
+          <button class="btn btn-primary px-8 py-3 text-lg w-fit mx-auto">Начать</button>
         </div>
       </div>
 
@@ -249,98 +248,31 @@ export default {
     return {
       brands: [],
       isLoadingBrands: true,
-      popularCars: [
-        {
-          title: 'ВАЗ 2112',
-          specs: '1,6 л (16 клапанов), 5–МКПП, Привод ...',
-          mileage: '50000 Км',
-          fuel: 'Бензин',
-          transmission: 'Вариатор',
-          price: 'Р35,000',
-          image: '/src/assets/cars/lada12.jpg'
-        },
-        {
-          title: 'Kia Rio',
-          specs: '1,6 л, 4–МКПП, Передний привод',
-          mileage: '75000 Км',
-          fuel: 'Бензин',
-          transmission: 'Механика',
-          price: 'Р45,000',
-          image: '/src/assets/cars/lada12.jpg'
-        },
-        {
-          title: 'ВАЗ 2112',
-          specs: '1,6 л (16 клапанов), 5–МКПП, Привод ...',
-          mileage: '50000 Км',
-          fuel: 'Бензин',
-          transmission: 'Вариатор',
-          price: 'Р35,000',
-          image: '/src/assets/cars/lada12.jpg'
-        },
-        {
-          title: 'Kia Rio',
-          specs: '1,6 л, 4–МКПП, Передний привод',
-          mileage: '75000 Км',
-          fuel: 'Бензин',
-          transmission: 'Механика',
-          price: 'Р45,000',
-          image: '/src/assets/cars/lada12.jpg'
-        },
-        {
-          title: 'ВАЗ 2112',
-          specs: '1,6 л (16 клапанов), 5–МКПП, Привод ...',
-          mileage: '50000 Км',
-          fuel: 'Бензин',
-          transmission: 'Вариатор',
-          price: 'Р35,000',
-          image: '/src/assets/cars/lada12.jpg'
-        },
-        {
-          title: 'Kia Rio',
-          specs: '1,6 л, 4–МКПП, Передний привод',
-          mileage: '75000 Км',
-          fuel: 'Бензин',
-          transmission: 'Механика',
-          price: 'Р45,000',
-          image: '/src/assets/cars/lada12.jpg'
-        },
-        {
-          title: 'ВАЗ 2112',
-          specs: '1,6 л (16 клапанов), 5–МКПП, Привод ...',
-          mileage: '50000 Км',
-          fuel: 'Бензин',
-          transmission: 'Вариатор',
-          price: 'Р35,000',
-          image: '/src/assets/cars/lada12.jpg'
-        },
-        {
-          title: 'Kia Rio',
-          specs: '1,6 л, 4–МКПП, Передний привод',
-          mileage: '75000 Км',
-          fuel: 'Бензин',
-          transmission: 'Механика',
-          price: 'Р45,000',
-          image: '/src/assets/cars/lada12.jpg'
-        },
-      ],
-      currentSlide: 0,
-      autoSlideInterval: null,
-      visibleCards: 4
+      popularCars: [],
+      isLoadingCars: true,
+      canScrollLeft: false,
+      canScrollRight: true,
     }
   },
   mounted() {
-    this.updateVisibleCards()
-    window.addEventListener('resize', this.updateVisibleCards)
     this.loadBrands()
+    this.loadPopularCars()
+    const carousel = this.$refs.carousel
+    if (carousel) {
+      carousel.addEventListener('scroll', this.updateScrollButtons)
+    }
   },
   beforeUnmount() {
-    window.removeEventListener('resize', this.updateVisibleCards)
+    const carousel = this.$refs.carousel;
+    if (carousel) {
+      carousel.removeEventListener('scroll', this.updateScrollButtons);
+    }
   },
   methods: {
     async loadBrands() {
       this.isLoadingBrands = true
       try {
-        const response = await fetch("http://127.0.0.1:8000/brands/");
+        const response = await fetch("http://192.168.0.101:8000/brands/");
         const data = await response.json();
         this.brands = data;
       } catch (error) {
@@ -349,130 +281,39 @@ export default {
         this.isLoadingBrands = false
       }
     },
-    updateVisibleCards() {
-      if (window.innerWidth < 640) {
-        this.visibleCards = 2 // 2 карточки на мобильных
-      } else if (window.innerWidth < 768) {
-        this.visibleCards = 3 // 3 карточки на планшетах
-      } else {
-        this.visibleCards = 4 // 4 карточки на десктопе
+    async loadPopularCars() {
+      this.isLoadingCars = true
+      try {
+        const response = await fetch("http://192.168.0.101:8000/cars/popular");
+        const data = await response.json();
+        this.popularCars = data;
+      } catch (error) {
+        console.error("Ошибка загрузки популярных машин:", error);
+      } finally {
+        this.isLoadingCars = false
       }
+    },
+    updateScrollButtons() {
+      const carousel = this.$refs.carousel;
+      this.canScrollLeft = carousel.scrollLeft > 0;
+      this.canScrollRight = Math.ceil(carousel.scrollLeft) < 
+        Math.floor(carousel.scrollWidth - carousel.clientWidth);
     },
     nextSlide() {
-      if (this.currentSlide >= this.popularCars.length - this.visibleCards) {
-        this.currentSlide = 0
-      } else {
-        this.currentSlide++
-      }
+      const carousel = this.$refs.carousel;
+      const scrollAmount = 320;
+      carousel.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+      this.updateScrollButtons // Обновляем состояние после прокрутки
     },
     prevSlide() {
-      if (this.currentSlide <= 0) {
-        this.currentSlide = Math.max(0, this.popularCars.length - this.visibleCards)
-      } else {
-        this.currentSlide--
-      }
+      const carousel = this.$refs.carousel;
+      const scrollAmount = -320;
+      carousel.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+      setTimeout(this.updateScrollButtons, 500); // Обновляем состояние после прокрутки
+    },
+    getImageUrl(url) {
+      return `http://192.168.0.101:8000/${url}`;
     }
   }
 }
 </script>
-
-<style scoped>
-/* Адаптация для мобилок */
-@media (max-width: 640px) {
-  .aspect-square {
-    width: 80px;
-    height: 80px;
-  }
-
-  .text-sm {
-    font-size: 0.7rem;
-    /* Уменьшаем текст на мобилках */
-  }
-
-  /* карточки автомобилей 
-  .card {
-    width: 136px !important;
-    height: 245.75px !important;
-  }
-
-  .card figure {
-    height: 120px !important;
-  }
-
-  .card-body {
-    padding: 0.5rem !important;
-  }
-
-  .card-title {
-    font-size: 0.875rem !important;
-  }*/
-
-  .text-sm {
-    font-size: 0.75rem !important;
-  }
-
-  .badge {
-    font-size: 0.65rem !important;
-    padding: 0.25rem 0.5rem !important;
-  }
-
-  /* блок с ифной */
-  .grid-cols-2 {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
-  }
-
-  .text-4xl {
-    font-size: 1.75rem;
-    line-height: 2.25rem;
-  }
-
-  .text-3xl {
-    font-size: 1.5rem;
-    line-height: 2rem;
-  }
-
-  .text-2xl {
-    font-size: 1.25rem;
-    line-height: 1.75rem;
-  }
-
-  .px-4 {
-    padding-left: 1rem;
-    padding-right: 1rem;
-  }
-
-  .gap-10 {
-    gap: 1.5rem;
-  }
-
-  .p-6 {
-    padding: 1rem;
-  }
-
-  .mb-16 {
-    margin-bottom: 2rem;
-  }
-}
-@media (max-width: 768px) {
-  .card {
-    height: 306px !important;
-  }
-  figure {
-    height: 300px !important;
-  }
-  .card-title {
-    font-size: 1rem !important;
-  }
-  .btn-sm {
-    padding: 0.25rem 0.5rem !important;
-    font-size: 0.75rem !important;
-  }
-}
-/* Плавные переходы */
-.transition-transform {
-  transition-property: transform;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 500ms;
-}
-</style>
