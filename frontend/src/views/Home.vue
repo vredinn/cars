@@ -3,10 +3,10 @@
     <HeroSection />
 
     <!-- Секция с брендами -->
-    <section class="py-20 container mx-auto px-4 bg-white">
+    <section class="py-20 container mx-auto px-4 bg-base-100">
       <div class="flex justify-between items-center mb-10">
-        <h2 class="text-3xl font-bold text-black">Бренды</h2>
-        <button class="text-black text-black">Показать все бренды</button>
+        <h2 class="text-3xl font-bold">Бренды</h2>
+        <button class="font-bold">Показать все бренды</button>
       </div>
 
       <!-- Пока грузится -->
@@ -30,12 +30,12 @@
     </section>
 
     <!-- Популярные объявления -->
-    <section class="py-20 container mx-auto px-4 bg-white relative">
-      <h2 class="text-3xl font-bold text-center mb-10 text-black">Популярные объявления</h2>
+    <section class="py-20 container mx-auto px-4 bg-base-100 relative">
+      <h2 class="text-3xl font-bold text-center mb-10">Популярные объявления</h2>
 
-      <div ref="carousel" class="carousel bg-neutral w-full rounded-box space-x-4 p-4 scroll-p-4">
+      <div ref="carousel" class="carousel  w-full rounded-box space-x-4 p-4 scroll-p-4">
         <div v-for="(car, uuid) in popularCars" :key="uuid" class="flex-shrink-0">
-          <div class="card carousel-item bg-base-100 border border-base-300 h-[400px] w-[306px]">
+          <div class="card carousel-item bg-base-300 border border-base-300 h-[400px] w-[306px]">
             <figure class="h-[200px]">
               <img :src="getImageUrl(car.preview_image_url)" :alt="car.title" class="object-cover w-full h-full">
             </figure>
@@ -62,7 +62,7 @@
             </div>
           </div>
         </div>
-        <div v-if="!isLoadingCars" class="btn carousel-item bg-base-100 border border-base-300 h-[400px] w-[306px] text-xl">
+        <div v-if="!isLoadingCars" class="btn carousel-item border border-base-300 h-[400px] w-[306px] text-xl">
           Посмотреть все объявления
         </div>
       </div>
@@ -87,7 +87,7 @@
     </section>
 
     <!-- Новая секция "Получите справедливую цену" -->
-    <section class="py-20 container mx-auto px-4 bg-white">
+    <section class="py-20 container mx-auto px-4 bg-base-100">
       <!-- Верхняя часть: изображение и текст -->
       <div class="flex flex-col lg:flex-row mb-16  ">
         <!-- Изображение машины (левая часть) -->
@@ -124,32 +124,32 @@
       </div>
 
       <!-- Нижняя часть: статистика -->
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-6 ">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-6 bg-base-100">
         <!-- Блоки статистики -->
-        <div class="bg-gray-50 p-6 rounded-lg text-center bg-white">
-          <div class="text-4xl font-bold mb-2 text-black">836M</div>
-          <div class="text-gray-600 uppercase text-sm">Автомобилей в продаже</div>
+        <div class=" p-6 rounded-lg text-center font-bold">
+          <div class="text-4xl font-bold mb-2">836M</div>
+          <div class=" uppercase text-sm">Автомобилей в продаже</div>
         </div>
-        <div class="bg-gray-50 p-6 rounded-lg text-center bg-white">
-          <div class="text-4xl font-bold mb-2 text-black">738M</div>
-          <div class="text-gray-600 uppercase text-sm">Отзывов о дилерах</div>
+        <div class=" p-6 rounded-lg text-center">
+          <div class="text-4xl font-bold mb-2 ">738M</div>
+          <div class=" uppercase text-sm">Отзывов о дилерах</div>
         </div>
-        <div class="bg-gray-50 p-6 rounded-lg text-center bg-white">
-          <div class="text-4xl font-bold mb-2 text-black">238M</div>
-          <div class="text-gray-600 uppercase text-sm">Проверенных дилеров</div>
+        <div class=" p-6 rounded-lg text-center">
+          <div class="text-4xl font-bold mb-2 ">238M</div>
+          <div class=" uppercase text-sm">Проверенных дилеров</div>
         </div>
-        <div class="bg-gray-50 p-6 rounded-lg text-center bg-white">
-          <div class="text-4xl font-bold mb-2 text-black">100M</div>
-          <div class="text-gray-600 uppercase text-sm">Посетителей в день</div>
+        <div class=" p-6 rounded-lg text-center ">
+          <div class="text-4xl font-bold mb-2 ">100M</div>
+          <div class=" uppercase text-sm">Посетителей в день</div>
         </div>
       </div>
     </section>
-    <section class="py-20 container mx-auto px-4 bg-white text-black">
+    <section class="py-20 container mx-auto px-4 font-bold">
     <h2 class="text-3xl font-bold text-center mb-10">Популярные продавцы</h2>
     
     <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
       <!-- Карточка продавца 1 -->
-      <div class="card bg-white shadow-md h-[400px] w-full mx-auto">
+      <div class="card bg-base-300 shadow-md h-[400px] w-full mx-auto">
         <figure class="h-[306px] overflow-hidden">
           <img 
             src="/src/assets/sellers/Muhamed.png" 
@@ -171,7 +171,7 @@
       </div>
       
       <!-- Карточка продавца 2 -->
-      <div class="card bg-white shadow-md h-[400px] w-full mx-auto">
+      <div class="card bg-base-300 shadow-md h-[400px] w-full mx-auto">
         <figure class="h-[306px] overflow-hidden">
           <img 
             src="/src/assets/sellers/Dmitry.jpg" 
@@ -193,7 +193,7 @@
       </div>
       
       <!-- Карточка продавца 3 -->
-      <div class="card bg-white shadow-md h-[400px] w-full mx-auto">
+      <div class="card bg-base-300 shadow-md h-[400px] w-full mx-auto">
         <figure class="h-[306px] overflow-hidden">
           <img 
             src="/src/assets/sellers/Kiril.jpg" 
@@ -215,7 +215,7 @@
       </div>
       
       <!-- Карточка продавца 4 -->
-      <div class="card bg-white shadow-md h-[400px] w-full mx-auto">
+      <div class="card bg-base-300 shadow-md h-[400px] w-full mx-auto">
         <figure class="h-[306px] overflow-hidden">
           <img 
             src="/src/assets/sellers/Andrey.jpg" 

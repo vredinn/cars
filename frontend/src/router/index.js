@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Home from '@/views/Home.vue'
-import AutoPage from '../views/AutoPage.vue'
+import CarPage from '../views/CarPage.vue'
 
 const routes = [
   {
@@ -11,7 +11,7 @@ const routes = [
   {
     path: '/car/:id',
     name: 'car',
-    component: AutoPage,
+    component: CarPage,
     props: true
   }
   // Добавьте другие маршруты
