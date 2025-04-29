@@ -17,33 +17,56 @@
       </div>
       
 
-      <!-- Поисковая форма -->
-      <div class="container mx-auto py-8">
-        <div class="w-full bg-white/100 backdrop-blur-sm rounded-[20px] lg:rounded-full shadow-xl p-1">
+            <!-- Поисковая форма -->
+      <div class="container mx-auto py-8 font-bold">
+        <div class="w-full bg-white dark:bg-base-200 rounded-[20px] lg:rounded-full shadow-xl p-1">
           <div class="flex flex-col md:flex-row gap-3">
-            <select class="select select-bordered bg-white flex-1 text-black">
-              <option disabled selected>Марка</option>
-              <option>BMW</option>
-              <option>Audi</option>
+            <!-- Поле выбора марки -->
+            <select class="select select-bordered font-bold flex-1 bg-white dark:bg-base-200 text-black dark:text-white border-gray-300 dark:border-base-300">
+              <option disabled selected class="font-bold">Марка</option>
+              <option class="font-bold">BMW</option>
+              <option class="font-bold">Audi</option>
             </select>
-            <select class="select select-bordered bg-white flex-1 text-black">
-              <option disabled selected>Модель</option>
-              <option>X5</option>
-              <option>A6</option>
+
+            <!-- Поле выбора модели -->
+            <select class="select select-bordered font-bold flex-1 bg-white dark:bg-base-200 text-black dark:text-white border-gray-300 dark:border-base-300">
+              <option disabled selected class="font-bold">Модель</option>
+              <option class="font-bold">X5</option>
+              <option class="font-bold">A6</option>
             </select>
-            <select class="select select-bordered bg-white flex-1 text-black">
-              <option selected>Год выпуска: Все</option>
-              <option>2023</option>
-              <option>2022</option>
+
+            <!-- Поле выбора года -->
+            <select class="select select-bordered font-bold flex-1 bg-white dark:bg-base-200 text-black dark:text-white border-gray-300 dark:border-base-300">
+              <option selected class="font-bold">Год выпуска: Все</option>
+              <option class="font-bold">2023</option>
+              <option class="font-bold">2022</option>
             </select>
-            <select class="select select-bordered bg-white flex-1 text-black">
-              <option selected>Цена: Все цены</option>
-              <option>До 500 000 ₽</option>
-              <option>До 1 000 000 ₽</option>
+
+            <!-- Поле выбора цены -->
+            <select class="select select-bordered font-bold flex-1 bg-white dark:bg-base-200 text-black dark:text-white border-gray-300 dark:border-base-300">
+              <option selected class="font-bold">Цена: Все цены</option>
+              <option class="font-bold">До 500 000 ₽</option>
+              <option class="font-bold">До 1 000 000 ₽</option>
             </select>
-            <button class="btn btn-outline text-black">Все фильтры</button>
-            <button class="btn btn-dark"><img src="/src/assets/icon_seartch.png" alt="Добавить"
-                class="h-3 w-3 mr-0">Поиск</button>
+
+            <!-- Кнопка "Все фильтры" -->
+            <button class="btn btn-outline font-bold text-black dark:text-white border-gray-300 dark:border-base-300 hover:bg-gray-100 dark:hover:bg-base-300">
+              Все фильтры
+            </button>
+
+            <!-- Кнопка "Поиск" -->
+            <button class="btn bg-blue-600 dark:bg-blue-700 text-white hover:bg-blue-700 dark:hover:bg-blue-800 flex items-center">
+              <!-- Иконка для темной темы (белая) -->
+              <img src="/src/assets/Icon_seartch_White.svg" 
+                  alt="Поиск" 
+                  class="h-3 w-3 mr-2 dark:block hidden">
+              
+              <!-- Иконка для светлой темы (черная) -->
+              <img src="/src/assets/Icon_seartch_Black.svg" 
+                  alt="Поиск" 
+                  class="h-3 w-3 mr-2 block dark:hidden">
+              Поиск
+            </button>
           </div>
         </div>
       </div>
