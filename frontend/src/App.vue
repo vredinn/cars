@@ -1,10 +1,6 @@
 <template>
-<<<<<<< HEAD
   <div id="app" class="">
-=======
-  <div id="app" class="bg-base-100">
     <Header />
->>>>>>> 1fe1d7b3ba9e8c678b5a6b4c7defa31d6aa48759
     <main>
       <router-view />
     </main>

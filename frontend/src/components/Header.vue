@@ -19,7 +19,7 @@
             active-class="btn btn-ghost  hover:bg-white/10">Главная
           </router-link>
         </li>
-        <li><a class="btn btn-ghost  hover:bg-white/10">Поиск</a></li>
+        <li><router-link to="/catalog" class="btn btn-ghost  hover:bg-white/10">Поиск</router-link></li>
         <li><a class="btn btn-ghost  hover:bg-white/10">Контакты</a></li>
         <li><a class="btn btn-ghost  hover:bg-white/10">О Нас</a></li>
       </ul>

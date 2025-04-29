@@ -2,7 +2,7 @@
     <div class="min-h-screen flex flex-col">
       
       <main class="flex-grow container mx-auto px-4 py-8">
-       
+
         
         <!-- Основное содержимое страницы -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -102,13 +102,9 @@
 import Footer from '@/components/Footer.vue'
 
 export default {
-<<<<<<< HEAD:frontend/src/views/AutoPage.vue
-  name: 'AutoPage',
-  components: { Footer },
-=======
+
   name: 'CarPage',
-  components: { Header, Footer },
->>>>>>> 1fe1d7b3ba9e8c678b5a6b4c7defa31d6aa48759:frontend/src/views/CarPage.vue
+  components: {Footer },
   data() {
     return {
       car: {

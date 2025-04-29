@@ -62,9 +62,9 @@
             </div>
           </div>
         </div>
-        <div v-if="!isLoadingCars" class="btn carousel-item border border-base-300 h-[400px] w-[306px] text-xl">
+        <router-link to="/catalog" v-if="!isLoadingCars" class="btn carousel-item border border-base-300 h-[400px] w-[306px] text-xl">
           Посмотреть все объявления
-        </div>
+        </router-link>
       </div>
 
       <!-- Навигационные кнопки -->
