@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 from fastapi_pagination import Page, Params, paginate
@@ -27,7 +27,6 @@ def get_popular_cars(db: Session = Depends(get_db)):
 @router.get("/", response_model=Page[CarCard])
 def get_all_cars(
     db: Session = Depends(get_db),
-    params: Params = Depends(),
     brand_id: Optional[int] = None,
     model_id: Optional[int] = None,
     min_price: Optional[float] = None,
@@ -50,11 +49,14 @@ def get_all_cars(
     fuel_type: Optional[str] = None,
     steering_side: Optional[str] = None,
     car_condition: Optional[str] = None,
-    is_sold: Optional[bool] = False,
+    is_sold: Optional[bool] = None,
     body_type: Optional[str] = None,
     sort_by: Optional[str] = None,
-    sort_order: Optional[str] = "desc"
+    sort_order: Optional[str] = "desc",    
+    page: int = Query(1, ge=1, description="Номер страницы (начиная с 1)"),    
+    size: int = Query(5, include_in_schema=False, ge=1, le=100),
 ):
+    params = Params(page=page, size=5)  # Устанавливаем size=5 для фиксированного пагинации
     filters = build_filters(
         brand_id, model_id, min_price, max_price, min_year, max_year,
         min_mileage, max_mileage, min_engine_capacity, max_engine_capacity,
@@ -120,14 +122,14 @@ def add_exact_filter(filters, field, value):
         filters[field] = value
 
 @router.get("/id_{car_id}", response_model=CarDetailed)
-def get_car(car_id: int, db: Session = Depends(get_db)):
+def get_car_by_id(car_id: int, db: Session = Depends(get_db)):
     car = crud.get_car(db, car_id)
     if not car:
         raise HTTPException(status_code=404, detail="Car not found")
     return car
 
 @router.get("/{car_uuid}", response_model=CarDetailed)
-def get_car(car_uuid: UUID, db: Session = Depends(get_db)):
+def get_car_by_uuid(car_uuid: UUID, db: Session = Depends(get_db)):
     car = crud.get_car_by_uuid(db, car_uuid)
     if not car:
         raise HTTPException(status_code=404, detail="Car not found")

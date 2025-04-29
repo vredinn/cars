@@ -49,7 +49,7 @@ async def create_car_image(
 
     try:
         image = Image.open(file.file).convert("RGB")
-        image = ImageOps.fit(image, (CAR_IMAGE_WIDTH, CAR_IMAGE_HEIGHT), Image.LANCZOS, centering=(0.5, 0.5))
+        # image = ImageOps.fit(image, (CAR_IMAGE_WIDTH, CAR_IMAGE_HEIGHT), Image.LANCZOS, centering=(0.5, 0.5))
 
         # 3. Путь: uploads/car_images/<uuid>/xxx.webp
         car_dir = UPLOAD_DIR / str(car.uuid)
@@ -62,7 +62,7 @@ async def create_car_image(
     except Exception:
         raise HTTPException(status_code=400, detail="Ошибка обработки изображения")
 
-    image_url = f"/uploads/car_images/{car.uuid}/{filename}"
+    image_url = f"uploads/car_images/{car.uuid}/{filename}"
     new_image = crud.add_car_image(db, CarImageCreate(car_id=car_id, image_url=image_url))
     return new_image
 

@@ -65,6 +65,8 @@ class Car(CarBase):
 
 class CarDetailed(Car):
     images: List[CarImage]
+    brand_name: str
+    model_name: str
     user: User
     price_history: List[PriceHistoryBase]
 
