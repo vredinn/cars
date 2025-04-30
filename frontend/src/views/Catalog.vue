@@ -1,224 +1,239 @@
 <template>
-    <div class="container mx-auto p-4">
-        
-    <h1 class="text-2xl font-bold">Поиск объявлений</h1>
-      <!-- Форма поиска с кнопкой toggle для мобильных -->
-      <div class="bg-base-200 p-4 rounded-lg">
-        <div class="flex justify-between items-center">
-          <button class="btn btn-sm md:hidden mx-auto" @click="showFilters = !showFilters">
-            {{ showFilters ? 'Скрыть фильтры' : 'Показать фильтры' }}
-          </button>
-        </div>
-        
-        <!-- Основной блок фильтров -->
-        <div :class="{'hidden md:block': !showFilters}">
-          <!-- Первая строка фильтров -->
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-2 mb-4">
-            <div>
-              <label class="label">
-                <span class="label-text">Марка</span>
-              </label>
-              <select class="select select-bordered w-full" v-model="tempFilters.brand_id">
-                <option :value="null">Любая</option>
-                <option v-for="brand in brands" :value="brand.id">{{ brand.name }}</option>
-              </select>
+  <div class="container mx-auto p-4">
+    <h1 class="text-2xl font-bold mb-4">Поиск объявлений</h1>
+    
+    <!-- Кнопка для открытия drawer на мобильных -->
+    <button class="btn btn-primary md:hidden mb-4" @click="showDrawer = true">
+      Показать фильтры
+    </button>
+    
+    <!-- Основной контент -->
+    <div class="flex gap-4">
+      <!-- Drawer для мобильных -->
+      <div class="drawer md:drawer-open md:gap-4">
+        <input id="my-drawer" type="checkbox" class="drawer-toggle" v-model="showDrawer">
+        <div class="drawer-content">
+          <!-- Контент страницы -->
+          <div>
+            <h2 class="text-xl font-bold mb-4">Подходящие предложения</h2>
+            
+            <div v-if="isLoading" class="flex justify-center my-8">
+              <span class="loading loading-spinner loading-lg"></span>
             </div>
             
-            <div>
-              <label class="label">
-                <span class="label-text">Модель</span>
-              </label>
-              <select class="select select-bordered w-full" v-model="tempFilters.model_id" :disabled="!tempFilters.brand_id">
-                <option :value="null">Любая</option>
-                <option v-for="model in filteredModels" :value="model.id">{{ model.name }}</option>
-              </select>
-            </div>
-            
-            <div>
-              <label class="label">
-                <span class="label-text">Состояние</span>
-              </label>
-              <select class="select select-bordered w-full" v-model="tempFilters.car_condition">
-                <option :value="null">Любое</option>
-                <option v-for="car_condition in carConditions" :value="car_condition">{{ car_condition }}</option>
-              </select>
-            </div>
-          </div>
-  
-          <!-- Вторая строка фильтров -->
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-            <div>
-              <label class="label">
-                <span class="label-text">Год от</span>
-              </label>
-              <input type="number" class="input input-bordered w-full" v-model="tempFilters.min_year" placeholder="Любой">
-            </div>
-            <div>
-              <label class="label">
-                <span class="label-text">Год до</span>
-              </label>
-              <input type="number" class="input input-bordered w-full" v-model="tempFilters.max_year" placeholder="Любой">
-            </div>
-  
-            <div>
-              <label class="label">
-                <span class="label-text">Руль</span>
-              </label>
-              <select class="select select-bordered w-full" v-model="tempFilters.steering_side">
-                <option :value="null">Любой</option>
-                <option v-for="steering_side in steeringSides" :value="steering_side">{{ steering_side }}</option>
-              </select>
-            </div>
-          </div>
+            <div v-else>
+              <div class="grid grid-cols-1 gap-4" v-if="cars.length > 0">
+                <CarCard 
+                  v-for="car in cars" 
+                  :key="car.id" 
+                  :car="car"
+                  @click="goToCarDetails(car.uuid)"
+                />
+              </div>
+              
+              <div v-else class="text-center py-8">
+                <p class="text-lg">Ничего не найдено. Попробуйте изменить параметры поиска.</p>
+              </div>
           
-          <!-- Третья строка фильтров -->
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-            <div>
-              <label class="label">
-                <span class="label-text">Цена от</span>
-              </label>
-              <input type="number" class="input input-bordered w-full" v-model="tempFilters.min_price" placeholder="Любая">
+              <!-- Пагинация -->
+              <Pagination 
+                v-if="totalPages > 1"
+                :currentPage="currentPage"
+                :totalPages="totalPages"
+                @page-changed="changePage"
+              />
+            </div>
+          </div>
+        </div> 
+        <div class="drawer-side">  
+          <h2 class="text-xl font-bold mb-4">Фильтры</h2>
+          <label for="my-drawer" class="drawer-overlay"></label>
+          <div class="bg-base-300 md:rounded-box p-4 min-h-full md:min-h-0 md:w-75">
+            <!-- Блок фильтров -->
+            <div class="flex justify-between items-center mb-4 md:mb-0">
+              <h2 class="text-xl font-bold md:hidden">Фильтры</h2>
+              <label for="my-drawer" class="btn btn-sm btn-circle md:hidden">✕</label>
             </div>
             
-            <div>
-              <label class="label">
-                <span class="label-text">Цена до</span>
-              </label>
-              <input type="number" class="input input-bordered w-full" v-model="tempFilters.max_price" placeholder="Любая">
+            <!-- Фильтры -->
+            <div class="grid gap-4">
+              <div class="collapse collapse-plus bg-base-200">
+                <input type="checkbox" checked>
+                <div class="collapse-title font-medium">
+                  Основные параметры
+                </div>
+                <div class="collapse-content grid gap-4">
+                  <div>
+                    <label class="label">
+                      <span class="label-text">Марка</span>
+                    </label>
+                    <select class="select select-bordered w-full" v-model="tempFilters.brand_id">
+                      <option :value="null">Любая</option>
+                      <option v-for="brand in brands" :value="brand.id">{{ brand.name }}</option>
+                    </select>
+                  </div>
+                
+                  <div>
+                    <label class="label">
+                      <span class="label-text">Модель</span>
+                    </label>
+                    <select class="select select-bordered w-full" v-model="tempFilters.model_id" :disabled="!tempFilters.brand_id">
+                      <option :value="null">Любая</option>
+                      <option v-for="model in filteredModels" :value="model.id">{{ model.name }}</option>
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label class="label">
+                      <span class="label-text">Состояние</span>
+                    </label>
+                    <select class="select select-bordered w-full" v-model="tempFilters.car_condition">
+                      <option :value="null">Любое</option>
+                      <option v-for="car_condition in carConditions" :value="car_condition">{{ car_condition }}</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="label">
+                      <span class="label-text">Цена от</span>
+                    </label>
+                    <input type="number" class="input input-bordered w-full" v-model="tempFilters.min_price" placeholder="Любая">
+                  </div>
+                  
+                  <div>
+                    <label class="label">
+                      <span class="label-text">Цена до</span>
+                    </label>
+                    <input type="number" class="input input-bordered w-full" v-model="tempFilters.max_price" placeholder="Любая">
+                  </div>
+                  
+                  <div>
+                    <label class="label">
+                      <span class="label-text">Год от</span>
+                    </label>
+                    <input type="number" class="input input-bordered w-full" v-model="tempFilters.min_year" placeholder="Любой">
+                  </div>
+                  <div>
+                    <label class="label">
+                      <span class="label-text">Год до</span>
+                    </label>
+                    <input type="number" class="input input-bordered w-full" v-model="tempFilters.max_year" placeholder="Любой">
+                  </div>   
+                </div>
+              </div>
+              <div class="collapse collapse-plus bg-base-200">
+                <input type="checkbox">
+                <div class="collapse-title font-medium">
+                  Параметры автомобиля
+                </div>
+                <div class="collapse-content grid gap-4">
+                  <div>
+                    <label class="label">
+                      <span class="label-text">Тип кузова</span>
+                    </label>
+                    <select class="select select-bordered w-full" v-model="tempFilters.body_type">
+                      <option :value="null">Любой</option>
+                      <option v-for="body_type in bodyTypes" :value="body_type">{{ body_type }}</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="label">
+                      <span class="label-text">КПП</span>
+                    </label>
+                    <select class="select select-bordered w-full" v-model="tempFilters.transmission">
+                      <option :value="null">Любая</option>
+                      <option v-for="transmission in transmissions" :value="transmission">{{ transmission }}</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="label">
+                      <span class="label-text">Привод</span>
+                    </label>
+                    <select class="select select-bordered w-full" v-model="tempFilters.drive_type">
+                      <option :value="null">Любой</option>
+                      <option v-for="drive_type in driveTypes" :value="drive_type">{{ drive_type }}</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="label">
+                      <span class="label-text">Руль</span>
+                    </label>
+                    <select class="select select-bordered w-full" v-model="tempFilters.steering_side">
+                      <option :value="null">Любой</option>
+                      <option v-for="steering_side in steeringSides" :value="steering_side">{{ steering_side }}</option>
+                    </select>
+                  </div>
+                </div>
+              </div>              
+              <div class="collapse collapse-plus bg-base-200">
+                <input type="checkbox">
+                <div class="collapse-title font-medium">
+                  Параметры двигаетля
+                </div>
+                <div class="collapse-content grid gap-4">
+                  <div>
+                    <label class="label">
+                      <span class="label-text">Топливо</span>
+                    </label>
+                    <select class="select select-bordered w-full" v-model="tempFilters.fuel_type">
+                      <option :value="null">Любое</option>
+                      <option v-for="fuel_type in fuelTypes" :value="fuel_type">{{ fuel_type }}</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="label">
+                      <span class="label-text">Мощность от</span>
+                    </label>
+                    <input type="number" class="input input-bordered w-full" v-model="tempFilters.min_engine_power" placeholder="Любая">
+                  </div>
+        
+                  <div>
+                    <label class="label">
+                      <span class="label-text">Мощность до</span>
+                    </label>
+                    <input type="number" class="input input-bordered w-full" v-model="tempFilters.max_engine_power" placeholder="Любая">
+                  </div>
+                  <div>
+                    <label class="label">
+                      <span class="label-text">Объем двигателя от</span>
+                    </label>
+                    <input type="number" class="input input-bordered w-full" v-model="tempFilters.min_engine_capacity" placeholder="Любой">
+                  </div>
+        
+                  <div>
+                    <label class="label">
+                      <span class="label-text">Объем двигателя до</span>
+                    </label>
+                    <input type="number" class="input input-bordered w-full" v-model="tempFilters.max_engine_capacity" placeholder="Любой">
+                  </div>
+                  
+                  <div>
+                    <label class="label">
+                      <span class="label-text">Пробег от</span>
+                    </label>
+                    <input type="number" class="input input-bordered w-full" v-model="tempFilters.min_millage" placeholder="Любой">
+                  </div>
+        
+                  <div>
+                    <label class="label">
+                      <span class="label-text">Пробег до</span>
+                    </label>
+                    <input type="number" class="input input-bordered w-full" v-model="tempFilters.max_millage" placeholder="Любой">
+                  </div>
+                </div>
+              </div>   
+              
+              <!-- Кнопки поиска и сброса -->
+              <div class="flex gap-2 pt-4">
+                <button class="btn btn-primary flex-1" @click="searchCars">Поиск</button>
+                <button class="btn btn-ghost" @click="resetFilters">Сбросить</button>
+              </div>
             </div>
-  
-            <div>
-              <label class="label">
-                <span class="label-text">Тип кузова</span>
-              </label>
-              <select class="select select-bordered w-full" v-model="tempFilters.body_type">
-                <option :value="null">Любой</option>
-                <option v-for="body_type in bodyTypes" :value="body_type">{{ body_type }}</option>
-              </select>
-            </div>
-          </div>
-  
-          <!-- Четвертая строка фильтров -->
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-            <div>
-              <label class="label">
-                <span class="label-text">Объем двигателя от</span>
-              </label>
-              <input type="number" class="input input-bordered w-full" v-model="tempFilters.min_engine_capacity" placeholder="Любой">
-            </div>
-  
-            <div>
-              <label class="label">
-                <span class="label-text">Объем двигателя до</span>
-              </label>
-              <input type="number" class="input input-bordered w-full" v-model="tempFilters.max_engine_capacity" placeholder="Любой">
-            </div>
-  
-            <div>
-              <label class="label">
-                <span class="label-text">КПП</span>
-              </label>
-              <select class="select select-bordered w-full" v-model="tempFilters.transmission">
-                <option :value="null">Любая</option>
-                <option v-for="transmission in transmissions" :value="transmission">{{ transmission }}</option>
-              </select>
-            </div>
-          </div>
-  
-          <!-- Пятая строка фильтров -->
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-            <div>
-              <label class="label">
-                <span class="label-text">Мощность от</span>
-              </label>
-              <input type="number" class="input input-bordered w-full" v-model="tempFilters.min_engine_power" placeholder="Любая">
-            </div>
-  
-            <div>
-              <label class="label">
-                <span class="label-text">Мощность до</span>
-              </label>
-              <input type="number" class="input input-bordered w-full" v-model="tempFilters.max_engine_power" placeholder="Любая">
-            </div>
-            
-            <div>
-              <label class="label">
-                <span class="label-text">Привод</span>
-              </label>
-              <select class="select select-bordered w-full" v-model="tempFilters.drive_type">
-                <option :value="null">Любой</option>
-                <option v-for="drive_type in driveTypes" :value="drive_type">{{ drive_type }}</option>
-              </select>
-            </div>
-          </div>
-  
-          <!-- Шестая строка фильтров -->
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-            <div>
-              <label class="label">
-                <span class="label-text">Пробег от</span>
-              </label>
-              <input type="number" class="input input-bordered w-full" v-model="tempFilters.min_millage" placeholder="Любой">
-            </div>
-  
-            <div>
-              <label class="label">
-                <span class="label-text">Пробег до</span>
-              </label>
-              <input type="number" class="input input-bordered w-full" v-model="tempFilters.max_millage" placeholder="Любой">
-            </div>
-            
-            <div>
-              <label class="label">
-                <span class="label-text">Топливо</span>
-              </label>
-              <select class="select select-bordered w-full" v-model="tempFilters.fuel_type">
-                <option :value="null">Любое</option>
-                <option v-for="fuel_type in fuelTypes" :value="fuel_type">{{ fuel_type }}</option>
-              </select>
-            </div>
-          </div>
-          
-          <!-- Кнопки поиска и сброса -->
-          <div class="flex justify-end">
-            <button class="btn btn-primary mr-2" @click="searchCars">Поиск</button>
-            <button class="btn btn-ghost" @click="resetFilters">Сбросить</button>
           </div>
         </div>
       </div>
-      
-      <div>
-    <h2 class="text-xl font-bold mb-4">Подходящие предложения</h2>
-    
-    <div v-if="isLoading" class="flex justify-center my-8">
-        <span class="loading loading-spinner loading-lg"></span>
-      </div>
-      
-      <div v-else>
-        <div class="grid grid-cols-1 gap-4" v-if="cars.length > 0">
-          <CarCard 
-            v-for="car in cars" 
-            :key="car.id" 
-            :car="car"
-            @click="goToCarDetails(car.uuid)"
-          />
-        </div>
-        
-        <div v-else class="text-center py-8">
-          <p class="text-lg">Ничего не найдено. Попробуйте изменить параметры поиска.</p>
-        </div>
-    
-    <!-- Пагинация -->
-    <Pagination 
-          v-if="totalPages > 1"
-          :currentPage="currentPage"
-          :totalPages="totalPages"
-          @page-changed="changePage"
-        />
     </div>
-    </div>
-</div>
-  </template>
+  </div>
+</template>
 
 <script>
 import CarCard from '@/components/CarCard.vue'
@@ -231,7 +246,7 @@ export default {
   },
   data() {
     return {
-      showFilters: false,
+      showDrawer: false,
       brands: [],
       models: [],
       carConditions: [],
@@ -293,24 +308,6 @@ export default {
       if (!this.tempFilters.brand_id) return []
       return this.models.filter(model => model.brand_id === this.tempFilters.brand_id)
     },
-    pagesToShow() {
-      const pages = []
-      const maxVisiblePages = 5
-      
-      let startPage = Math.max(1, this.currentPage - Math.floor(maxVisiblePages / 2))
-      let endPage = startPage + maxVisiblePages - 1
-      
-      if (endPage > this.totalPages) {
-        endPage = this.totalPages
-        startPage = Math.max(1, endPage - maxVisiblePages + 1)
-      }
-      
-      for (let i = startPage; i <= endPage; i++) {
-        pages.push(i)
-      }
-      
-      return pages
-    }
   },
   watch: {
     'tempFilters.brand_id'(newVal) {
@@ -380,7 +377,6 @@ export default {
       // Заполняем активные фильтры из query параметров
       Object.keys(this.activeFilters).forEach(key => {
         if (query[key] !== undefined) {
-          // Для числовых значений преобразуем в Number
           if (query[key] === 'null') {
             this.activeFilters[key] = null
             this.tempFilters[key] = null

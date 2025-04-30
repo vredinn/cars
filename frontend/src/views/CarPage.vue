@@ -38,9 +38,9 @@
   
           <!-- Информация об автомобиле -->
           <div>
-            <div class="bg-base-200 rounded-lg text-center">
+            <div class="bg-base-200 rounded-lg text-center  mb-4 py-2">
               <h1 class="text-3xl font-bold mb-4">{{ car.brand_name }} {{ car.model_name }}</h1>
-              <div class="font-bold text-lg mb-4">{{ formattedPrice }} руб.</div>
+              <div class="font-bold text-lg">{{ formatPrice(car.price) }}</div>
             </div>
   
             <!-- Характеристики -->
@@ -50,12 +50,28 @@
                 <div class="font-bold">{{ car.year }}</div>
               </div>
               <div class="bg-base-200 p-4 rounded-lg">
+                <div class="text-gray-500">Состояние автомобиля</div>
+                <div class="font-bold">{{ car.car_condition }}</div>
+              </div>
+              <div class="bg-base-200 p-4 rounded-lg">
+                <div class="text-gray-500">Кузов</div>
+                <div class="font-bold">{{ car.body_type }}</div>
+              </div>
+              <div class="bg-base-200 p-4 rounded-lg">
+                <div class="text-gray-500">Цвет</div>
+                <div class="font-bold">{{ car.color }}</div>
+              </div>
+              <div class="bg-base-200 p-4 rounded-lg">
                 <div class="text-gray-500">Пробег</div>
                 <div class="font-bold">{{ car.mileage.toLocaleString() }} км</div>
               </div>
               <div class="bg-base-200 p-4 rounded-lg">
-                <div class="text-gray-500">Двигатель</div>
+                <div class="text-gray-500">Мощность двигателя</div>
                 <div class="font-bold">{{ car.engine_power }} л.с.</div>
+              </div>              
+              <div class="bg-base-200 p-4 rounded-lg">
+                <div class="text-gray-500">Объем двигателя</div>
+                <div class="font-bold">{{ car.engine_capacity }} л</div>
               </div>
               <div class="bg-base-200 p-4 rounded-lg">
                 <div class="text-gray-500">Коробка</div>
@@ -68,6 +84,15 @@
               <div class="bg-base-200 p-4 rounded-lg">
                 <div class="text-gray-500">Привод</div>
                 <div class="font-bold">{{ car.drive_type }}</div>
+              </div>
+              <div class="bg-base-200 p-4 rounded-lg">
+                <div class="text-gray-500">Руль</div>
+                <div class="font-bold">{{ car.steering_side }}</div>
+              </div>
+              
+              <div class="bg-base-200 p-4 rounded-lg">
+                <div class="text-gray-500">Дата объявления</div>
+                <div class="font-bold">{{ formatListingDate(car.listing_date) }}</div>
               </div>
             </div>
   
@@ -127,13 +152,6 @@ export default {
       isModalOpen: false
     }
   },
-  computed: {
-    formattedPrice() {
-      return parseFloat(this.car.price).toLocaleString('ru-RU', {
-        maximumFractionDigits: 0
-      })
-    }
-  },
   async created() {
     const carId = this.$route.params.id
     await this.loadCarData(carId)
@@ -167,7 +185,39 @@ export default {
     closeModal() {
       this.isModalOpen = false
       document.getElementById('imageModal').close()
+    },
+    formatPrice(price) {
+      return new Intl.NumberFormat('ru-RU', { 
+        style: 'currency', 
+        currency: 'RUB',
+        maximumFractionDigits: 0
+      }).format(price)
+    },
+    formatListingDate(dateString) {
+    if (!dateString) return 'Дата не указана';
+    
+    try {
+      const date = new Date(dateString);
+      
+      // Проверяем, что дата валидна
+      if (isNaN(date.getTime())) {
+        return 'Некорректная дата';
+      }
+      
+      // Форматируем дату с учетом локали пользователя
+      return new Intl.DateTimeFormat('ru-RU', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      }).format(date);
+      
+    } catch (e) {
+      console.error('Ошибка форматирования даты:', e);
+      return dateString; // Возвращаем оригинальную строку в случае ошибки
     }
+  }
   }
 }
 </script>

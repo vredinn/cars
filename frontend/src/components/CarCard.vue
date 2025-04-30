@@ -1,14 +1,14 @@
 <template>
     <div class="card bg-base-300 cursor-pointer" @click="$emit('click')">
       <div class="card-body">
-        <div class="flex flex-col md:flex-row gap-4">
-          <div class="w-full md:w-1/4">
+        <div class="flex flex-col lg:flex-row gap-4">
+          <div class="w-full lg:w-1/4">
             <img :src="getImageUrl(car.preview_image_url)" 
                  class="w-full h-48 object-cover rounded-lg"
                  :alt="`${car.brand_name} ${car.model_name}`">
           </div>
           
-          <div class="w-full md:w-3/4">
+          <div class="w-full lg:w-3/4">
             <h3 class="card-title">{{ car.brand_name }} {{ car.model_name }} - {{ car.year }} г.</h3>
             <p>{{ car.engine_power }} л.с. {{ car.fuel_type }}, {{ car.engine_capacity }} л, {{ car.steering_side }} руль, {{ car.drive_type }} привод</p>
             

@@ -226,8 +226,7 @@
         handler(newVal) {
           this.$emit('update:tempFilters', newVal)
         },
-        deep: true,
-        immediate: false 
+        deep: true
       }
     }
   }

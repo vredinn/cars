@@ -9,62 +9,52 @@
 
     <!-- Основной контент -->
     <div
-      class="container mx-auto hero-content w-full flex-1 flex flex-col items-center justify-center text-center text-white">
+      class="container mx-auto hero-content w-full flex-1 flex flex-col items-center justify-center text-center">
       <div class="mb-8">
-        <p class="text-xl">СагРivot – ваш поворот к идеальному автомобилю. С нами вы найдете автомобиль своей мечты
+        <p class="text-xl text-white">СагРivot – ваш поворот к идеальному автомобилю. С нами вы найдете автомобиль своей мечты
           быстро и удобно!</p>
-        <h2 class="text-5xl font-bold ">Найдите свой идеальный автомобиль</h2>
+        <h2 class="text-5xl font-bold text-white">Найдите свой идеальный автомобиль</h2>
       </div>
       
 
             <!-- Поисковая форма -->
-      <div class="container mx-auto py-8 font-bold">
-        <div class="w-full bg-white dark:bg-base-200 rounded-[20px] lg:rounded-full shadow-xl p-1">
+      <div class="container mx-auto py-8">
+        <div class="w-full rounded-[20px] lg:rounded-full p-1 bg-base-100">
           <div class="flex flex-col md:flex-row gap-3">
             <!-- Поле выбора марки -->
-            <select class="select select-bordered font-bold flex-1 bg-white dark:bg-base-200 text-black dark:text-white border-gray-300 dark:border-base-300">
-              <option disabled selected class="font-bold">Марка</option>
-              <option class="font-bold">BMW</option>
-              <option class="font-bold">Audi</option>
+            <select class="select select-bordered w-full py-2 flex-1" v-model="filters.brand_id">
+              <option :value="null" selected>Марка</option>
+              <option v-for="brand in brands" :value="brand.id">{{ brand.name }}</option>
             </select>
 
             <!-- Поле выбора модели -->
-            <select class="select select-bordered font-bold flex-1 bg-white dark:bg-base-200 text-black dark:text-white border-gray-300 dark:border-base-300">
-              <option disabled selected class="font-bold">Модель</option>
-              <option class="font-bold">X5</option>
-              <option class="font-bold">A6</option>
+            <select class="select select-bordered w-full py-2 flex-1" v-model="filters.model_id" :disabled="!filters.brand_id">
+              <option :value="null" selected >Модель</option>
+              <option v-for="model in filteredModels" :value="model.id">{{ model.name }}</option>
             </select>
 
-            <!-- Поле выбора года -->
-            <select class="select select-bordered font-bold flex-1 bg-white dark:bg-base-200 text-black dark:text-white border-gray-300 dark:border-base-300">
-              <option selected class="font-bold">Год выпуска: Все</option>
-              <option class="font-bold">2023</option>
-              <option class="font-bold">2022</option>
+            <!-- Поле выбора состояния машины -->
+            <select class="select select-bordered w-full py-2 flex-1" v-model="filters.car_condition">
+              <option :value="null" selected >Состояние</option>
+              <option v-for="car_condition in carConditions" :value="car_condition">{{ car_condition }}</option>
             </select>
 
             <!-- Поле выбора цены -->
-            <select class="select select-bordered font-bold flex-1 bg-white dark:bg-base-200 text-black dark:text-white border-gray-300 dark:border-base-300">
-              <option selected class="font-bold">Цена: Все цены</option>
-              <option class="font-bold">До 500 000 ₽</option>
-              <option class="font-bold">До 1 000 000 ₽</option>
-            </select>
-
-            <!-- Кнопка "Все фильтры" -->
-            <button class="btn btn-outline font-bold text-black dark:text-white border-gray-300 dark:border-base-300 hover:bg-gray-100 dark:hover:bg-base-300">
-              Все фильтры
-            </button>
+            <div>
+              <input type="number" class="input input-bordered w-full" v-model="filters.max_price" placeholder="Цена">
+            </div>
 
             <!-- Кнопка "Поиск" -->
-            <button class="btn bg-blue-600 dark:bg-blue-700 text-white hover:bg-blue-700 dark:hover:bg-blue-800 flex items-center">
+            <button class="btn btn-primary flex items-center" @click="searchCars">
               <!-- Иконка для темной темы (белая) -->
               <img src="/src/assets/Icon_seartch_White.svg" 
                   alt="Поиск" 
-                  class="h-3 w-3 mr-2 dark:block hidden">
+                  class="h-3 w-3 mr-2 block dark:hidden">
               
               <!-- Иконка для светлой темы (черная) -->
               <img src="/src/assets/Icon_seartch_Black.svg" 
                   alt="Поиск" 
-                  class="h-3 w-3 mr-2 block dark:hidden">
+                  class="h-3 w-3 mr-2 dark:block hidden">
               Поиск
             </button>
           </div>
@@ -78,3 +68,90 @@
   </div>
   </section>
 </template>
+
+<script>
+export default {
+  name: 'HeroSection',
+  data() {
+    return {
+      brands: [],
+      models: [],
+      carConditions: [],
+      carPrice: null,
+      filters: {
+        brand_id: null,
+        model_id: null,
+        car_condition: null,
+        max_price: null
+      }
+    }
+  },
+  computed: {
+    filteredModels() {
+      if (!this.filters.brand_id) return []
+      return this.models.filter(model => model.brand_id === this.filters.brand_id)
+    },
+  },
+  watch: {
+    'filters.brand_id'(newVal) {
+      if (!newVal) {
+        this.filters.model_id = null
+      }
+    }
+  },
+  methods: {
+    async loadBrandsAndModels() {
+      try {
+        const [brandsRes, modelsRes] = await Promise.all([
+          fetch('http://192.168.0.101:8000/brands/'),
+          fetch('http://192.168.0.101:8000/models/')
+        ])
+        
+        this.brands = await brandsRes.json()
+        this.models = await modelsRes.json()
+      } catch (error) {
+        console.error('Ошибка загрузки брендов и моделей:', error)
+      }
+    },
+    async loadCarConditions() {
+      try {
+        const enumsPromises = {
+          carConditions: fetch('http://192.168.0.101:8000/enums/car-conditions/').then(r => r.json())
+        }
+
+        const results = await Promise.all(Object.values(enumsPromises))
+        ;[
+          this.carConditions
+        ] = results
+      } catch (error) {
+        console.error('Ошибка загрузки состояний автомобиля:', error)
+      }
+    },
+    buildQueryParams(filters) {
+      const params = { ...filters }
+      
+      // Удаляем null/undefined значения
+      Object.keys(params).forEach(key => {
+        if (params[key] === null || params[key] === undefined || params[key] === '') {
+          delete params[key]
+        }
+      })
+      
+      return params
+    },
+    searchCars() {
+      // Копируем временные фильтры в активные
+      const query = this.buildQueryParams(this.filters)
+            
+      this.$router.push({
+        path: '/catalog',
+        query: query
+      }).catch(() => {})
+    }
+  },
+  mounted() {
+    this.loadBrandsAndModels()
+    this.loadCarConditions()
+  }
+}
+</script>
