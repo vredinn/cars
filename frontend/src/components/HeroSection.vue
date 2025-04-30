@@ -10,7 +10,7 @@
     <!-- Основной контент -->
     <div
       class="container mx-auto hero-content w-full flex-1 flex flex-col items-center justify-center text-center">
-      <div class="mb-8">
+      <div class="md:mb-8">
         <p class="text-xl text-white">СагРivot – ваш поворот к идеальному автомобилю. С нами вы найдете автомобиль своей мечты
           быстро и удобно!</p>
         <h2 class="text-5xl font-bold text-white">Найдите свой идеальный автомобиль</h2>
@@ -18,7 +18,7 @@
       
 
             <!-- Поисковая форма -->
-      <div class="container mx-auto py-8">
+      <div class="container mx-auto">
         <div class="w-full rounded-[20px] lg:rounded-full p-1 bg-base-100">
           <div class="flex flex-col md:flex-row gap-3">
             <!-- Поле выбора марки -->
@@ -41,7 +41,7 @@
 
             <!-- Поле выбора цены -->
             <div>
-              <input type="number" class="input input-bordered w-full" v-model="filters.max_price" placeholder="Цена">
+              <input type="number" class="input input-bordered w-full" v-model="filters.max_price" placeholder="Цена" min="50000">
             </div>
 
             <!-- Кнопка "Поиск" -->

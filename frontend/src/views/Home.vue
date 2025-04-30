@@ -33,7 +33,7 @@
     <section class="py-20 container mx-auto px-4 bg-base-100 relative">
       <h2 class="text-3xl font-bold text-center mb-10">Популярные объявления</h2>
 
-      <div ref="carousel" class="carousel  w-full rounded-box space-x-4 p-4 scroll-p-4">
+      <div ref="carousel" class="carousel  w-full rounded-box space-x-4 p-4 scroll-p-4 bg-base-200">
         <div v-for="(car, uuid) in popularCars" :key="uuid" class="flex-shrink-0">
           <div class="card carousel-item bg-base-300 border border-base-300 h-[400px] w-[306px]">
             <figure class="h-[200px]">
