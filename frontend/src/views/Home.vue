@@ -51,7 +51,7 @@
                 <div class="badge badge-outline border-gray-300 ">{{ car.engine_power }} л.с.</div>
               </div>
               <div class="card-actions justify-between items-center mt-auto">
-                <span class="text-xl font-bold">{{ car.price }} руб.</span>
+                <span class="text-xl font-bold">{{ formatPrice(car.price) }}</span>
                 <router-link 
   :to="`/car/${car.uuid}`" 
   class="btn btn-sm bg-black text-white hover:bg-gray-800"
@@ -285,6 +285,13 @@ export default {
       } finally {
         this.isLoadingBrands = false
       }
+    },
+    formatPrice(price) {
+      return new Intl.NumberFormat('ru-RU', { 
+        style: 'currency', 
+        currency: 'RUB',
+        maximumFractionDigits: 0
+      }).format(price)
     },
     async loadPopularCars() {
       this.isLoadingCars = true
