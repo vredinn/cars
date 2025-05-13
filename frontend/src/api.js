@@ -36,7 +36,8 @@ api.interceptors.response.use(
     async err => {
         const originalRequest = err.config
 
-        if ((err.response?.status === 401 || err.response?.status === 422) && !originalRequest._retry) {
+        if ((err.response?.status === 401 || err.response?.status === 422) && !originalRequest._retry && !originalRequest.skipAuthRefresh) {
+
             if (isRefreshing) {
                 return new Promise((resolve, reject) => {
                     failedQueue.push({ resolve, reject })
@@ -51,7 +52,8 @@ api.interceptors.response.use(
                 await api.post('/auth/refresh', null, {
                     headers: {
                         'X-CSRF-TOKEN': csrfToken
-                    }
+                    },
+                    skipAuthRefresh: true
                 })
                 processQueue(null)
                 return api(originalRequest)
@@ -59,7 +61,6 @@ api.interceptors.response.use(
                 processQueue(refreshErr)
                 return Promise.reject(refreshErr)
             } finally {
-                console.log('Finally')
                 isRefreshing = false
             }
         }

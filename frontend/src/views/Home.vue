@@ -159,6 +159,7 @@
         <div class="card-body p-4">
           <h3 class="card-title text-lg">{{ user.name }}</h3>
           <p class="text-sm">На сайте с {{ formatDate(user.registration_date) }}</p>
+          <p class="text-sm">UUID: {{ user.uuid }}</p>
           
           <div class="text-sm text-center">Рейтинг: {{ user.rating.toFixed(2) }}</div>
           <div class="rating rating-sm rating-half justify-center mb-2">

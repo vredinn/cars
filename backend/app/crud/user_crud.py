@@ -2,7 +2,7 @@
 from pydantic import EmailStr
 from sqlalchemy.orm import Session, selectinload
 from passlib.context import CryptContext
-from uuid import uuid4
+from uuid import UUID, uuid4
 from fastapi_pagination.ext.sqlalchemy import paginate
 from fastapi_pagination import Params
 from sqlalchemy import asc, desc
@@ -22,6 +22,9 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 def get_user(db: Session, user_id: int):
     return db.query(m.User).filter(m.User.id == user_id).first()
 
+def get_user_by_uuid(db: Session, user_uuid: UUID):
+    return db.query(m.User).filter(m.User.uuid == user_uuid).first()
+
 def get_user_by_email(db: Session, email: str):
     return db.query(m.User).filter(m.User.email == email).first()
 
@@ -30,7 +33,6 @@ def get_users(db: Session):
 
 def get_popular_users(db: Session):
     return db.query(m.User).filter(m.User.is_admin == False).order_by(desc(m.User.rating)).limit(4).all()
-
 
 def create_user(db: Session, user: UserCreate):
     hashed_password = pwd_context.hash(user.password + settings.SALT)

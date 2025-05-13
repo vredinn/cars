@@ -1,5 +1,5 @@
 <template>
-<button class="btn btn-ghost flex items-center" onclick="login_modal.showModal()">
+<button class="btn btn-ghost flex items-center" @click="openLoginModal">
     <!-- Для темной темы - белая иконка -->
     <img src="/src/assets/avatar.svg" 
         class="h-3 w-3 mr-1 dark:block hidden" 
@@ -9,8 +9,7 @@
         class="h-3 w-3 mr-1 block dark:hidden" 
         alt="Вход"> Вход
 </button>
-<dialog id="login_modal" class="modal modal-bottom sm:modal-middle">
-    
+<dialog ref="loginModal" id="login_modal" class="modal modal-bottom sm:modal-middle">   
 
     <div class="modal-box">
         <h3 class="text-lg font-bold mb-4">Вход</h3>
@@ -95,21 +94,28 @@ export default {
         }
     },
     methods: {
+        openLoginModal() {
+            this.$refs.loginModal.showModal()
+        },
         async login() {
-            
             const auth = useAuthStore()
             try {
                 await api.post('/auth/login', {
                     email: this.email,
                     password: this.password
-                })
+                },{
+  skipAuthRefresh: true
+})
 
                 this.errorMessage = ''
                 await auth.fetchUser()
-                this.$router.go();
+                this.$router.go()
             } catch (err) {
-                console.error(err);
-                this.errorMessage = 'Сетевая ошибка. Попробуйте позже.';
+                if (err.response && err.response.status === 401) {
+                    this.errorMessage = 'Неверный email или пароль'
+                } else {
+                    this.errorMessage = 'Сетевая ошибка. Попробуйте позже.'
+                }
             }
         }
     }

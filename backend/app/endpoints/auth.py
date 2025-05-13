@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse
 from fastapi import APIRouter, Depends, HTTPException, Response
 from pydantic import Field
 from sqlalchemy.orm import Session
-from crud import authenticate_user, get_user
+from crud import authenticate_user, get_user_by_uuid
 from schemas import *
 from database import get_db
 import security
@@ -16,9 +16,9 @@ def login(user: UserLogin, response: Response, db: Session = Depends(get_db)):
     db_user = authenticate_user(db, email=user.email, password=user.password)
     if not db_user:
         raise HTTPException(status_code=401, detail="Данные для входа неверны")
-    user_id = str(db_user.id)
-    access_token = security.auth.create_access_token(uid=user_id)
-    refresh_token = security.auth.create_refresh_token(uid=user_id)
+    user_uuid = str(db_user.uuid)
+    access_token = security.auth.create_access_token(uid=user_uuid)
+    refresh_token = security.auth.create_refresh_token(uid=user_uuid)
     response = JSONResponse(content={"message": "Logged in"})
     security.auth.set_access_cookies(access_token, response)
     security.auth.set_refresh_cookies(refresh_token, response)
@@ -50,8 +50,8 @@ def refresh(
 def get_me(
     token: str = Depends(security.auth.access_token_required), db: Session = Depends(get_db)
 ):
-    user_id = token.sub
-    user = get_user(db, int(user_id))
+    user_uuid = token.sub
+    user = get_user_by_uuid(db, UUID(user_uuid))
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return user

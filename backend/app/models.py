@@ -147,6 +147,10 @@ class Car(Base):
     moderation = relationship("AdModeration", backref="car", uselist=False, cascade="all, delete-orphan")
 
     @property
+    def user_uuid(self):
+        return self.user.uuid if self.user else None
+
+    @property
     def preview_image_url(self):
         return self.images[0].image_url if self.images else None
     

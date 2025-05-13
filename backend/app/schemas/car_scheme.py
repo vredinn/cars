@@ -57,6 +57,7 @@ class Car(CarBase):
     uuid: UUID
     id: int
     user_id: int
+    user_uuid: UUID
     is_sold: bool
     listing_date: datetime
 
