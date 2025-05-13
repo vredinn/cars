@@ -13,7 +13,7 @@ import io
 
 ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png"]
 MAX_IMAGE_SIZE = 20 * 1024 * 1024  # 20MB
-UPLOAD_DIR = Path("/uploads/car_images")
+UPLOAD_DIR = Path("uploads/car_images")
 CAR_IMAGE_WIDTH = 416 * 3
 CAR_IMAGE_HEIGHT = 215 * 3
 

@@ -7,7 +7,6 @@
 
     <div v-else>
       
-      <h1 class="text-2xl font-bold mb-4">{{ user.name }}</h1>
       <div class="mb-4">
         <div class="flex flex-col md:flex-row items-center gap-4">
           <div class="avatar">
@@ -16,6 +15,7 @@
               </div>
             </div>
           <div>
+            <h1 class="text-2xl font-bold mb-4">{{ user.name }}</h1>
             <p>Email: {{ user.email }}</p>
             <p>Телефон: {{ user.phone }}</p>
             <p>Рейтинг: {{ user.rating.toFixed(2) }}</p>

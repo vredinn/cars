@@ -51,7 +51,7 @@
       <router-link to="/" class="btn btn-primary">
         Сообщения
       </router-link>
-      <button class="btn btn-primary hidden md:block">Создать объявление</button>
+      <router-link to="/create_car" class="btn btn-primary hidden md:flex">Создать объявление</router-link>
       <router-link to="/" class="btn btn-primary hidden md:inline-flex">
         Мои объявления
       </router-link>
@@ -73,7 +73,7 @@
             </div>
             <div class="text-center text-pretty">{{ user.name }} <br> {{ user.email }}</div>
           </div>
-          <li><button class="btn btn-primary md:hidden">Создать объявление</button></li>
+          <li><router-link to="/create_car" class="btn btn-primary md:hidden">Создать объявление</router-link></li>
           <li>
             <router-link to="/" class="btn btn-primary md:hidden">
               Мои объявления

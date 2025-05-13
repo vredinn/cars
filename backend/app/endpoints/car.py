@@ -143,8 +143,8 @@ def get_car_by_uuid(car_uuid: UUID, db: Session = Depends(get_db)):
     return car
 
 @router.post("/", response_model=Car)
-def create_car(car: CarCreate, db: Session = Depends(get_db), user_id: int = 1):
-    return crud.create_car(db, car, user_id)
+def create_car(car: CarCreate, db: Session = Depends(get_db)):
+    return crud.create_car(db, car)
 
 @router.put("/{car_id}", response_model=Car)
 def update_car(car_id: int, car: CarUpdate, db: Session = Depends(get_db)):

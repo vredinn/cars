@@ -75,8 +75,8 @@ def get_car_cards_query(db: Session):
         .order_by(m.Car.listing_date.desc()).all()  
     )
 
-def create_car(db: Session, car: CarCreate, user_id: int):
-    obj = m.Car(**car.dict(), user_id=user_id, uuid=uuid4())
+def create_car(db: Session, car: CarCreate):
+    obj = m.Car(**car.dict(), uuid=uuid4())
     db.add(obj)
     db.commit()
     db.refresh(obj)
