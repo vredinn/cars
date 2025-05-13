@@ -1,14 +1,10 @@
 <template>
-<button class="btn btn-ghost flex items-center" @click="openLoginModal">
-    <!-- Для темной темы - белая иконка -->
-    <img src="/src/assets/avatar.svg" 
-        class="h-3 w-3 mr-1 dark:block hidden" 
-        alt="Вход">    
-    <!-- Для светлой темы - черная иконка -->
-    <img src="/src/assets/Avatar_Black.svg" 
-        class="h-3 w-3 mr-1 block dark:hidden" 
-        alt="Вход"> Вход
-</button>
+    <button class="btn btn-ghost flex items-center" @click="openLoginModal">
+        <svg class="w-3 h-3 fill-base-content">
+            <use href="#icon_login"></use>
+        </svg>
+        Вход
+    </button>
 <dialog ref="loginModal" id="login_modal" class="modal modal-bottom sm:modal-middle">   
 
     <div class="modal-box">
@@ -103,9 +99,10 @@ export default {
                 await api.post('/auth/login', {
                     email: this.email,
                     password: this.password
-                },{
-  skipAuthRefresh: true
-})
+                },
+                {
+                    skipAuthRefresh: true
+                })
 
                 this.errorMessage = ''
                 await auth.fetchUser()

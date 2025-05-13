@@ -21,7 +21,7 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
 def read_users(db: Session = Depends(get_db)):
     return crud.get_users(db)
 
-@router.get("/{user_uuid}", response_model=User)
+@router.get("/{user_uuid}", response_model=UserProfile)
 def read_user_by_uuid(user_uuid: UUID, db: Session = Depends(get_db)):
     user = crud.get_user_by_uuid(db, user_uuid)
     if not user:
@@ -41,6 +41,8 @@ def read_user_cars(user_uuid: UUID, db: Session = Depends(get_db)):
 @router.get("_popular", response_model=List[User])
 def read_popular_users(db: Session = Depends(get_db)):
     return crud.get_popular_users(db)
+
+
 
 @router.put("/{user_id}", response_model=User)
 def update_user(user_id: int, user: UserUpdate, db: Session = Depends(get_db)):

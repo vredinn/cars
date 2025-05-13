@@ -59,7 +59,7 @@
       <div class="dropdown dropdown-end">
         <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar">
           <div class="w-10 rounded-full">
-            <img :src="user.avatar_url || '/uploads/user_example.jpg'" alt="avatar"/>
+            <img :src="user.avatar_url || '/uploads/user_example.webp'" alt="avatar"/>
           </div>
         </div>
         <ul
@@ -68,7 +68,7 @@
           <div class="flex flex-col gap-2">
             <div class="avatar">
               <div class="h-36 w-full rounded-box">
-                <img :src="user.avatar_url || '/uploads/user_example.jpg'" alt="avatar"/>
+                <img :src="user.avatar_url || '/uploads/user_example.webp'" alt="avatar"/>
               </div>
             </div>
             <div class="text-center text-pretty">{{ user.name }} <br> {{ user.email }}</div>
@@ -79,7 +79,7 @@
               Мои объявления
             </router-link>
           </li>
-          <li><router-link to="/" class="btn btn-outline">Профиль</router-link></li>
+          <li><router-link :to="'/user/' + user.uuid" class="btn btn-outline">Профиль</router-link></li>
           <li><label for="logout-modal" class="btn btn-soft btn-error">Выйти</label></li>
         </ul>
         <!-- Модалка подтверждения -->

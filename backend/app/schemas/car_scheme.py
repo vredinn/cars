@@ -79,3 +79,7 @@ class CarCard(Car):
 
     class Config:
         from_attributes = True
+
+class UserProfile(User):
+    cars: List[CarCard]
+    reviews: List[Review]

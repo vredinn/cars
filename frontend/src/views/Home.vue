@@ -174,7 +174,7 @@
               />
             </template>
           </div>
-          <button class="btn btn-outline btn-sm mt-2">Подробнее</button>
+          <router-link :to="'/user/' + user.uuid" class="btn btn-outline btn-sm mt-2">Подробнее</router-link>
         </div>
       </div>
     </div>

@@ -26,7 +26,6 @@
                   v-for="car in cars" 
                   :key="car.id" 
                   :car="car"
-                  @click="goToCarDetails(car.uuid)"
                 />
               </div>
               
@@ -63,7 +62,7 @@
                 </div>
                 <div class="collapse-content grid gap-4">
                   <div>
-                    <label class="label">
+                    <label class="label mb-1">
                       <span class="label-text">Марка</span>
                     </label>
                     <select class="select select-bordered w-full" v-model="tempFilters.brand_id">
@@ -73,7 +72,7 @@
                   </div>
                 
                   <div>
-                    <label class="label">
+                    <label class="label mb-1">
                       <span class="label-text">Модель</span>
                     </label>
                     <select class="select select-bordered w-full" v-model="tempFilters.model_id" :disabled="!tempFilters.brand_id">
@@ -83,7 +82,7 @@
                   </div>
                   
                   <div>
-                    <label class="label">
+                    <label class="label mb-1">
                       <span class="label-text">Состояние</span>
                     </label>
                     <select class="select select-bordered w-full" v-model="tempFilters.car_condition">
@@ -92,27 +91,27 @@
                     </select>
                   </div>
                   <div>
-                    <label class="label">
+                    <label class="label mb-1">
                       <span class="label-text">Цена от</span>
                     </label>
                     <input type="number" class="input input-bordered w-full" v-model="tempFilters.min_price" placeholder="Любая">
                   </div>
                   
                   <div>
-                    <label class="label">
+                    <label class="label mb-1">
                       <span class="label-text">Цена до</span>
                     </label>
                     <input type="number" class="input input-bordered w-full" v-model="tempFilters.max_price" placeholder="Любая">
                   </div>
                   
                   <div>
-                    <label class="label">
+                    <label class="label mb-1">
                       <span class="label-text">Год от</span>
                     </label>
                     <input type="number" class="input input-bordered w-full" v-model="tempFilters.min_year" placeholder="Любой">
                   </div>
                   <div>
-                    <label class="label">
+                    <label class="label mb-1">
                       <span class="label-text">Год до</span>
                     </label>
                     <input type="number" class="input input-bordered w-full" v-model="tempFilters.max_year" placeholder="Любой">
@@ -126,7 +125,7 @@
                 </div>
                 <div class="collapse-content grid gap-4">
                   <div>
-                    <label class="label">
+                    <label class="label mb-1">
                       <span class="label-text">Тип кузова</span>
                     </label>
                     <select class="select select-bordered w-full" v-model="tempFilters.body_type">
@@ -135,7 +134,7 @@
                     </select>
                   </div>
                   <div>
-                    <label class="label">
+                    <label class="label mb-1">
                       <span class="label-text">КПП</span>
                     </label>
                     <select class="select select-bordered w-full" v-model="tempFilters.transmission">
@@ -144,7 +143,7 @@
                     </select>
                   </div>
                   <div>
-                    <label class="label">
+                    <label class="label mb-1">
                       <span class="label-text">Привод</span>
                     </label>
                     <select class="select select-bordered w-full" v-model="tempFilters.drive_type">
@@ -153,7 +152,7 @@
                     </select>
                   </div>
                   <div>
-                    <label class="label">
+                    <label class="label mb-1">
                       <span class="label-text">Руль</span>
                     </label>
                     <select class="select select-bordered w-full" v-model="tempFilters.steering_side">
@@ -170,7 +169,7 @@
                 </div>
                 <div class="collapse-content grid gap-4">
                   <div>
-                    <label class="label">
+                    <label class="label mb-1">
                       <span class="label-text">Топливо</span>
                     </label>
                     <select class="select select-bordered w-full" v-model="tempFilters.fuel_type">
@@ -179,41 +178,41 @@
                     </select>
                   </div>
                   <div>
-                    <label class="label">
+                    <label class="label mb-1">
                       <span class="label-text">Мощность от</span>
                     </label>
                     <input type="number" class="input input-bordered w-full" v-model="tempFilters.min_engine_power" placeholder="Любая">
                   </div>
         
                   <div>
-                    <label class="label">
+                    <label class="label mb-1">
                       <span class="label-text">Мощность до</span>
                     </label>
                     <input type="number" class="input input-bordered w-full" v-model="tempFilters.max_engine_power" placeholder="Любая">
                   </div>
                   <div>
-                    <label class="label">
+                    <label class="label mb-1">
                       <span class="label-text">Объем двигателя от</span>
                     </label>
                     <input type="number" class="input input-bordered w-full" v-model="tempFilters.min_engine_capacity" placeholder="Любой">
                   </div>
         
                   <div>
-                    <label class="label">
+                    <label class="label mb-1">
                       <span class="label-text">Объем двигателя до</span>
                     </label>
                     <input type="number" class="input input-bordered w-full" v-model="tempFilters.max_engine_capacity" placeholder="Любой">
                   </div>
                   
                   <div>
-                    <label class="label">
+                    <label class="label mb-1">
                       <span class="label-text">Пробег от</span>
                     </label>
                     <input type="number" class="input input-bordered w-full" v-model="tempFilters.min_millage" placeholder="Любой">
                   </div>
         
                   <div>
-                    <label class="label">
+                    <label class="label mb-1">
                       <span class="label-text">Пробег до</span>
                     </label>
                     <input type="number" class="input input-bordered w-full" v-model="tempFilters.max_millage" placeholder="Любой">

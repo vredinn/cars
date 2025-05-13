@@ -73,6 +73,13 @@ def get_all_cars(
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail="Database error: " + str(e))
 
+
+@router.get("/user_cars/{user_uuid}", response_model=Page[CarCard])
+def get_user_cars(user_uuid: UUID, db: Session = Depends(get_db), page: int = Query(1, ge=1), size: int = Query(5, ge=1)):
+    params = Params(page=page, size=5) 
+    return crud.get_user_cars_paginated(db, user_uuid, params=params)
+
+
 def build_filters(
     brand_id, model_id, min_price, max_price, min_year, max_year,
     min_mileage, max_mileage, min_engine_capacity, max_engine_capacity,

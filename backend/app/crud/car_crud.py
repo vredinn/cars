@@ -13,6 +13,12 @@ from schemas import (
 )
 
 # ================ Car CRUD ================
+def get_car_id_by_uuid(db: Session, car_uuid: UUID):
+    return db.query(m.Car).filter(m.Car.uuid == car_uuid).first().id
+
+def get_car_uuid_by_id(db: Session, car_id: int):
+    return db.query(m.Car).filter(m.Car.id == car_id).first().uuid
+
 def get_car(db: Session, car_id: int):
     return db.query(m.Car).options(selectinload(m.Car.images)).filter(m.Car.id == car_id).first()
 
@@ -49,6 +55,17 @@ def get_all_cars_paginated(
         q = q.order_by(asc(sort_column) if sort_order == "asc" else desc(sort_column))
 
     return paginate(q, params)
+
+def get_user_cars_paginated(
+    db: Session,
+    user_uuid: UUID,
+    params: Params
+):
+    q = db.query(m.Car).filter(m.Car.user.has(uuid=user_uuid))
+    # q = db.query(m.Car)
+    return paginate(q, params)
+
+
 def get_car_cards_query(db: Session):
     return (
         db.query(m.Car)

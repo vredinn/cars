@@ -11,11 +11,12 @@ from endpoints import (
 def create_app():
     app = FastAPI(title="Car Ads API")
 
-    # origins = ["http://localhost:5173", "http://localhost:3000", "*"]
+    origins = ["http://localhost:5173", "http://localhost:3000"]
 
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],  # Разрешить всем (для разработки)
+        # allow_origins=origins,  # Разрешить всем (для разработки)
+        allow_origin_regex=".*",  # Разрешить всем (для разработки)
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],

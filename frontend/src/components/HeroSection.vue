@@ -46,15 +46,9 @@
 
             <!-- Кнопка "Поиск" -->
             <button class="btn btn-primary flex items-center" @click="searchCars">
-              <!-- Иконка для темной темы (белая) -->
-              <img src="/src/assets/Icon_seartch_White.svg" 
-                  alt="Поиск" 
-                  class="h-3 w-3 mr-2 block dark:hidden">
-              
-              <!-- Иконка для светлой темы (черная) -->
-              <img src="/src/assets/Icon_seartch_Black.svg" 
-                  alt="Поиск" 
-                  class="h-3 w-3 mr-2 dark:block hidden">
+              <svg class="w-3 h-3 fill-primary-content">
+                <use href="#icon_search"></use>
+              </svg>
               Поиск
             </button>
           </div>

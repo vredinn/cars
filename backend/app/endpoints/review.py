@@ -3,12 +3,12 @@ from sqlalchemy.orm import Session
 from fastapi_pagination import Page, Params
 
 from database import get_db
-from schemas import Review, ReviewCreate, ReviewUpdate, ReviewDetailed
+from schemas import Review, ReviewCreate, ReviewUpdate
 import crud
 
 router = APIRouter(prefix="/reviews", tags=["Reviews"])
 
-@router.get("/user/{user_id}", response_model=Page[ReviewDetailed])
+@router.get("/user/{user_id}", response_model=Page[Review])
 def get_reviews_by_user(user_id: int, params: Params = Depends(), db: Session = Depends(get_db)):
     return crud.get_reviews_by_user(db, user_id, params)
 

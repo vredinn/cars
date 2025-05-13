@@ -3,6 +3,7 @@ import Home from '@/views/Home.vue'
 
 import Catalog from '@/views/Catalog.vue'
 import CarPage from '@/views/CarPage.vue'
+import UserProfile from '@/views/UserProfile.vue'
 
 const routes = [
   {
@@ -11,7 +12,7 @@ const routes = [
     component: Home
   },
   {
-    path: '/car/:id',
+    path: '/car/:uuid',
     name: 'car',
     component: CarPage,
     props: true
@@ -21,8 +22,13 @@ const routes = [
     name: 'catalog',
     component: Catalog
 
+  },
+  {
+    path: '/user/:uuid',
+    name: 'user',
+    component: UserProfile,
+    props: true
   }
-  // Добавьте другие маршруты
 ]
 
 const router = createRouter({

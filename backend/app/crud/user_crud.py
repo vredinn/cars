@@ -19,6 +19,12 @@ UPLOAD_DIR = Path("uploads/car_images")
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # ================ User CRUD ================
+def get_user_id_by_uuid(db: Session, user_uuid: UUID):
+    return db.query(m.User).filter(m.User.uuid == user_uuid).first().id
+
+def get_user_uuid_by_id(db: Session, user_id: int):
+    return db.query(m.User).filter(m.User.id == user_id).first().uuid
+
 def get_user(db: Session, user_id: int):
     return db.query(m.User).filter(m.User.id == user_id).first()
 

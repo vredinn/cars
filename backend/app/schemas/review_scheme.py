@@ -4,7 +4,6 @@ from decimal import Decimal
 from uuid import UUID
 from pydantic import BaseModel, EmailStr, Field
 
-from .user_scheme import *
 # ================ Car ================
 
 class Review(BaseModel):
@@ -26,6 +25,3 @@ class ReviewCreate(BaseModel):
 class ReviewUpdate(BaseModel):
     rating: Optional[float] = None
     review_text: Optional[str] = None
-
-class ReviewDetailed(Review):
-    user: UserMinimal

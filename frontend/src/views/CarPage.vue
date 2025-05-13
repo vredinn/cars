@@ -150,16 +150,16 @@ export default {
     }
   },
   async created() {
-    const carId = this.$route.params.id
-    await this.loadCarData(carId)
+    const carUUID = this.$route.params.uuid
+    await this.loadCarData(carUUID)
     if (this.car.images.length > 0) {
       this.currentImage = this.car.images[0].image_url
     }
   },
   methods: {
-    async loadCarData(carId) {
+    async loadCarData(carUUID) {
       try {
-        const response = await api.get(`/cars/${carId}`)
+        const response = await api.get(`/cars/${carUUID}`)
         const data = await response.data
         this.car = data
         // Если нет изображений, добавляем превью
