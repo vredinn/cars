@@ -4,16 +4,24 @@
     <main>
       <router-view />
     </main>
+    <Footer />
   </div>
 </template>
 
 <script>
 import Header from '@/components/Header.vue'
-
+import { useAuthStore } from '@/stores/auth'
+import Footer from '@/components/Footer.vue';
 
 export default {
   name: 'App',
-  components: { Header } ,
+  components: { Header, Footer } ,
+  created() {
+    const auth = useAuthStore();    
+    auth.fetchUser().then(() => {
+      auth.startAutoRefresh()
+    })
+  },
   watch: {
     $route() {
       // Сбрасываем прокрутку при смене маршрута

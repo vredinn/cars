@@ -21,19 +21,16 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
 def read_users(db: Session = Depends(get_db)):
     return crud.get_users(db)
 
-@router.get("_paginated/", response_model=Page[UserWithImage])
-def read_users(
-    params: Params = Depends(),
-    db: Session = Depends(get_db)
-):
-    return crud.get_users_paginated(db, params=params)
-
 @router.get("/{user_id}", response_model=User)
-def read_user(user_id: int, db: Session = Depends(get_db)):
+def read_users(user_id: int, db: Session = Depends(get_db)):
     user = crud.get_user(db, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return user
+
+@router.get("_popular", response_model=List[User])
+def read_popular_users(db: Session = Depends(get_db)):
+    return crud.get_popular_users(db)
 
 @router.put("/{user_id}", response_model=User)
 def update_user(user_id: int, user: UserUpdate, db: Session = Depends(get_db)):

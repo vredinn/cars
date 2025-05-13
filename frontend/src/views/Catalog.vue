@@ -1,7 +1,6 @@
 <template>
   <div class="container mx-auto p-4">
     <h1 class="text-2xl font-bold mb-4">Поиск объявлений</h1>
-    
     <!-- Кнопка для открытия drawer на мобильных -->
     <button class="btn btn-primary md:hidden mb-4" @click="showDrawer = true">
       Показать фильтры
@@ -10,7 +9,7 @@
     <!-- Основной контент -->
     <div class="flex gap-4">
       <!-- Drawer для мобильных -->
-      <div class="drawer md:drawer-open md:gap-4">
+      <div class="drawer md:drawer-open md:gap-2">
         <input id="my-drawer" type="checkbox" class="drawer-toggle" v-model="showDrawer">
         <div class="drawer-content">
           <!-- Контент страницы -->
@@ -45,7 +44,7 @@
             </div>
           </div>
         </div> 
-        <div class="drawer-side">  
+        <div class="drawer-side md:pr-2">  
           <h2 class="text-xl font-bold mb-4">Фильтры</h2>
           <label for="my-drawer" class="drawer-overlay"></label>
           <div class="bg-base-300 md:rounded-box p-4 min-h-full md:min-h-0 md:w-75">
@@ -238,6 +237,7 @@
 <script>
 import CarCard from '@/components/CarCard.vue'
 import Pagination from '@/components/Pagination.vue'
+import api from '@/api'
 export default {
   name: 'CarSearchPage',
   components: {
@@ -328,18 +328,15 @@ export default {
         maximumFractionDigits: 0
       }).format(price)
     },
-    getImageUrl(url) {
-      return `http://192.168.0.101:8000/${url}`
-    },
     async loadBrandsAndModels() {
       try {
         const [brandsRes, modelsRes] = await Promise.all([
-          fetch('http://192.168.0.101:8000/brands/'),
-          fetch('http://192.168.0.101:8000/models/')
+          api.get('/brands/'),
+          api.get('/models/')
         ])
         
-        this.brands = await brandsRes.json()
-        this.models = await modelsRes.json()
+        this.brands = brandsRes.data
+        this.models = modelsRes.data
       } catch (error) {
         console.error('Ошибка загрузки брендов и моделей:', error)
       }
@@ -347,12 +344,12 @@ export default {
     async loadEnums() {
       try {
         const enumsPromises = {
-          carConditions: fetch('http://192.168.0.101:8000/enums/car-conditions/').then(r => r.json()),
-          steeringSides: fetch('http://192.168.0.101:8000/enums/steering-sides/').then(r => r.json()),
-          bodyTypes: fetch('http://192.168.0.101:8000/enums/body-types/').then(r => r.json()),
-          transmissions: fetch('http://192.168.0.101:8000/enums/transmissions/').then(r => r.json()),
-          fuelTypes: fetch('http://192.168.0.101:8000/enums/fuel-types/').then(r => r.json()),
-          driveTypes: fetch('http://192.168.0.101:8000/enums/drive-types/').then(r => r.json())
+          carConditions: api.get('/enums/car-conditions').then(r => r.data),
+          steeringSides: api.get('/enums/steering-sides').then(r => r.data),
+          bodyTypes: api.get('/enums/body-types').then(r => r.data),
+          transmissions: api.get('/enums/transmissions').then(r => r.data),
+          fuelTypes: api.get('/enums/fuel-types').then(r => r.data),
+          driveTypes: api.get('/enums/drive-types').then(r => r.data)
         }
 
         const results = await Promise.all(Object.values(enumsPromises))
@@ -417,8 +414,8 @@ export default {
         const queryParams = this.buildQueryParams(this.activeFilters)
         const queryString = new URLSearchParams(queryParams).toString()
         
-        const response = await fetch(`http://192.168.0.101:8000/cars/?${queryString}`)
-        const data = await response.json()
+        const response = await api.get(`/cars/?${queryString}`)
+        const data = await response.data
         
         this.cars = data.items
         this.totalPages = data.pages
@@ -468,7 +465,7 @@ export default {
       }).catch(() => {})
     }
   },
-  mounted() {
+  created() {
     this.loadBrandsAndModels()
     this.loadEnums()
     this.parseQueryParams()

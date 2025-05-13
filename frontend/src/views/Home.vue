@@ -21,7 +21,7 @@
         <div v-for="brand in brands" :key="brand.id" class="flex flex-col items-center">
           <div
             class="w-full aspect-square rounded-full bg-white flex flex-col items-center justify-center p-4 hover:shadow-lg transition-all shadow-md">
-            <img :src="`http://192.168.0.101:8000/${brand.image_url}`" :alt="brand.name" class="w-1/2 h-auto mb-2">
+            <img :src="`${brand.image_url}`" :alt="brand.name" class="w-1/2 h-auto mb-2">
             <span class="text-sm font-medium text-center text-black">{{ brand.name }}</span>
           </div>
         </div>
@@ -37,7 +37,7 @@
         <div v-for="(car, uuid) in popularCars" :key="uuid" class="flex-shrink-0">
           <div class="card carousel-item bg-base-300 border border-base-300 h-[400px] w-[306px]">
             <figure class="h-[200px]">
-              <img :src="getImageUrl(car.preview_image_url)" :alt="car.title" class="object-cover w-full h-full">
+              <img :src="car.preview_image_url" :alt="car.title" class="object-cover w-full h-full">
             </figure>
             <div class="card-body p-4 text-base-content">
               <h3 class="card-title text-lg">{{ car.brand_name }} {{ car.model_name }}</h3>
@@ -144,124 +144,67 @@
         </div>
       </div>
     </section>
-    <section class="py-20 container mx-auto px-4 font-bold">
+    <section class="py-20 container mx-auto px-4">
     <h2 class="text-3xl font-bold text-center mb-10">Популярные продавцы</h2>
     
     <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-      <!-- Карточка продавца 1 -->
-      <div class="card bg-base-300 shadow-md h-[400px] w-full mx-auto">
+      <!-- Карточки продавца -->
+      <div v-for="(user, uuid) in popularUsers" :key="uuid" class="card bg-base-300 shadow-md h-[400px] w-full mx-auto">
         <figure class="h-[306px] overflow-hidden">
-          <img 
-            src="/src/assets/sellers/Muhamed.png" 
-            alt="Мухаммед"
+          <img :src="user.avatar_url || '/uploads/user_example.webp'" :alt="user.name"
             class="w-full h-full object-cover"
           >
         </figure>
-        <div class="card-body p-4 text-center">
-          <h3 class="card-title text-lg">Мухаммед</h3>
-          <div class="rating rating-sm justify-center my-2">
-            <input type="radio" name="rating-1" class="mask mask-star-2 bg-orange-400" checked disabled/>
-            <input type="radio" name="rating-1" class="mask mask-star-2 bg-orange-400" checked disabled/>
-            <input type="radio" name="rating-1" class="mask mask-star-2 bg-orange-400" checked disabled/>
-            <input type="radio" name="rating-1" class="mask mask-star-2 bg-orange-400" checked disabled />
-            <input type="radio" name="rating-1" class="mask mask-star-2 bg-orange-400" checked disabled/>
-          </div>
-          <button class="btn btn-outline btn-sm mt-2">Подробнее</button>
-        </div>
-      </div>
-      
-      <!-- Карточка продавца 2 -->
-      <div class="card bg-base-300 shadow-md h-[400px] w-full mx-auto">
-        <figure class="h-[306px] overflow-hidden">
-          <img 
-            src="/src/assets/sellers/Dmitry.jpg" 
-            alt="Дмитрий"
-            class="w-full h-full object-cover"
-          >
-        </figure>
-        <div class="card-body p-4 text-center">
-          <h3 class="card-title text-lg">Дмитрий</h3>
-          <div class="rating rating-sm justify-center my-2">
-            <input type="radio" name="rating-2" class="mask mask-star-2 bg-orange-400" checked disabled />
-            <input type="radio" name="rating-2" class="mask mask-star-2 bg-orange-400" checked disabled />
-            <input type="radio" name="rating-2" class="mask mask-star-2 bg-orange-400" checked disabled />
-            <input type="radio" name="rating-2" class="mask mask-star-2 bg-orange-400" checked disabled />
-            <input type="radio" name="rating-2" class="mask mask-star-2 bg-orange-400" checked disabled/>
-          </div>
-          <button class="btn btn-outline btn-sm mt-2">Подробнее</button>
-        </div>
-      </div>
-      
-      <!-- Карточка продавца 3 -->
-      <div class="card bg-base-300 shadow-md h-[400px] w-full mx-auto">
-        <figure class="h-[306px] overflow-hidden">
-          <img 
-            src="/src/assets/sellers/Kiril.jpg" 
-            alt="Кирилл"
-            class="w-full h-full object-cover"
-          >
-        </figure>
-        <div class="card-body p-4 text-center">
-          <h3 class="card-title text-lg">Кирилл</h3>
-          <div class="rating rating-sm justify-center my-2">
-            <input type="radio" name="rating-3" class="mask mask-star-2 bg-orange-400" checked disabled />
-            <input type="radio" name="rating-3" class="mask mask-star-2 bg-orange-400" checked disabled />
-            <input type="radio" name="rating-3" class="mask mask-star-2 bg-orange-400" checked disabled />
-            <input type="radio" name="rating-3" class="mask mask-star-2 bg-orange-400" checked disabled/>
-            <input type="radio" name="rating-3" class="mask mask-star-2 bg-orange-400" checked disabled/>
-          </div>
-          <button class="btn btn-outline btn-sm mt-2">Подробнее</button>
-        </div>
-      </div>
-      
-      <!-- Карточка продавца 4 -->
-      <div class="card bg-base-300 shadow-md h-[400px] w-full mx-auto">
-        <figure class="h-[306px] overflow-hidden">
-          <img 
-            src="/src/assets/sellers/Andrey.jpg" 
-            alt="Андрей"
-            class="w-full h-full object-cover"
-          >
-        </figure>
-        <div class="card-body p-4 text-center">
-          <h3 class="card-title text-lg">Андрей</h3>
-          <div class="rating rating-sm justify-center my-2">
-            <input type="radio" name="rating-4" class="mask mask-star-2 bg-orange-400" checked disabled />
-            <input type="radio" name="rating-4" class="mask mask-star-2 bg-orange-400" checked disabled />
-            <input type="radio" name="rating-4" class="mask mask-star-2 bg-orange-400" checked disabled />
-            <input type="radio" name="rating-4" class="mask mask-star-2 bg-orange-400" checked disabled />
-            <input type="radio" name="rating-4" class="mask mask-star-2 bg-orange-400" checked disabled />
+        <div class="card-body p-4">
+          <h3 class="card-title text-lg">{{ user.name }}</h3>
+          <p class="text-sm">На сайте с {{ formatDate(user.registration_date) }}</p>
+          
+          <div class="text-sm text-center">Рейтинг: {{ user.rating.toFixed(2) }}</div>
+          <div class="rating rating-sm rating-half justify-center mb-2">
+            <template v-for="i in 10" :key="i">
+              <input
+                type="radio"
+                :name="'rating-' + user.uuid"
+                class="mask mask-star-2"
+                :class="i % 2 === 1 ? 'mask-half-1 bg-orange-400' : 'mask-half-2 bg-orange-400'"
+                :checked="i === Math.round(user.rating * 2)"
+                disabled
+              />
+            </template>
           </div>
           <button class="btn btn-outline btn-sm mt-2">Подробнее</button>
         </div>
       </div>
     </div>
   </section>
-    <Footer />
   </div>
 </template>
 
 <script>
 import HeroSection from '@/components/HeroSection.vue'
-import footer from '../components/footer.vue'
-import Footer from '../components/footer.vue'
+import api from '@/api'
 
 export default {
   name: 'HomeView',
-  components: { HeroSection, Footer},
+  components: { HeroSection},
   data() {
     return {
       brands: [],
       isLoadingBrands: true,
       popularCars: [],
+      popularUsers: [],
       isLoadingCars: true,
+      isLoadingUsers: true,
       canScrollLeft: false,
       canScrollRight: true,
     }
   },
-  mounted() {
+  created() {
     this.loadBrands()
     this.loadPopularCars()
+    this.loadPopularUsers()
+  },
+  mounted() {
     const carousel = this.$refs.carousel
     if (carousel) {
       carousel.addEventListener('scroll', this.updateScrollButtons)
@@ -276,14 +219,26 @@ export default {
   methods: {
     async loadBrands() {
       this.isLoadingBrands = true
-      try {
-        const response = await fetch("http://192.168.0.101:8000/brands/");
-        const data = await response.json();
+      try {        
+        const response = await api.get('/brands/');
+        const data = response.data;
         this.brands = data;
       } catch (error) {
         console.error("Ошибка загрузки брендов:", error);
       } finally {
         this.isLoadingBrands = false
+      }
+    },
+    async loadPopularUsers() {
+      this.isLoadingUsers = true
+      try {
+        const response = await api.get("/users_popular");
+        const data = response.data;
+        this.popularUsers = data;
+      } catch (error) {
+        console.error("Ошибка загрузки популярных пользователей:", error);
+      } finally {
+        this.isLoadingCars = false
       }
     },
     formatPrice(price) {
@@ -293,11 +248,34 @@ export default {
         maximumFractionDigits: 0
       }).format(price)
     },
+    formatDate(dateString) {
+      if (!dateString) return 'Дата не указана';
+      
+      try {
+        const date = new Date(dateString);
+        
+        // Проверяем, что дата валидна
+        if (isNaN(date.getTime())) {
+          return 'Некорректная дата';
+        }
+        
+        // Форматируем дату с учетом локали пользователя
+        return new Intl.DateTimeFormat('ru-RU', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric'
+        }).format(date);
+        
+      } catch (e) {
+        console.error('Ошибка форматирования даты:', e);
+        return dateString; // Возвращаем оригинальную строку в случае ошибки
+      }
+    },
     async loadPopularCars() {
       this.isLoadingCars = true
       try {
-        const response = await fetch("http://192.168.0.101:8000/cars/popular");
-        const data = await response.json();
+        const response = await api.get("/cars/popular");
+        const data = response.data;
         this.popularCars = data;
       } catch (error) {
         console.error("Ошибка загрузки популярных машин:", error);
@@ -322,9 +300,6 @@ export default {
       const scrollAmount = -320;
       carousel.scrollBy({ left: scrollAmount, behavior: 'smooth' });
       setTimeout(this.updateScrollButtons, 500); // Обновляем состояние после прокрутки
-    },
-    getImageUrl(url) {
-      return `http://192.168.0.101:8000/${url}`;
     }
   }
 }

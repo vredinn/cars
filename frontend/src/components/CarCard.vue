@@ -1,9 +1,9 @@
 <template>
-    <div class="card bg-base-300 cursor-pointer" @click="$emit('click')">
+    <router-link :to="`/car/${car.uuid}`" class="card bg-base-300 cursor-pointer">
       <div class="card-body">
         <div class="flex flex-col lg:flex-row gap-4">
           <div class="w-full lg:w-1/4">
-            <img :src="getImageUrl(car.preview_image_url)" 
+            <img :src="car.preview_image_url" 
                  class="w-full h-48 object-cover rounded-lg"
                  :alt="`${car.brand_name} ${car.model_name}`">
           </div>
@@ -31,7 +31,7 @@
           </div>
         </div>
       </div>
-    </div>
+    </router-link>
   </template>
   
   <script>
@@ -46,9 +46,6 @@
           currency: 'RUB',
           maximumFractionDigits: 0
         }).format(price)
-      },
-      getImageUrl(url) {
-        return `http://192.168.0.101:8000/${url}`
       }
     }
   }

@@ -13,7 +13,7 @@ import io
 
 ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png"]
 MAX_IMAGE_SIZE = 20 * 1024 * 1024  # 20MB
-UPLOAD_DIR = Path("uploads/car_images")
+UPLOAD_DIR = Path("/uploads/car_images")
 CAR_IMAGE_WIDTH = 416 * 3
 CAR_IMAGE_HEIGHT = 215 * 3
 
@@ -62,7 +62,7 @@ async def create_car_image(
     except Exception:
         raise HTTPException(status_code=400, detail="Ошибка обработки изображения")
 
-    image_url = f"uploads/car_images/{car.uuid}/{filename}"
+    image_url = f"/uploads/car_images/{car.uuid}/{filename}"
     new_image = crud.add_car_image(db, CarImageCreate(car_id=car_id, image_url=image_url))
     return new_image
 

@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import APIRouter, FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi_pagination import add_pagination
@@ -11,6 +11,8 @@ from endpoints import (
 def create_app():
     app = FastAPI(title="Car Ads API")
 
+    # origins = ["http://localhost:5173", "http://localhost:3000", "*"]
+
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],  # Разрешить всем (для разработки)
@@ -19,18 +21,21 @@ def create_app():
         allow_headers=["*"],
     )
 
-    app.include_router(user.router)
-    app.include_router(brand.router)
-    app.include_router(car_model.router)
-    app.include_router(car.router)
-    app.include_router(review.router)
-    app.include_router(message.router)
-    app.include_router(favorite.router)
-    app.include_router(car_image.router)
-    app.include_router(saved_search.router)
-    app.include_router(moderation.router)
-    app.include_router(enum.router)
-    app.include_router(auth.router)
+    api_router = APIRouter(prefix="/api")
+
+    api_router.include_router(user.router)
+    api_router.include_router(brand.router)
+    api_router.include_router(car_model.router)
+    api_router.include_router(car.router)
+    api_router.include_router(review.router)
+    api_router.include_router(message.router)
+    api_router.include_router(favorite.router)
+    api_router.include_router(car_image.router)
+    api_router.include_router(saved_search.router)
+    api_router.include_router(moderation.router)
+    api_router.include_router(enum.router)
+    api_router.include_router(auth.router)
+    app.router.include_router(api_router)
 
     # статика
     app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")    

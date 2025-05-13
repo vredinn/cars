@@ -3,6 +3,7 @@ import tailwindcss from "@tailwindcss/vite";
 import vue from "@vitejs/plugin-vue";
 import path from "path";
 
+
 export default defineConfig({
   plugins: [
     tailwindcss(),
@@ -15,8 +16,25 @@ export default defineConfig({
     },
   },
   server: {
+    proxy: {
+      '/api': {
+        target: "http://backend:8000",
+        changeOrigin: true,
+        secure: false,
+      },
+      '/uploads': {
+        target: "http://backend:8000",
+        changeOrigin: true,
+        secure: false,
+      },
+      '/brand_logos': {
+        target: "http://backend:8000",
+        changeOrigin: true,
+        secure: false,
+      },
+    },
     watch: {
-      usePolling: true,  // Решает проблему с Docker
+      usePolling: true,
     },
     host: true,
   },

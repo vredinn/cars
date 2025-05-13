@@ -11,7 +11,7 @@
             <!-- Основное изображение -->
             <div class="w-full mb-4 rounded-lg overflow-hidden">
               <img 
-                :src="getImageUrl(currentImage)" 
+                :src="currentImage" 
                 class="w-full h-96 object-cover cursor-pointer" 
                 alt="Фото автомобиля"
                 @click="openModal(currentImage)"
@@ -26,7 +26,7 @@
                 class="flex-none w-24 h-20"
               >
                 <img 
-                  :src="getImageUrl(img.image_url)" 
+                  :src="img.image_url" 
                   class="w-full h-full object-cover rounded cursor-pointer"
                   :class="{'ring-2 ring-primary': currentImage === img.image_url}"
                   @click="currentImage = img.image_url"
@@ -104,14 +104,12 @@
           </div>
         </div>
       </main>
-  
-      <Footer />
 
       <!-- Модальное окно для полноразмерного просмотра -->
       <dialog id="imageModal" class="modal" :open="isModalOpen" @click="closeModal">
         <div class="modal-box w-11/12 max-w-5xl p-0 overflow-hidden">
           <img 
-            :src="getImageUrl(modalImage)" 
+            :src="modalImage" 
             class="w-full h-full object-contain" 
             alt="Фото автомобиля"
           >
@@ -124,12 +122,11 @@
 </template>
   
 <script>
-import Footer from '@/components/Footer.vue'
+import api from '@/api'
 
 export default {
 
   name: 'CarPage',
-  components: {Footer },
   data() {
     return {
       car: {
@@ -162,10 +159,9 @@ export default {
   methods: {
     async loadCarData(carId) {
       try {
-        const response = await fetch(`http://192.168.0.101:8000/cars/${carId}`)
-        const data = await response.json()
+        const response = await api.get(`/cars/${carId}`)
+        const data = await response.data
         this.car = data
-        
         // Если нет изображений, добавляем превью
         if (data.images && data.images.length === 0 && data.preview_image_url) {
           this.car.images = [{ image_url: data.preview_image_url }]
@@ -173,9 +169,6 @@ export default {
       } catch (error) {
         console.error('Ошибка загрузки данных автомобиля:', error)
       }
-    },
-    getImageUrl(url) {
-      return `http://192.168.0.101:8000/${url}`
     },
     openModal(imageUrl) {
       this.modalImage = imageUrl
@@ -194,30 +187,30 @@ export default {
       }).format(price)
     },
     formatListingDate(dateString) {
-    if (!dateString) return 'Дата не указана';
-    
-    try {
-      const date = new Date(dateString);
+      if (!dateString) return 'Дата не указана';
       
-      // Проверяем, что дата валидна
-      if (isNaN(date.getTime())) {
-        return 'Некорректная дата';
+      try {
+        const date = new Date(dateString);
+        
+        // Проверяем, что дата валидна
+        if (isNaN(date.getTime())) {
+          return 'Некорректная дата';
+        }
+        
+        // Форматируем дату с учетом локали пользователя
+        return new Intl.DateTimeFormat('ru-RU', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        }).format(date);
+        
+      } catch (e) {
+        console.error('Ошибка форматирования даты:', e);
+        return dateString; // Возвращаем оригинальную строку в случае ошибки
       }
-      
-      // Форматируем дату с учетом локали пользователя
-      return new Intl.DateTimeFormat('ru-RU', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      }).format(date);
-      
-    } catch (e) {
-      console.error('Ошибка форматирования даты:', e);
-      return dateString; // Возвращаем оригинальную строку в случае ошибки
     }
-  }
   }
 }
 </script>

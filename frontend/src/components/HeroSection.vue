@@ -70,6 +70,7 @@
 </template>
 
 <script>
+import api from '@/api'
 export default {
   name: 'HeroSection',
   data() {
@@ -103,12 +104,12 @@ export default {
     async loadBrandsAndModels() {
       try {
         const [brandsRes, modelsRes] = await Promise.all([
-          fetch('http://192.168.0.101:8000/brands/'),
-          fetch('http://192.168.0.101:8000/models/')
+          api.get('/brands/'),
+          api.get('/models/')
         ])
         
-        this.brands = await brandsRes.json()
-        this.models = await modelsRes.json()
+        this.brands = await brandsRes.data
+        this.models = await modelsRes.data
       } catch (error) {
         console.error('Ошибка загрузки брендов и моделей:', error)
       }
@@ -116,7 +117,7 @@ export default {
     async loadCarConditions() {
       try {
         const enumsPromises = {
-          carConditions: fetch('http://192.168.0.101:8000/enums/car-conditions/').then(r => r.json())
+          carConditions: api.get('/enums/car-conditions').then(r => r.data)
         }
 
         const results = await Promise.all(Object.values(enumsPromises))
@@ -149,7 +150,7 @@ export default {
       }).catch(() => {})
     }
   },
-  mounted() {
+  created() {
     this.loadBrandsAndModels()
     this.loadCarConditions()
   }

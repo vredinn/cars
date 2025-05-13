@@ -25,12 +25,12 @@ def get_user(db: Session, user_id: int):
 def get_user_by_email(db: Session, email: str):
     return db.query(m.User).filter(m.User.email == email).first()
 
-def get_users_paginated(db: Session, params: Params):
-    q =db.query(m.User)
-    return paginate(q, params)
-
 def get_users(db: Session):
     return db.query(m.User).all()
+
+def get_popular_users(db: Session):
+    return db.query(m.User).filter(m.User.is_admin == False).order_by(desc(m.User.rating)).limit(4).all()
+
 
 def create_user(db: Session, user: UserCreate):
     hashed_password = pwd_context.hash(user.password + settings.SALT)

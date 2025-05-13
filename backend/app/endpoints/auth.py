@@ -15,7 +15,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 def login(user: UserLogin, response: Response, db: Session = Depends(get_db)):
     db_user = authenticate_user(db, email=user.email, password=user.password)
     if not db_user:
-        raise HTTPException(status_code=401, detail="Invalid credentials")
+        raise HTTPException(status_code=401, detail="Данные для входа неверны")
     user_id = str(db_user.id)
     access_token = security.auth.create_access_token(uid=user_id)
     refresh_token = security.auth.create_refresh_token(uid=user_id)
@@ -24,26 +24,26 @@ def login(user: UserLogin, response: Response, db: Session = Depends(get_db)):
     security.auth.set_refresh_cookies(refresh_token, response)
     return response
 
+@router.post("/logout")
+def logout(response: Response):
+    security.auth.unset_cookies(response)
+    return {"message": "Logged out"}
 
-@router.post("/refresh", dependencies=[Depends(security.require_user)])
-def refresh_token(
-    request: Request,
+
+@router.post("/refresh")
+def refresh(
     response: Response,
+    request: Request,
     token: str = Depends(security.auth.refresh_token_required),
 ):
+    
     new_access = security.auth.create_access_token(uid=token.sub)
     new_refresh = security.auth.create_refresh_token(uid=token.sub)
     response = JSONResponse(content={"message": "Session refreshed"})
     security.auth.set_access_cookies(new_access, response)
     security.auth.set_refresh_cookies(new_refresh, response)
-
     return response
 
-
-@router.post("/logout")
-def logout(response: Response):
-    security.auth.unset_cookies(response)
-    return {"message": "Logged out"}
 
 
 @router.get("/me")
