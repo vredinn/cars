@@ -82,7 +82,7 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label class="label">Объем двигателя (л)</label>
-          <input type="number" class="input input-bordered w-full" v-model="form.engine_capacity">
+          <input type="number" step="0.1" class="input input-bordered w-full" v-model="form.engine_capacity">
         </div>
 
         <div>
@@ -118,11 +118,29 @@
         <textarea class="textarea textarea-bordered w-full" rows="4" v-model="form.description"></textarea>
       </div>
 
-      <!-- Загрузка фото -->
-      <div>
-        <label class="label">Фото</label>
-        <input type="file" class="file-input file-input-bordered w-full" multiple @change="handleFiles">
-      </div>
+<!-- Drag & Drop фото -->
+<div
+  class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:bg-gray-50 transition"
+  @dragover.prevent
+  @drop.prevent="handleDrop"
+>
+  <label class="label mb-2 block">Перетащите фото сюда или выберите файл</label>
+  <input type="file" class="hidden" ref="fileInput" multiple @change="handleFiles">
+  <button class="btn btn-sm" type="button" @click="$refs.fileInput.click()">Выбрать фото</button>
+
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4" v-if="previews.length">
+    <div v-for="(src, index) in previews" :key="index" class="relative">
+      <img :src="src" class="rounded w-full h-32 object-cover border" />
+      <button
+        type="button"
+        class="absolute top-0 right-0 bg-red-500 text-white rounded-full w-6 h-6 text-xs flex items-center justify-center"
+        @click="removeImage(index)"
+      >
+        ✕
+      </button>
+    </div>
+  </div>
+</div>
 
       <!-- Кнопка -->
       <div class="pt-4">
@@ -169,7 +187,8 @@ export default {
       bodyTypes: [],
       transmissions: [],
       fuelTypes: [],
-      driveTypes: []
+      driveTypes: [],
+      previews: []
     }
   },
   computed: {
@@ -204,9 +223,29 @@ export default {
       this.fuelTypes = c5.data
       this.driveTypes = c6.data
     },
-    handleFiles(event) {
-      this.files = Array.from(event.target.files)
-    },
+handleFiles(event) {
+  const selectedFiles = Array.from(event.target.files)
+  this.addFiles(selectedFiles)
+},
+
+handleDrop(event) {
+  const droppedFiles = Array.from(event.dataTransfer.files)
+  this.addFiles(droppedFiles)
+},
+
+addFiles(fileList) {
+  for (const file of fileList) {
+    if (!file.type.startsWith('image/')) continue
+    this.files.push(file)
+    this.previews.push(URL.createObjectURL(file))
+  }
+},
+
+removeImage(index) {
+  this.files.splice(index, 1)
+  URL.revokeObjectURL(this.previews[index])
+  this.previews.splice(index, 1)
+},
     async handleSubmit() {
       this.loading = true
       try {
