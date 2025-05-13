@@ -457,6 +457,7 @@ export default {
       // Сбрасываем на первую страницу при новом поиске
       this.currentPage = 1
       this.updateRoute()
+      this.showDrawer = false
     },
     resetFilters() {
       // Сбрасываем все фильтры
