@@ -21,23 +21,33 @@
       <div class="container mx-auto">
         <div class="w-full rounded-[20px] lg:rounded-full p-1 bg-base-100">
           <div class="flex flex-col md:flex-row gap-3">
-            <!-- Поле выбора марки -->
-            <select class="select select-bordered w-full py-2 flex-1" v-model="filters.brand_id">
-              <option :value="null" selected>Марка</option>
-              <option v-for="brand in brands" :value="brand.id">{{ brand.name }}</option>
-            </select>
 
-            <!-- Поле выбора модели -->
-            <select class="select select-bordered w-full py-2 flex-1" v-model="filters.model_id" :disabled="!filters.brand_id">
-              <option :value="null" selected >Модель</option>
-              <option v-for="model in filteredModels" :value="model.id">{{ model.name }}</option>
-            </select>
+<SearchableSelect
+        class="flex-1"
+        :options="brands"
+        v-model="filters.brand_id"
+        placeholder="Марка"
+        label-key="name"
+        value-key="id"
+      />
+
+<SearchableSelect
+        class="flex-1"
+        :options="filteredModels"
+        v-model="filters.model_id"
+        placeholder="Модель"
+        label-key="name"
+        value-key="id"
+        :disabled="!filters.brand_id"
+      />
 
             <!-- Поле выбора состояния машины -->
-            <select class="select select-bordered w-full py-2 flex-1" v-model="filters.car_condition">
-              <option :value="null" selected >Состояние</option>
-              <option v-for="car_condition in carConditions" :value="car_condition">{{ car_condition }}</option>
-            </select>
+        <SearchableSelect
+                class="flex-1"
+                :options="carConditions"
+                v-model="filters.car_condition"
+                placeholder="Состояние"
+              />
 
             <!-- Поле выбора цены -->
             <div>
@@ -64,9 +74,11 @@
 </template>
 
 <script>
+import SearchableSelect from '@/components/SearchableSelect.vue'
 import api from '@/api'
 export default {
   name: 'HeroSection',
+  components: {SearchableSelect},
   data() {
     return {
       brands: [],
@@ -110,14 +122,7 @@ export default {
     },
     async loadCarConditions() {
       try {
-        const enumsPromises = {
-          carConditions: api.get('/enums/car-conditions').then(r => r.data)
-        }
-
-        const results = await Promise.all(Object.values(enumsPromises))
-        ;[
-          this.carConditions
-        ] = results
+        this.carConditions = await api.get('/enums/car-conditions').then(r => r.data)
       } catch (error) {
         console.error('Ошибка загрузки состояний автомобиля:', error)
       }

@@ -1,15 +1,15 @@
 <template>
     <div @click="goToCar(car.uuid)" class="card bg-base-300 cursor-pointer">
-      <div class="card-body">
+      <div class="card-body p-4">
         
-        <div v-if="!is_favorite" class="tooltip absolute top-6 right-6 " data-tip="Добавить в избранное">
+        <div v-if="!is_favorite" class="tooltip tooltip-left absolute top-4 right-4" data-tip="Добавить в избранное">
           <button @click.stop="toggleFavorite()" v-if="user" class="btn btn-primary p-2 h-auto">
             <svg class="w-4 h-4 fill-primary-content">
               <use href="#icon_favorite"></use>
             </svg>
           </button>
         </div>
-        <div v-if="is_favorite" class="tooltip absolute top-6 right-6 " data-tip="Удалить из избранного">
+        <div v-if="is_favorite" class="tooltip tooltip-left absolute top-4 right-4" data-tip="Удалить из избранного">
           <button @click.stop="toggleFavorite()" v-if="user" class="btn btn-secondary p-2 h-auto">
             <svg class="w-4 h-4 fill-secondary-content">
               <use href="#icon_favorite"></use>

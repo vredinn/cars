@@ -37,7 +37,7 @@
 
         <router-link v-for="(car, uuid) in popularCars" :key="uuid" :to="`/car/${car.uuid}`"
           class="card carousel-item btn btn-soft p-0 h-100 w-70">
-          <figure class="h-[200px]">
+          <figure class="w-full max-h-[200px] ">
             <img :src="car.preview_image_url" :alt="car.title" class="object-cover w-full h-full">
           </figure>
           <div class="card-body p-4 text-base-content">

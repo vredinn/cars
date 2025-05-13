@@ -35,12 +35,24 @@ const routes = [
     path: '/create_car',
     name: 'create_car',
     component: CreateCarPage,
-    beforeEnter: (to, from) => {
-      if (useAuthStore().user) {
-        return true
+    beforeEnter: async (to, from) => {
+      const auth = useAuthStore()
+
+      try {
+        // Если пользователь уже загружен — ничего не делаем
+        if (!auth.user) {
+          await auth.fetchUser()
+        }
+
+        if (auth.user) {
+          return true
+        }
+
+        return { name: 'Home' }
+      } catch (e) {
+        return { name: 'Home' }
       }
-      return { name: 'Home' }
-    },
+    }
   }
 ]
 
