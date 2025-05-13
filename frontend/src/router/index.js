@@ -5,6 +5,7 @@ import Catalog from '@/views/Catalog.vue'
 import CarPage from '@/views/CarPage.vue'
 import UserProfile from '@/views/UserProfile.vue'
 import CreateCarPage from '@/views/CreateCarPage.vue'
+import { useAuthStore } from '@/stores/auth'
 
 const routes = [
   {
@@ -34,6 +35,12 @@ const routes = [
     path: '/create_car',
     name: 'create_car',
     component: CreateCarPage,
+    beforeEnter: (to, from) => {
+      if (useAuthStore().user) {
+        return true
+      }
+      return { name: 'Home' }
+    },
   }
 ]
 

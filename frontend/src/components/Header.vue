@@ -48,9 +48,9 @@
       <LoginForm />
     </template>
     <template v-if="user">
-      <router-link to="/" class="btn btn-primary">
+      <!-- <router-link to="/" class="btn btn-primary">
         Сообщения
-      </router-link>
+      </router-link> -->
       <router-link to="/create_car" class="btn btn-primary hidden md:flex">Создать объявление</router-link>
       <router-link to="/" class="btn btn-primary hidden md:inline-flex">
         Мои объявления

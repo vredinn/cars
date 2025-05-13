@@ -15,6 +15,7 @@ auth_config = AuthXConfig(
     JWT_COOKIE_SAMESITE="lax",
     JWT_ACCESS_COOKIE_NAME="access_token",
     JWT_REFRESH_COOKIE_NAME="refresh_token",
+    JWT_COOKIE_SECURE=False, 
 )
 auth = AuthX(config=auth_config)
 
