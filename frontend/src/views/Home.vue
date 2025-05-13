@@ -33,36 +33,37 @@
     <section class="py-20 container mx-auto px-4 bg-base-100 relative">
       <h2 class="text-3xl font-bold text-center mb-10">Популярные объявления</h2>
 
-      <div ref="carousel" class="carousel  w-full rounded-box space-x-4 p-4 scroll-p-4 bg-base-200">
-        <div v-for="(car, uuid) in popularCars" :key="uuid" class="flex-shrink-0">
-          <div class="card carousel-item bg-base-300 border border-base-300 h-[400px] w-[306px]">
-            <figure class="h-[200px]">
-              <img :src="car.preview_image_url" :alt="car.title" class="object-cover w-full h-full">
-            </figure>
-            <div class="card-body p-4 text-base-content">
-              <h3 class="card-title text-lg">{{ car.brand_name }} {{ car.model_name }}</h3>
-              <p class="text-sm">{{ car.specs }}</p>
-              <div class="flex flex-wrap gap-2 my-2">
-                
-                <div class="badge badge-outline border-gray-300 ">{{ car.car_condition }}</div>
-                <div class="badge badge-outline border-gray-300 ">{{ car.mileage }}</div>
-                <div class="badge badge-outline border-gray-300 ">{{ car.fuel_type }}</div>
-                <div class="badge badge-outline border-gray-300 ">{{ car.transmission }}</div>
-                <div class="badge badge-outline border-gray-300 ">{{ car.engine_power }} л.с.</div>
-              </div>
-              <div class="card-actions justify-between items-center mt-auto">
-                <span class="text-xl font-bold">{{ formatPrice(car.price) }}</span>
-                <router-link 
-  :to="`/car/${car.uuid}`" 
-  class="btn btn-sm bg-black text-white hover:bg-gray-800"
->
-  Подробнее
-</router-link>
-              </div>
+      <div ref="carousel" class="carousel w-full rounded-box space-x-4 p-4 scroll-p-4 bg-base-200">
+
+        <router-link v-for="(car, uuid) in popularCars" :key="uuid" :to="`/car/${car.uuid}`"
+          class="card carousel-item btn btn-soft p-0 h-100 w-70">
+          <figure class="h-[200px]">
+            <img :src="car.preview_image_url" :alt="car.title" class="object-cover w-full h-full">
+          </figure>
+          <div class="card-body p-4 text-base-content">
+            <h3 class="card-title text-lg">{{ car.brand_name }} {{ car.model_name }}</h3>
+            <p class="text-sm">{{ car.specs }}</p>
+            <div class="flex flex-wrap gap-2 my-2">
+              
+              <div class="badge badge-outline border-gray-300 ">{{ car.car_condition }}</div>
+              <div class="badge badge-outline border-gray-300 ">{{ car.mileage }}</div>
+              <div class="badge badge-outline border-gray-300 ">{{ car.fuel_type }}</div>
+              <div class="badge badge-outline border-gray-300 ">{{ car.transmission }}</div>
+              <div class="badge badge-outline border-gray-300 ">{{ car.engine_power }} л.с.</div>
+            </div>
+            <div class="card-actions justify-between items-center mt-auto">
+              <span class="text-xl font-bold">{{ formatPrice(car.price) }}</span>
+              <router-link 
+                :to="`/car/${car.uuid}`" 
+                class="btn btn-sm btn-primary"
+                v-if="!isLoadingCars"
+              >
+                Подробнее
+              </router-link>
             </div>
           </div>
-        </div>
-        <router-link to="/catalog" v-if="!isLoadingCars" class="btn carousel-item border border-base-300 h-[400px] w-[306px] text-xl">
+        </router-link>
+        <router-link to="/catalog" class="btn btn-soft carousel-item h-100 w-70 p-0 text-xl">
           Посмотреть все объявления
         </router-link>
       </div>
@@ -206,6 +207,7 @@ export default {
   },
   mounted() {
     const carousel = this.$refs.carousel
+    carousel.scrollLeft = 0
     if (carousel) {
       carousel.addEventListener('scroll', this.updateScrollButtons)
     }
@@ -238,7 +240,7 @@ export default {
       } catch (error) {
         console.error("Ошибка загрузки популярных пользователей:", error);
       } finally {
-        this.isLoadingCars = false
+        this.isLoadingUsers = false
       }
     },
     formatPrice(price) {
@@ -281,6 +283,13 @@ export default {
         console.error("Ошибка загрузки популярных машин:", error);
       } finally {
         this.isLoadingCars = false
+        this.$nextTick(() => {
+          const carousel = this.$refs.carousel;
+          if (carousel) {
+            carousel.scrollLeft = 0;
+            this.updateScrollButtons();
+          }
+        });
       }
     },
     updateScrollButtons() {
@@ -293,7 +302,7 @@ export default {
       const carousel = this.$refs.carousel;
       const scrollAmount = 320;
       carousel.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-      this.updateScrollButtons // Обновляем состояние после прокрутки
+      setTimeout(this.updateScrollButtons, 500);
     },
     prevSlide() {
       const carousel = this.$refs.carousel;

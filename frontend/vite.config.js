@@ -18,17 +18,17 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: "http://backend:8000",
+        target: "http://192.168.0.101:8000",
         changeOrigin: true,
         secure: false,
       },
       '/uploads': {
-        target: "http://backend:8000",
+        target: "http://192.168.0.101:8000",
         changeOrigin: true,
         secure: false,
       },
       '/brand_logos': {
-        target: "http://backend:8000",
+        target: "http://192.168.0.101:8000",
         changeOrigin: true,
         secure: false,
       },
