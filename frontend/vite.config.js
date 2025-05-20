@@ -5,6 +5,9 @@ import path from "path";
 
 
 export default defineConfig({
+  optimizeDeps: {
+    include: ['vue-yandex-maps']
+  },
   plugins: [
     tailwindcss(),
     vue(),

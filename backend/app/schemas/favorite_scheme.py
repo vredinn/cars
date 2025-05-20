@@ -17,5 +17,4 @@ class Favorite(BaseModel):
         from_attributes = True
 
 class FavoriteCreate(BaseModel):
-    user_uuid: UUID
     car_uuid: UUID

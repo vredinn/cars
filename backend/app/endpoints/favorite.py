@@ -5,7 +5,8 @@ from sqlalchemy.orm import Session
 from fastapi_pagination import Page, Params
 
 from database import get_db
-from schemas import Favorite, FavoriteCreate
+from schemas import Favorite, FavoriteCreate, User
+import security
 import crud
 
 router = APIRouter(prefix="/favorites", tags=["Favorites"])
@@ -29,10 +30,10 @@ def check_favorite(user_uuid: UUID, car_uuid: UUID, db: Session = Depends(get_db
         return True
     else:
         return False
-
+    
 @router.post("/", response_model=Favorite)
-def create_favorite(data: FavoriteCreate, db: Session = Depends(get_db)):
-    user_id = crud.get_user_id_by_uuid(db, data.user_uuid)
+def create_favorite(data: FavoriteCreate, db: Session = Depends(get_db), user: User = Depends(security.require_user)):
+    user_id = user.id
     car_id = crud.get_car_id_by_uuid(db, data.car_uuid)
 
     return crud.create_favorite(db, user_id, car_id)

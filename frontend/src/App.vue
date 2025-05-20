@@ -9,8 +9,19 @@
     <symbol class=" flex justify-center" id="icon_favorite" viewBox="0 0 9.36035 12">
       <path id="Vector" d="M8.08 12C7.83 12 7.61 11.93 7.4 11.8L4.79 10.16C4.71 10.1 4.63 10.1 4.55 10.16L1.95 11.8C1.71 11.96 1.45 12.02 1.16 11.98C0.86 11.94 0.61 11.82 0.4 11.64C0.13 11.4 0 11.09 0 10.72L0 1.28C0 0.93 0.12 0.63 0.37 0.38C0.63 0.12 0.93 0 1.28 0L8.08 0C8.42 0 8.72 0.12 8.98 0.38C9.23 0.63 9.36 0.93 9.36 1.28L9.36 10.72C9.36 11.06 9.23 11.36 8.98 11.62C8.72 11.87 8.42 12 8.08 12ZM4.67 9.07C4.91 9.07 5.14 9.14 5.36 9.28L7.95 10.92C7.98 10.94 8.02 10.96 8.08 10.96C8.13 10.96 8.17 10.94 8.21 10.9C8.25 10.86 8.28 10.8 8.28 10.72L8.28 1.28C8.28 1.2 8.25 1.14 8.21 1.1C8.17 1.05 8.13 1.04 8.08 1.04L1.28 1.04C1.22 1.04 1.17 1.05 1.13 1.1C1.09 1.14 1.08 1.2 1.08 1.28L1.08 10.72C1.08 10.8 1.11 10.86 1.17 10.92C1.24 10.97 1.32 10.97 1.4 10.92L4 9.28C4.21 9.14 4.44 9.07 4.67 9.07Z"/>      
     </symbol>
+    <symbol class=" flex justify-center" id="icon_chat" viewBox="0 0 16 16">
+      <g>
+        <path class="st0" d="M8,15.4H1.3c-0.4,0-0.8-0.3-0.8-0.8V8c0-4.1,3.3-7.4,7.4-7.4c4.1,0,7.4,3.3,7.4,7.4
+          C15.4,12.1,12.1,15.4,8,15.4z M2.1,13.9H8c3.3,0,5.9-2.7,5.9-5.9c0-3.3-2.7-5.9-5.9-5.9C4.7,2.1,2.1,4.7,2.1,8V13.9z"/>
+        <path class="st0" d="M10.7,6.7h-6C4.2,6.7,3.9,6.4,3.9,6s0.3-0.8,0.8-0.8h6c0.4,0,0.8,0.3,0.8,0.8S11.1,6.7,10.7,6.7z"/>
+        <path class="st0" d="M10.7,9.4h-6c-0.4,0-0.8-0.3-0.8-0.7c0-0.4,0.3-0.8,0.8-0.8h6c0.4,0,0.8,0.3,0.8,0.8
+          C11.4,9.1,11.1,9.4,10.7,9.4z"/>
+        <path class="st0" d="M8,12.1H4.7c-0.4,0-0.8-0.3-0.8-0.8s0.3-0.8,0.8-0.8H8c0.4,0,0.8,0.3,0.8,0.8S8.4,12.1,8,12.1z"/>
+      </g>
+    </symbol>
   </svg>
-  <div id="app" class="">
+
+  <div id="app">
     <Header />
     <main>
       <router-view />
@@ -19,33 +30,26 @@
   </div>
 </template>
 
-<script>
-import Header from '@/components/Header.vue'
+<script setup>
+import { onMounted, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import Footer from '@/components/Footer.vue';
+import { useFiltersStore } from '@/stores/filters'
 
-export default {
-  name: 'App',
-  components: { Header, Footer } ,
-  created() {
-    const auth = useAuthStore();    
-    auth.fetchUser().then(() => {
-      auth.startAutoRefresh()
-    })
-  },
-  watch: {
-    $route() {
-      // Сбрасываем прокрутку при смене маршрута
-      window.scrollTo(0, 0)
-    }
-  }
-}
+import Header from '@/components/Header.vue'
+import Footer from '@/components/Footer.vue'
 
+const route = useRoute()
+const auth = useAuthStore()
+const filtersStore = useFiltersStore()
+
+
+onMounted(() => {
+  auth.fetchUser()
+  filtersStore.loadAll()
+})
+
+watch(route, () => {
+  window.scrollTo(0, 0)
+})
 </script>
-
-<style>
-/* Глобальные стили */
-body {
-  @apply min-h-screen;
-}
-</style>

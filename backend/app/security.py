@@ -2,7 +2,7 @@ from datetime import timedelta
 from authx import AuthX, AuthXConfig
 from fastapi import Depends, HTTPException
 from sqlalchemy.orm import Session
-from crud import get_user
+from crud import get_user_by_uuid
 from schemas import *
 from database import get_db
 from config import settings
@@ -20,7 +20,8 @@ auth_config = AuthXConfig(
 auth = AuthX(config=auth_config)
 
 def require_user(token: str = Depends(auth.access_token_required), db: Session = Depends(get_db)):
-    user = get_user(db, int(token.sub))
+    user = get_user_by_uuid(db, UUID(token.sub))
+
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return user

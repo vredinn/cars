@@ -48,10 +48,8 @@ def refresh(
 
 @router.get("/me")
 def get_me(
-    token: str = Depends(security.auth.access_token_required), db: Session = Depends(get_db)
+    user: User = Depends(security.require_user), db: Session = Depends(get_db)
 ):
-    user_uuid = token.sub
-    user = get_user_by_uuid(db, UUID(user_uuid))
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return user

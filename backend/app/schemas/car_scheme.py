@@ -31,7 +31,6 @@ class CarBase(BaseModel):
     longitude: float
 
 class CarCreate(CarBase):
-    user_id: int
     pass
 
 class CarUpdate(BaseModel):

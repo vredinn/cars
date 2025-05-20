@@ -3,7 +3,7 @@
     <HeroSection />
 
     <!-- Секция с брендами -->
-    <section class="py-20 container mx-auto px-4 bg-base-100">
+    <section class="py-12 container mx-auto px-4 bg-base-100">
       <div class="flex justify-between items-center mb-10">
         <h2 class="text-3xl font-bold">Бренды</h2>
         <button class="font-bold">Показать все бренды</button>
@@ -30,13 +30,13 @@
     </section>
 
     <!-- Популярные объявления -->
-    <section class="py-20 container mx-auto px-4 bg-base-100 relative">
+    <section class="container mx-auto px-4 bg-base-100 relative">
       <h2 class="text-3xl font-bold text-center mb-10">Популярные объявления</h2>
 
       <div ref="carousel" class="carousel w-full rounded-box space-x-4 p-4 scroll-p-4 bg-base-200">
 
         <router-link v-for="(car, uuid) in popularCars" :key="uuid" :to="`/car/${car.uuid}`"
-          class="card carousel-item btn btn-soft p-0 h-100 w-70">
+          class="card carousel-item btn btn-soft p-0 h-100 w-70 transition-all duration-250">
           <figure class="w-full max-h-[200px] ">
             <img :src="car.preview_image_url" :alt="car.title" class="object-cover w-full h-full">
           </figure>
@@ -69,7 +69,7 @@
       </div>
 
       <!-- Навигационные кнопки -->
-      <div class="flex justify-center gap-6 mt-12 " :style="{ marginTop: '44px' }">
+      <div class="flex justify-center gap-6 mt-4">
         <button @click="prevSlide" :class="{ 'btn-disabled': !canScrollLeft}"
           class="btn btn-neutral btn-circle w-[60px] h-[40px] min-h-[40px]">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
@@ -180,136 +180,130 @@
   </section>
   </div>
 </template>
-
-<script>
+<script setup>
+import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import HeroSection from '@/components/HeroSection.vue'
 import api from '@/api'
 
-export default {
-  name: 'HomeView',
-  components: { HeroSection},
-  data() {
-    return {
-      brands: [],
-      isLoadingBrands: true,
-      popularCars: [],
-      popularUsers: [],
-      isLoadingCars: true,
-      isLoadingUsers: true,
-      canScrollLeft: false,
-      canScrollRight: true,
-    }
-  },
-  created() {
-    this.loadBrands()
-    this.loadPopularCars()
-    this.loadPopularUsers()
-  },
-  mounted() {
-    const carousel = this.$refs.carousel
-    carousel.scrollLeft = 0
-    if (carousel) {
-      carousel.addEventListener('scroll', this.updateScrollButtons)
-    }
-  },
-  beforeUnmount() {
-    const carousel = this.$refs.carousel;
-    if (carousel) {
-      carousel.removeEventListener('scroll', this.updateScrollButtons);
-    }
-  },
-  methods: {
-    async loadBrands() {
-      this.isLoadingBrands = true
-      try {        
-        const response = await api.get('/brands/');
-        const data = response.data;
-        this.brands = data;
-      } catch (error) {
-        console.error("Ошибка загрузки брендов:", error);
-      } finally {
-        this.isLoadingBrands = false
-      }
-    },
-    async loadPopularUsers() {
-      this.isLoadingUsers = true
-      try {
-        const response = await api.get("/users_popular");
-        const data = response.data;
-        this.popularUsers = data;
-      } catch (error) {
-        console.error("Ошибка загрузки популярных пользователей:", error);
-      } finally {
-        this.isLoadingUsers = false
-      }
-    },
-    formatPrice(price) {
-      return new Intl.NumberFormat('ru-RU', { 
-        style: 'currency', 
-        currency: 'RUB',
-        maximumFractionDigits: 0
-      }).format(price)
-    },
-    formatDate(dateString) {
-      if (!dateString) return 'Дата не указана';
-      
-      try {
-        const date = new Date(dateString);
-        
-        // Проверяем, что дата валидна
-        if (isNaN(date.getTime())) {
-          return 'Некорректная дата';
-        }
-        
-        // Форматируем дату с учетом локали пользователя
-        return new Intl.DateTimeFormat('ru-RU', {
-          day: 'numeric',
-          month: 'long',
-          year: 'numeric'
-        }).format(date);
-        
-      } catch (e) {
-        console.error('Ошибка форматирования даты:', e);
-        return dateString; // Возвращаем оригинальную строку в случае ошибки
-      }
-    },
-    async loadPopularCars() {
-      this.isLoadingCars = true
-      try {
-        const response = await api.get("/cars/popular");
-        const data = response.data;
-        this.popularCars = data;
-      } catch (error) {
-        console.error("Ошибка загрузки популярных машин:", error);
-      } finally {
-        this.isLoadingCars = false
-        this.$nextTick(() => {
-          const carousel = this.$refs.carousel;
-          if (carousel) {
-            carousel.scrollLeft = 0;
-            this.updateScrollButtons();
-          }
-        });
-      }
-    },
-    updateScrollButtons() {
-      const carousel = this.$refs.carousel;
-      this.canScrollLeft = carousel.scrollLeft > 0;
-      this.canScrollRight = Math.ceil(carousel.scrollLeft) < 
-        Math.floor(carousel.scrollWidth - carousel.clientWidth);
-    },
-    nextSlide() {
-      const carousel = this.$refs.carousel;
-      const scrollAmount = 320;
-      carousel.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-      setTimeout(this.updateScrollButtons, 500);
-    },
-    prevSlide() {
-      const carousel = this.$refs.carousel;
-      const scrollAmount = -320;
-      carousel.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-      setTimeout(this.updateScrollButtons, 500); // Обновляем состояние после прокрутки
+// Состояния
+const brands = ref([])
+const isLoadingBrands = ref(true)
+
+const popularCars = ref([])
+const popularUsers = ref([])
+
+const isLoadingCars = ref(true)
+const isLoadingUsers = ref(true)
+
+const canScrollLeft = ref(false)
+const canScrollRight = ref(true)
+
+const carousel = ref(null)
+
+// Методы
+
+async function loadBrands() {
+  isLoadingBrands.value = true
+  try {
+    const { data } = await api.get('/brands/')
+    brands.value = data
+  } catch (error) {
+    console.error('Ошибка загрузки брендов:', error)
+  } finally {
+    isLoadingBrands.value = false
+  }
+}
+
+async function loadPopularUsers() {
+  isLoadingUsers.value = true
+  try {
+    const { data } = await api.get('/users_popular')
+    popularUsers.value = data
+  } catch (error) {
+    console.error('Ошибка загрузки популярных пользователей:', error)
+  } finally {
+    isLoadingUsers.value = false
+  }
+}
+
+async function loadPopularCars() {
+  isLoadingCars.value = true
+  try {
+    const { data } = await api.get('/cars/popular')
+    popularCars.value = data
+  } catch (error) {
+    console.error('Ошибка загрузки популярных машин:', error)
+  } finally {
+    isLoadingCars.value = false
+    await nextTick()
+    if (carousel.value) {
+      carousel.value.scrollLeft = 0
+      updateScrollButtons()
     }
   }
 }
+
+function updateScrollButtons() {
+  if (!carousel.value) return
+  const el = carousel.value
+  canScrollLeft.value = el.scrollLeft > 0
+  canScrollRight.value = Math.ceil(el.scrollLeft) <
+    Math.floor(el.scrollWidth - el.clientWidth)
+}
+
+function nextSlide() {
+  if (!carousel.value) return
+  carousel.value.scrollBy({ left: 320, behavior: 'smooth' })
+  setTimeout(updateScrollButtons, 500)
+}
+
+function prevSlide() {
+  if (!carousel.value) return
+  carousel.value.scrollBy({ left: -320, behavior: 'smooth' })
+  setTimeout(updateScrollButtons, 500)
+}
+
+function formatPrice(price) {
+  return new Intl.NumberFormat('ru-RU', {
+    style: 'currency',
+    currency: 'RUB',
+    maximumFractionDigits: 0
+  }).format(price)
+}
+
+function formatDate(dateString) {
+  if (!dateString) return 'Дата не указана'
+
+  try {
+    const date = new Date(dateString)
+    if (isNaN(date.getTime())) return 'Некорректная дата'
+
+    return new Intl.DateTimeFormat('ru-RU', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    }).format(date)
+  } catch (e) {
+    console.error('Ошибка форматирования даты:', e)
+    return dateString
+  }
+}
+
+// Хуки
+onMounted(() => {
+  loadBrands()
+  loadPopularCars()
+  loadPopularUsers()
+
+  if (carousel.value) {
+    carousel.value.scrollLeft = 0
+    carousel.value.addEventListener('scroll', updateScrollButtons)
+  }
+})
+
+onBeforeUnmount(() => {
+  if (carousel.value) {
+    carousel.value.removeEventListener('scroll', updateScrollButtons)
+  }
+})
 </script>

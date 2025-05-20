@@ -5,8 +5,9 @@ from fastapi_pagination import Page, Params, paginate
 from typing import Dict, List, Optional
 from uuid import UUID
 from database import get_db
-from schemas import Car, CarCard, CarCreate, CarUpdate, CarDetailed
+from schemas import Car, CarCard, CarCreate, CarUpdate, CarDetailed, User
 import crud
+import security
 from enum import Enum
 
 # Модели Enum
@@ -54,9 +55,9 @@ def get_all_cars(
     sort_by: Optional[str] = None,
     sort_order: Optional[str] = "desc",    
     page: int = Query(1, ge=1, description="Номер страницы (начиная с 1)"),    
-    size: int = Query(5, include_in_schema=False, ge=1, le=100),
+    size: int = Query(10, include_in_schema=False, ge=1, le=100),
 ):
-    params = Params(page=page, size=5)  # Устанавливаем size=5 для фиксированного пагинации
+    params = Params(page=page, size=10)
     filters = build_filters(
         brand_id, model_id, min_price, max_price, min_year, max_year,
         min_mileage, max_mileage, min_engine_capacity, max_engine_capacity,
@@ -75,8 +76,8 @@ def get_all_cars(
 
 
 @router.get("/user_cars/{user_uuid}", response_model=Page[CarCard])
-def get_user_cars(user_uuid: UUID, db: Session = Depends(get_db), page: int = Query(1, ge=1), size: int = Query(5, ge=1)):
-    params = Params(page=page, size=5) 
+def get_user_cars(user_uuid: UUID, db: Session = Depends(get_db), page: int = Query(1, ge=1), size: int = Query(10, ge=1)):
+    params = Params(page=page, size=10) 
     return crud.get_user_cars_paginated(db, user_uuid, params=params)
 
 
@@ -142,9 +143,14 @@ def get_car_by_uuid(car_uuid: UUID, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Car not found")
     return car
 
+@router.get("/check_ownership/{car_uuid}/{user_uuid}", response_model=bool)
+def check_ownership(car_uuid: UUID, user_uuid: UUID, db: Session = Depends(get_db)):
+    return crud.check_ownership(db, car_uuid, user_uuid)
+
 @router.post("/", response_model=Car)
-def create_car(car: CarCreate, db: Session = Depends(get_db)):
-    return crud.create_car(db, car)
+def create_car(car: CarCreate, db: Session = Depends(get_db), user: User = Depends(security.require_user)):
+    user_id = user.id
+    return crud.create_car(db, car, user_id)
 
 @router.put("/{car_id}", response_model=Car)
 def update_car(car_id: int, car: CarUpdate, db: Session = Depends(get_db)):

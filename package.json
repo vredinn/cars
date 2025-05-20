@@ -2,10 +2,7 @@
   "dependencies": {
     "axios": "^1.9.0",
     "pinia": "^3.0.2",
-<<<<<<< HEAD
-    "vue-multiselect": "^3.2.0"
-=======
+    "vue-multiselect": "^3.2.0",
     "vue-zoomer": "^0.3.10"
->>>>>>> d7751afc4c7789ca237f7292225c40190d281e27
   }
 }

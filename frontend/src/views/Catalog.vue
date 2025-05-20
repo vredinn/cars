@@ -255,248 +255,207 @@
   </div>
 </template>
 
-<script>
+<script setup>
+import { ref, reactive, computed, watch, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import CarCard from '@/components/CarCard.vue'
 import Pagination from '@/components/Pagination.vue'
 import SearchableSelect from '@/components/SearchableSelect.vue'
-import api from '@/api'
-export default {
-  name: 'CarSearchPage',
-  components: {
-    CarCard,
-    Pagination,
-    SearchableSelect
-  },
-  data() {
-    return {
-      showDrawer: false,
-      brands: [],
-      models: [],
-      carConditions: [],
-      steeringSides: [],
-      bodyTypes: [],
-      transmissions: [],
-      fuelTypes: [],
-      driveTypes: [],
-      // Активные фильтры (которые применяются)
-      activeFilters: {
-        brand_id: null,
-        model_id: null,
-        car_condition: null,
-        transmission: null,
-        drive_type: null,
-        fuel_type: null,
-        min_year: null,
-        max_year: null,
-        min_price: null,
-        max_price: null,
-        min_engine_power: null,
-        max_engine_power: null,
-        min_engine_capacity: null,
-        max_engine_capacity: null,
-        min_millage: null,
-        max_millage: null,
-        steering_side: null,
-        body_type: null
-      },
-      // Временные фильтры (которые выбираются в форме)
-      tempFilters: {
-        brand_id: null,
-        model_id: null,
-        car_condition: null,
-        transmission: null,
-        drive_type: null,
-        fuel_type: null,
-        min_year: null,
-        max_year: null,
-        min_price: null,
-        max_price: null,
-        min_engine_power: null,
-        max_engine_power: null,
-        min_engine_capacity: null,
-        max_engine_capacity: null,
-        min_millage: null,
-        max_millage: null,
-        steering_side: null,
-        body_type: null
-      },
-      currentPage: 1,
-      totalPages: 1,
-      cars: [],
-      isLoading: false
-    }
-  },
-  computed: {
-    filteredModels() {
-      if (!this.tempFilters.brand_id) return []
-      return this.models.filter(model => model.brand_id === this.tempFilters.brand_id)
-    },
-  },
-  watch: {
-    'tempFilters.brand_id'(newVal) {
-      if (!newVal) {
-        this.tempFilters.model_id = null
-      }
-    },
-    $route() {
-      this.parseQueryParams()
-      this.fetchCars()
-    }
-  },
-  methods: {
-    formatPrice(price) {
-      return new Intl.NumberFormat('ru-RU', { 
-        style: 'currency', 
-        currency: 'RUB',
-        maximumFractionDigits: 0
-      }).format(price)
-    },
-    async loadBrandsAndModels() {
-      try {
-        const [brandsRes, modelsRes] = await Promise.all([
-          api.get('/brands/'),
-          api.get('/models/')
-        ])
-        
-        this.brands = brandsRes.data
-        this.models = modelsRes.data
-      } catch (error) {
-        console.error('Ошибка загрузки брендов и моделей:', error)
-      }
-    },
-    async loadEnums() {
-      try {
-        const enumsPromises = {
-          carConditions: api.get('/enums/car-conditions').then(r => r.data),
-          steeringSides: api.get('/enums/steering-sides').then(r => r.data),
-          bodyTypes: api.get('/enums/body-types').then(r => r.data),
-          transmissions: api.get('/enums/transmissions').then(r => r.data),
-          fuelTypes: api.get('/enums/fuel-types').then(r => r.data),
-          driveTypes: api.get('/enums/drive-types').then(r => r.data)
-        }
 
-        const results = await Promise.all(Object.values(enumsPromises))
-        ;[
-          this.carConditions,
-          this.steeringSides,
-          this.bodyTypes,
-          this.transmissions,
-          this.fuelTypes,
-          this.driveTypes
-        ] = results
-      } catch (error) {
-        console.error('Ошибка загрузки enum списков:', error)
+import { useFiltersStore } from '@/stores/filters'
+
+import api from '@/api'
+
+// Роуты
+const route = useRoute()
+const router = useRouter()
+const filtersStore = useFiltersStore()
+
+// Состояния
+const showDrawer = ref(false)
+
+const brands = computed(() => filtersStore.brands)
+const models = computed(() => filtersStore.models)
+
+const carConditions = computed(() => filtersStore.carConditions)
+const steeringSides = computed(() => filtersStore.steeringSides)
+const bodyTypes = computed(() => filtersStore.bodyTypes)
+const transmissions = computed(() => filtersStore.transmissions)
+const fuelTypes = computed(() => filtersStore.fuelTypes)
+const driveTypes = computed(() => filtersStore.driveTypes)
+
+const activeFilters = reactive({
+  brand_id: null,
+  model_id: null,
+  car_condition: null,
+  transmission: null,
+  drive_type: null,
+  fuel_type: null,
+  min_year: null,
+  max_year: null,
+  min_price: null,
+  max_price: null,
+  min_engine_power: null,
+  max_engine_power: null,
+  min_engine_capacity: null,
+  max_engine_capacity: null,
+  min_millage: null,
+  max_millage: null,
+  steering_side: null,
+  body_type: null
+})
+
+const tempFilters = reactive({
+  brand_id: null,
+  model_id: null,
+  car_condition: null,
+  transmission: null,
+  drive_type: null,
+  fuel_type: null,
+  min_year: null,
+  max_year: null,
+  min_price: null,
+  max_price: null,
+  min_engine_power: null,
+  max_engine_power: null,
+  min_engine_capacity: null,
+  max_engine_capacity: null,
+  min_millage: null,
+  max_millage: null,
+  steering_side: null,
+  body_type: null
+})
+
+const currentPage = ref(1)
+const totalPages = ref(1)
+const cars = ref([])
+const isLoading = ref(false)
+
+// Вычисляемые свойства
+const filteredModels = computed(() => {
+  if (!tempFilters.brand_id) return []
+  return models.value.filter(model => model.brand_id === tempFilters.brand_id)
+})
+
+// Watchers
+watch(() => tempFilters.brand_id, (newVal) => {
+  if (!newVal) {
+    tempFilters.model_id = null
+  }
+})
+
+watch(route, () => {
+  parseQueryParams()
+  fetchCars()
+}, { immediate: true })
+
+// Методы
+function formatPrice(price) {
+  return new Intl.NumberFormat('ru-RU', { 
+    style: 'currency', 
+    currency: 'RUB',
+    maximumFractionDigits: 0
+  }).format(price)
+}
+function parseQueryParams() {
+  const query = route.query
+
+  currentPage.value = query.page ? parseInt(query.page) : 1
+
+  Object.keys(activeFilters).forEach(key => {
+    if (query[key] !== undefined) {
+      if (query[key] === 'null') {
+        activeFilters[key] = null
+        tempFilters[key] = null
+      } else if (key.startsWith('min_') || key.startsWith('max_') || key.endsWith('_id')) {
+        activeFilters[key] = query[key] ? parseInt(query[key]) : null
+        tempFilters[key] = query[key] ? parseInt(query[key]) : null
+      } else {
+        activeFilters[key] = query[key] || null
+        tempFilters[key] = query[key] || null
       }
-    },
-    parseQueryParams() {
-      const query = this.$route.query
-      
-      // Преобразуем строковые значения в нужные типы
-      this.currentPage = query.page ? parseInt(query.page) : 1
-      
-      // Заполняем активные фильтры из query параметров
-      Object.keys(this.activeFilters).forEach(key => {
-        if (query[key] !== undefined) {
-          if (query[key] === 'null') {
-            this.activeFilters[key] = null
-            this.tempFilters[key] = null
-          } else if (key.startsWith('min_') || key.startsWith('max_') || key.endsWith('_id')) {
-            this.activeFilters[key] = query[key] ? parseInt(query[key]) : null
-            this.tempFilters[key] = query[key] ? parseInt(query[key]) : null
-          } else {
-            this.activeFilters[key] = query[key] || null
-            this.tempFilters[key] = query[key] || null
-          }
-        } else {
-          this.activeFilters[key] = null
-          this.tempFilters[key] = null
-        }
-      })
-    },
-    buildQueryParams(filters) {
-      const params = { ...filters }
-      
-      // Удаляем null/undefined значения
-      Object.keys(params).forEach(key => {
-        if (params[key] === null || params[key] === undefined || params[key] === '') {
-          delete params[key]
-        }
-      })
-      
-      // Добавляем текущую страницу
-      if (this.currentPage > 1) {
-        params.page = this.currentPage
-      }
-      
-      return params
-    },
-    async fetchCars() {
-      this.isLoading = true
-      
-      try {
-        const queryParams = this.buildQueryParams(this.activeFilters)
-        const queryString = new URLSearchParams(queryParams).toString()
-        
-        const response = await api.get(`/cars/?${queryString}`)
-        const data = await response.data
-        
-        this.cars = data.items
-        this.totalPages = data.pages
-        this.currentPage = data.page
-      } catch (error) {
-        console.error('Ошибка загрузки автомобилей:', error)
-        this.cars = []
-      } finally {
-        this.isLoading = false
-      }
-    },
-    searchCars() {
-      // Копируем временные фильтры в активные
-      this.activeFilters = { ...this.tempFilters }
-      
-      // Сбрасываем на первую страницу при новом поиске
-      this.currentPage = 1
-      this.updateRoute()
-      this.showDrawer = false
-    },
-    resetFilters() {
-      // Сбрасываем все фильтры
-      Object.keys(this.tempFilters).forEach(key => {
-        this.tempFilters[key] = null
-      })
-      
-      // Если были активные фильтры - сбрасываем и их
-      if (Object.values(this.activeFilters).some(val => val !== null)) {
-        Object.keys(this.activeFilters).forEach(key => {
-          this.activeFilters[key] = null
-        })
-        
-        this.currentPage = 1
-        this.updateRoute()
-      }
-    },
-    changePage(page) {
-      if (page < 1 || page > this.totalPages || page === this.currentPage) return
-      
-      this.currentPage = page
-      this.updateRoute()
-    },
-    updateRoute() {
-      const query = this.buildQueryParams(this.activeFilters)
-            
-      this.$router.push({
-        query: query
-      }).catch(() => {})
+    } else {
+      activeFilters[key] = null
+      tempFilters[key] = null
     }
-  },
-  created() {
-    Promise.all([
-      this.loadBrandsAndModels(),
-      this.loadEnums()
-    ]).then(() => {
-      this.parseQueryParams()
-      this.fetchCars()
-    })
+  })
+}
+
+function buildQueryParams(filters) {
+  const params = { ...filters }
+
+  Object.keys(params).forEach(key => {
+    if (params[key] === null || params[key] === undefined || params[key] === '') {
+      delete params[key]
+    }
+  })
+
+  if (currentPage.value > 1) {
+    params.page = currentPage.value
+  }
+
+  return params
+}
+
+async function fetchCars() {
+  isLoading.value = true
+
+  try {
+    const queryParams = buildQueryParams(activeFilters)
+    const queryString = new URLSearchParams(queryParams).toString()
+
+    const response = await api.get(`/cars/?${queryString}`)
+    const data = await response.data
+
+    cars.value = data.items
+    totalPages.value = data.pages
+    currentPage.value = data.page
+  } catch (error) {
+    console.error('Ошибка загрузки автомобилей:', error)
+    cars.value = []
+  } finally {
+    isLoading.value = false
   }
 }
+
+function searchCars() {
+  Object.assign(activeFilters, { ...tempFilters })
+  currentPage.value = 1
+  updateRoute()
+  showDrawer.value = false
+}
+
+function resetFilters() {
+  Object.keys(tempFilters).forEach(key => {
+    tempFilters[key] = null
+  })
+
+  if (Object.values(activeFilters).some(val => val !== null)) {
+    Object.keys(activeFilters).forEach(key => {
+      activeFilters[key] = null
+    })
+
+    currentPage.value = 1
+    updateRoute()
+  }
+}
+
+function changePage(page) {
+  if (page < 1 || page > totalPages.value || page === currentPage.value) return
+  currentPage.value = page
+  updateRoute()
+}
+
+function updateRoute() {
+  const query = buildQueryParams(activeFilters)
+
+  router.push({ query }).catch(() => {})
+}
+
+// Lifecycle
+onMounted(async () => {
+  parseQueryParams()
+  fetchCars()
+})
 </script>
+

@@ -25,6 +25,9 @@ def get_car(db: Session, car_id: int):
 def get_car_by_uuid(db: Session, car_uuid: UUID):
     return db.query(m.Car).options(selectinload(m.Car.images)).filter(m.Car.uuid == car_uuid).first()
 
+def check_ownership(db: Session, car_uuid: UUID, user_uuid: UUID):
+    return db.query(m.Car).filter(and_(m.Car.uuid == car_uuid, m.Car.user.has(uuid=user_uuid))).first() is not None
+
 def get_all_cars_paginated(
     db: Session,
     filters: dict,
@@ -75,8 +78,8 @@ def get_car_cards_query(db: Session):
         .order_by(m.Car.listing_date.desc()).all()  
     )
 
-def create_car(db: Session, car: CarCreate):
-    obj = m.Car(**car.dict(), uuid=uuid4())
+def create_car(db: Session, car: CarCreate, user_id: UUID):
+    obj = m.Car(**car.dict(), uuid=uuid4(), user_id=user_id)
     db.add(obj)
     db.commit()
     db.refresh(obj)
