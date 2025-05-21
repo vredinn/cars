@@ -38,9 +38,9 @@
       </div>
 
       <Pagination
-        v-if="totalPages.value > 1"
-        :currentPage="currentPage.value"
-        :totalPages="totalPages.value"
+        v-if="totalPages > 1"
+        :currentPage="currentPage"
+        :totalPages="totalPages"
         @page-changed="changePage"
       />
     </div>

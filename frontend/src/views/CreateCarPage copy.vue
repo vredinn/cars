@@ -139,7 +139,7 @@
           <div class="mb-2">
               <label class="label mb-2">Местоположение</label>
             <div>                
-              <MapComponent @select-coords="onCoordsSelected" />
+              <MapComponent/>
             </div>         
           </div>
           <div>
@@ -150,28 +150,30 @@
       </div>
 
       <!-- Кнопка -->
-      <div class="pt-4">        
-        <div v-if="errorMessage" role="alert" class="alert alert-error alert-soft">
-          <span>{{ errorMessage }}</span>
-          <button @click="errorMessage=''" class="btn btn-sm btn-circle btn-ghost ml-auto">✕</button>
-        </div>
+      <div class="pt-4">
         <button class="btn btn-primary w-full" type="submit" :disabled="loading">
           {{ loading ? 'Сохранение...' : 'Создать объявление' }}
         </button>
       </div>
     </form>
   </div>
+    <div v-if="errorMessage" role="alert" class="alert alert-error alert-soft">
+      <span>{{ errorMessage }}</span>
+      <button @click="errorMessage=''" class="btn btn-sm btn-circle btn-ghost ml-auto">✕</button>
+    </div>
 </template>
 
 <script setup>
 import { ref, reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import SearchableSelect from '@/components/SearchableSelect.vue'
-import MapComponent from '@/components/MapComponent.vue'
-
 import api from '@/api'
 import { useAuthStore } from '@/stores/auth'
 import { useFiltersStore } from '@/stores/filters'
+
+
+
+import {MapComponent} from '@/components/MapComponent.vue'
 
 
 const router = useRouter()
@@ -205,11 +207,6 @@ const currentYear = computed(() => new Date().getFullYear())
 const filteredModels = computed(() =>
   models.value.filter(m => m.brand_id === form.brand_id)
 )
-
-function onCoordsSelected(coords) {
-  form.latitude = coords.lat;
-  form.longitude = coords.lng;
-}
 
 function handleFiles(event) {
   const selectedFiles = Array.from(event.target.files)

@@ -40,7 +40,7 @@
             <div class="font-bold text-3xl">{{ formatPrice(car.price) }}</div>
           </div>
           <!-- Характеристики -->
-          <div class="grid grid-cols-2 gap-4 mb-6">
+          <div class="grid grid-cols-2 gap-4 mb-4">
             <div class="bg-base-200 p-4 rounded-xl">
               <div class="text-gray-500">Год</div>
               <div class="font-bold">{{ car.year }}</div>
@@ -91,11 +91,17 @@
               <div class="font-bold">{{ formatListingDate(car.listing_date) }}</div>
             </div>
           </div>
-
+          
+          <div class="prose bg-base-200 p-4 rounded-xl mt-4">
+            <div class="text-gray-500">Местоположение</div>
+            <div class="font-bold">
+              <AddressDisplay v-if="car.latitude && car.longitude" :lat="car.latitude" :lng="car.longitude" />
+            </div>
+          </div>
           <!-- Описание -->
-          <div class="prose bg-base-200 p-6 rounded-xl">
-            <h3>Описание</h3>
-            <p>{{ car.description }}</p>
+          <div class="prose bg-base-200 p-4 rounded-xl mt-4">
+            <div class="text-gray-500">Описание</div>
+            <div class="font-bold">{{ car.description }}</div>
           </div>
         </div>
         <!-- Связь с продавцом -->
@@ -217,6 +223,8 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import api from '@/api'
+import AddressDisplay from '@/components/AddressDisplay.vue'
+
 
 const route = useRoute()
 const router = useRouter()
