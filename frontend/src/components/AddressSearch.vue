@@ -37,10 +37,15 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, watch } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 
 const emit = defineEmits<{
-  (e: 'select-coords', payload: { lat: number; lng: number }): void
+  (e: 'selected', payload: { latitude: number; longitude: number }): void
+}>()
+
+const props = defineProps<{
+  latitude?: number
+  longitude?: number
 }>()
 
 const search = ref('')
@@ -68,26 +73,64 @@ watch(search, async val => {
     const data = await response.json()
     const members = data.response.GeoObjectCollection.featureMember
 
-    suggestions.value = members.map((m: any) => {
-      const geo = m.GeoObject
-      const name = geo.name
-      const pos = geo.Point.pos.split(' ')
-      return {
-        name,
-        coords: [parseFloat(pos[0]), parseFloat(pos[1])],
-      }
-    })
+    suggestions.value = members
+      .filter((m: any) => {
+        const kind =
+          m.GeoObject?.metaDataProperty?.GeocoderMetaData?.kind || ''
+        return kind === 'locality'
+      })
+      .map((m: any) => {
+        const geo = m.GeoObject
+        const name = geo.name
+        const pos = geo.Point.pos.split(' ')
+        return {
+          name,
+          coords: [parseFloat(pos[0]), parseFloat(pos[1])],
+        }
+      })
   } catch (e) {
     console.error('Ошибка геокодирования:', e)
     suggestions.value = []
   }
 })
 
+async function reverseGeocode(lat: number, lon: number): Promise<string> {
+  const url = `https://geocode-maps.yandex.ru/1.x/?format=json&apikey=${API_KEY}&geocode=${lon},${lat}&kind=locality&results=1`
+  try {
+    const response = await fetch(url)
+    const data = await response.json()
+    const member = data.response.GeoObjectCollection.featureMember[0]
+    if (member) return member.GeoObject.name || ''
+  } catch (e) {
+    console.error('Ошибка обратного геокодирования:', e)
+  }
+  return ''
+}
+
+// при старте
+onMounted(async () => {
+  if (props.latitude && props.longitude) {
+    const name = await reverseGeocode(props.latitude, props.longitude)
+    if (name) search.value = name
+  }
+})
+
+// и при изменении координат (если нужно)
+watch(
+  () => [props.latitude, props.longitude],
+  async ([lat, lon]) => {
+    if (lat && lon) {
+      const name = await reverseGeocode(lat, lon)
+      if (name) search.value = name
+    }
+  }
+)
+
 function selectOption(item: { name: string; coords: [number, number] }) {
   search.value = item.name
   suggestions.value = []
   open.value = false
 
-  emit('select-coords', { lng: item.coords[0], lat: item.coords[1] })
+  emit('selected', { latitude: item.coords[1], longitude: item.coords[0] })
 }
 </script>

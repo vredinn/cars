@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session, selectinload
 from uuid import UUID, uuid4
 from fastapi_pagination.ext.sqlalchemy import paginate
 from fastapi_pagination import Params
-from sqlalchemy import and_, asc, desc, func
+from sqlalchemy import and_, asc, desc, func, literal_column
 from pathlib import Path
 
 import models as m
@@ -28,6 +28,8 @@ def get_car_by_uuid(db: Session, car_uuid: UUID):
 def check_ownership(db: Session, car_uuid: UUID, user_uuid: UUID):
     return db.query(m.Car).filter(and_(m.Car.uuid == car_uuid, m.Car.user.has(uuid=user_uuid))).first() is not None
 
+
+
 def get_all_cars_paginated(
     db: Session,
     filters: dict,
@@ -37,11 +39,24 @@ def get_all_cars_paginated(
 ):
     q = db.query(m.Car)
 
-    # Обработка фильтров
+    lat_center = filters.pop("center_latitude", None)
+    lon_center = filters.pop("center_longitude", None)
+    radius_km = filters.pop("radius_km", None)
+
+    if lat_center is not None and lon_center is not None and radius_km is not None:
+        distance_expr = 6371 * func.acos(
+            func.cos(func.radians(lat_center)) *
+            func.cos(func.radians(m.Car.latitude)) *
+            func.cos(func.radians(m.Car.longitude) - func.radians(lon_center)) +
+            func.sin(func.radians(lat_center)) *
+            func.sin(func.radians(m.Car.latitude))
+        )
+        q = q.filter(distance_expr <= radius_km)
+
     for attr, value in filters.items():
         if hasattr(m.Car, attr):
             column = getattr(m.Car, attr)
-            if isinstance(value, tuple) and len(value) == 2:  # Диапазоны, например, min и max
+            if isinstance(value, tuple) and len(value) == 2:
                 min_value, max_value = value
                 if min_value is not None and max_value is not None:
                     q = q.filter(and_(column >= min_value, column <= max_value))
@@ -49,10 +64,9 @@ def get_all_cars_paginated(
                     q = q.filter(column >= min_value)
                 elif max_value is not None:
                     q = q.filter(column <= max_value)
-            else:  # Точное сравнение
+            else:
                 q = q.filter(column == value)
 
-    # Обработка сортировки
     if sort_by and hasattr(m.Car, sort_by):
         sort_column = getattr(m.Car, sort_by)
         q = q.order_by(asc(sort_column) if sort_order == "asc" else desc(sort_column))

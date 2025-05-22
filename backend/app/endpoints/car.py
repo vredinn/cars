@@ -44,6 +44,9 @@ def get_all_cars(
     max_latitude: Optional[float] = None,
     min_longitude: Optional[float] = None,
     max_longitude: Optional[float] = None,
+    center_latitude: Optional[float] = None,
+    center_longitude: Optional[float] = None,
+    radius_km: Optional[float] = None,
     color: Optional[str] = None,
     drive_type: Optional[str] = None,
     transmission: Optional[str] = None,
@@ -62,7 +65,8 @@ def get_all_cars(
         brand_id, model_id, min_price, max_price, min_year, max_year,
         min_mileage, max_mileage, min_engine_capacity, max_engine_capacity,
         min_engine_power, max_engine_power, min_latitude, max_latitude,
-        min_longitude, max_longitude, color, drive_type, transmission,
+        min_longitude, max_longitude,center_latitude, center_longitude,
+        radius_km, color, drive_type, transmission,
         fuel_type, steering_side, car_condition, is_sold, body_type
     )
 
@@ -82,11 +86,12 @@ def get_user_cars(user_uuid: UUID, db: Session = Depends(get_db), page: int = Qu
 
 
 def build_filters(
-    brand_id, model_id, min_price, max_price, min_year, max_year,
-    min_mileage, max_mileage, min_engine_capacity, max_engine_capacity,
-    min_engine_power, max_engine_power, min_latitude, max_latitude,
-    min_longitude, max_longitude, color, drive_type, transmission,
-    fuel_type, steering_side, car_condition, is_sold, body_type
+        brand_id, model_id, min_price, max_price, min_year, max_year,
+        min_mileage, max_mileage, min_engine_capacity, max_engine_capacity,
+        min_engine_power, max_engine_power, min_latitude, max_latitude,
+        min_longitude, max_longitude,center_latitude, center_longitude,
+        radius_km, color, drive_type, transmission,
+        fuel_type, steering_side, car_condition, is_sold, body_type
 ) -> Dict:
     filters = {
         "brand_id": brand_id,
@@ -115,6 +120,11 @@ def build_filters(
         filters["steering_side"] = get_enum_value(SteeringSideEnum, steering_side)
     if car_condition:
         filters["car_condition"] = get_enum_value(CarConditionEnum, car_condition)
+
+    if center_latitude and center_longitude and radius_km:
+        filters["center_latitude"] = center_latitude
+        filters["center_longitude"] = center_longitude
+        filters["radius_km"] = radius_km
 
     # Добавляем точные фильтры для строковых значений
     add_exact_filter(filters, "color", color)

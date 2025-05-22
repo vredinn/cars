@@ -1,16 +1,32 @@
 <template>
   <div class="relative" ref="root">
-    <input
-      type="text"
-      class="input rounded-box input-bordered w-full"
-      :class="{ disabled }"
-      :placeholder="placeholder"
-      v-model="searchQuery"
-      @focus="open = true"
-      @input="open = true"
-      @blur="validateInput"
-      :disabled="disabled"
-    />
+    <div
+      class="input rounded-box input-bordered w-full flex items-center justify-between cursor-text"
+      :class="{ disabled, 'opacity-50 cursor-not-allowed': disabled }"
+    >
+      <input
+        type="text"
+        class="flex-grow bg-transparent outline-none"
+        :placeholder="placeholder"
+        v-model="searchQuery"
+        @focus="open = true"
+        @input="open = true"
+        @blur="validateInput"
+        :disabled="disabled"
+        @click.stop
+      />
+      <!-- Стрелочка вниз -->
+      <svg
+        class="w-5 h-5 ml-2 text-gray-500 pointer-events-none"
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M19 9l-7 7-7-7" />
+      </svg>
+    </div>
 
     <ul
       v-if="open && filteredOptions.length"

@@ -139,7 +139,7 @@
           <div class="mb-2">
               <label class="label mb-2">Местоположение</label>
             <div>                
-              <MapComponent @select-coords="onCoordsSelected" />
+              <AddressSearch @select-coords="onCoordsSelected" />
             </div>         
           </div>
           <div>
@@ -167,7 +167,7 @@
 import { ref, reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import SearchableSelect from '@/components/SearchableSelect.vue'
-import MapComponent from '@/components/MapComponent.vue'
+import AddressSearch from '@/components/AddressSearch.vue'
 
 import api from '@/api'
 import { useAuthStore } from '@/stores/auth'
