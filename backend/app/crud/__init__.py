@@ -6,5 +6,4 @@ from .favorite_crud import *
 from .message_crud import *
 from .ad_moderation_crud import *
 from .review_crud import *
-from .saved_search_crud import *
 from .user_crud import *

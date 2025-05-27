@@ -7,6 +7,5 @@ from .favorite import *
 from .message import *
 from .moderation import *
 from .review import *
-from .saved_search import *
 from .user import *
 from .auth import *

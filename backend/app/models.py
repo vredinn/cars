@@ -85,9 +85,8 @@ class User(Base):
 
     cars = relationship("Car", back_populates="user", cascade="all, delete")
     favorites = relationship("Favorite", backref="user", cascade="all, delete-orphan")
-    sent_messages = relationship("Message", foreign_keys="[Message.sender_id]", backref="sender", cascade="all, delete-orphan")
-    received_messages = relationship("Message", foreign_keys="[Message.receiver_id]", backref="receiver", cascade="all, delete-orphan")
-    saved_searches = relationship("SavedSearch", backref="user", cascade="all, delete-orphan")
+    sent_messages = relationship("Message", foreign_keys="[Message.sender_uuid]", back_populates="sender", cascade="all, delete-orphan")
+    received_messages = relationship("Message", foreign_keys="[Message.receiver_uuid]", back_populates="receiver", cascade="all, delete-orphan")
     reviews = relationship("Review", backref="user", cascade="all, delete-orphan")
 
 class Brand(Base):
@@ -143,7 +142,7 @@ class Car(Base):
     price_history = relationship("PriceHistory", back_populates="car", cascade="all, delete-orphan")
     reviews = relationship("Review", back_populates="car", cascade="all, delete-orphan")
     favorites = relationship("Favorite", backref="car", cascade="all, delete-orphan")
-    messages = relationship("Message", backref="car", cascade="all, delete-orphan")
+    messages = relationship("Message", back_populates="car", cascade="all, delete-orphan")
     moderation = relationship("AdModeration", backref="car", uselist=False, cascade="all, delete-orphan")
 
     @property
@@ -174,11 +173,18 @@ class Message(Base):
     __tablename__ = "messages"
 
     id = Column(Integer, primary_key=True)
-    car_id = Column(Integer, ForeignKey("cars.id", ondelete="CASCADE"), nullable=False)
-    sender_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    receiver_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    uuid = Column(UUID(as_uuid=True), unique=True, nullable=False, index=True, default=uuid.uuid4)
+    car_uuid = Column(UUID, ForeignKey("cars.uuid", ondelete="CASCADE"), nullable=False)
+    sender_uuid = Column(UUID, ForeignKey("users.uuid", ondelete="CASCADE"), nullable=False)
+    receiver_uuid = Column(UUID, ForeignKey("users.uuid", ondelete="CASCADE"), nullable=False)
     message_text = Column(Text, nullable=False)
-    sent_at = Column(DateTime, server_default=func.now())
+    sent_at = Column(DateTime, server_default=func.now(), nullable=False)
+
+    
+    sender = relationship("User", foreign_keys=[sender_uuid], back_populates="sent_messages")
+    receiver = relationship("User", foreign_keys=[receiver_uuid], back_populates="received_messages")
+    car = relationship("Car", foreign_keys=[car_uuid], back_populates="messages")
+    
 
 class AdModeration(Base):
     __tablename__ = "ad_moderation"
@@ -188,14 +194,6 @@ class AdModeration(Base):
     status = Column(String, nullable=False)
     moderator_comment = Column(Text)
     moderation_date = Column(DateTime, server_default=func.now())
-
-class SavedSearch(Base):
-    __tablename__ = "saved_searches"
-
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    search_criteria = Column(JSON, nullable=False)
-    saved_at = Column(DateTime, server_default=func.now())
 
 class Review(Base):
     __tablename__ = "reviews"

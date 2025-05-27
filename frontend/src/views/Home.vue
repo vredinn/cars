@@ -6,7 +6,6 @@
     <section class="py-12 container mx-auto px-4 bg-base-100">
       <div class="flex justify-between items-center mb-10">
         <h2 class="text-3xl font-bold">Бренды</h2>
-        <button class="font-bold">Показать все бренды</button>
       </div>
 
       <!-- Пока грузится -->
@@ -18,13 +17,14 @@
 
       <!-- Когда загрузилось -->
       <div v-else class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-6">
-        <div v-for="brand in brands" :key="brand.id" class="flex flex-col items-center">
+        <router-link :to="`/catalog?brand_id=${brand.id}`" v-for="brand in brands" :key="brand.id"
+          class="flex flex-col items-center">
           <div
-            class="w-full aspect-square rounded-full bg-white flex flex-col items-center justify-center p-4 hover:shadow-lg transition-all shadow-md">
+            class="w-full aspect-square rounded-full bg-white flex flex-col items-center justify-center p-4 transition-all shadow-md">
             <img :src="`${brand.image_url}`" :alt="brand.name" class="w-1/2 h-auto mb-2">
             <span class="text-sm font-medium text-center text-black">{{ brand.name }}</span>
           </div>
-        </div>
+        </router-link>
       </div>
 
     </section>
@@ -38,13 +38,14 @@
         <router-link v-for="(car, uuid) in popularCars" :key="uuid" :to="`/car/${car.uuid}`"
           class="card carousel-item btn btn-soft p-0 h-100 w-70 transition-all duration-250">
           <figure class="w-full max-h-[200px] ">
-            <img :src="car.preview_image_url" :alt="car.title" class="object-cover w-full h-full">
+            <img :src="car.preview_image_url || '/uploads/no_car_image.png'" :alt="car.title"
+              class="object-cover w-full h-full">
           </figure>
           <div class="card-body p-4 text-base-content">
             <h3 class="card-title text-lg">{{ car.brand_name }} {{ car.model_name }}</h3>
             <p class="text-sm">{{ car.specs }}</p>
             <div class="flex flex-wrap gap-2 my-2">
-              
+
               <div class="badge badge-outline border-gray-300 ">{{ car.car_condition }}</div>
               <div class="badge badge-outline border-gray-300 ">{{ car.mileage }}</div>
               <div class="badge badge-outline border-gray-300 ">{{ car.fuel_type }}</div>
@@ -53,11 +54,7 @@
             </div>
             <div class="card-actions justify-between items-center mt-auto">
               <span class="text-xl font-bold">{{ formatPrice(car.price) }}</span>
-              <router-link 
-                :to="`/car/${car.uuid}`" 
-                class="btn btn-sm btn-primary"
-                v-if="!isLoadingCars"
-              >
+              <router-link :to="`/car/${car.uuid}`" class="btn btn-sm btn-primary" v-if="!isLoadingCars">
                 Подробнее
               </router-link>
             </div>
@@ -70,14 +67,14 @@
 
       <!-- Навигационные кнопки -->
       <div class="flex justify-center gap-6 mt-4">
-        <button @click="prevSlide" :class="{ 'btn-disabled': !canScrollLeft}"
+        <button @click="prevSlide" :class="{ 'btn-disabled': !canScrollLeft }"
           class="btn btn-neutral btn-circle w-[60px] h-[40px] min-h-[40px]">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M15 18l-6-6 6-6" />
           </svg>
         </button>
-        <button @click="nextSlide" :class="{ 'btn-disabled': !canScrollRight}"
+        <button @click="nextSlide" :class="{ 'btn-disabled': !canScrollRight }"
           class="btn btn-neutral btn-circle w-[60px] h-[40px] min-h-[40px]">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -98,7 +95,8 @@
         </div>
 
         <!-- Текст (правая часть) -->
-        <div class="lg:w-1/2 flex flex-col justify-center bg-base-300 rounded-b-[24px] lg:rounded-none lg:rounded-r-[24px] p-4">
+        <div
+          class="lg:w-1/2 flex flex-col justify-center bg-base-300 rounded-b-[24px] lg:rounded-none lg:rounded-r-[24px] p-4">
           <h2 class="text-3xl font-bold mb-4">ПОЛУЧИТЕ СПРАВЕДЛИВУЮ ЦЕНУ ЗА СВОЙ АВТОМОБИЛЬ</h2>
           <h3 class="text-2xl mb-6 font-semibold">Продайте его сегодня</h3>
 
@@ -146,38 +144,33 @@
       </div>
     </section>
     <section class="py-20 container mx-auto px-4">
-    <h2 class="text-3xl font-bold text-center mb-10">Популярные продавцы</h2>
-    
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-      <!-- Карточки продавца -->
-      <div v-for="(user, uuid) in popularUsers" :key="uuid" class="card bg-base-300 shadow-md h-[400px] w-full mx-auto">
-        <figure class="h-[306px] overflow-hidden">
-          <img :src="user.avatar_url || '/uploads/user_example.webp'" :alt="user.name"
-            class="w-full h-full object-cover"
-          >
-        </figure>
-        <div class="card-body p-4">
-          <h3 class="card-title text-lg">{{ user.name }}</h3>
-          <p class="text-sm">На сайте с {{ formatDate(user.registration_date) }}</p>
-          
-          <div class="text-sm text-center">Рейтинг: {{ user.rating.toFixed(2) }}</div>
-          <div class="rating rating-sm rating-half justify-center mb-2">
-            <template v-for="i in 10" :key="i">
-              <input
-                type="radio"
-                :name="'rating-' + user.uuid"
-                class="mask mask-star-2"
-                :class="i % 2 === 1 ? 'mask-half-1 bg-orange-400' : 'mask-half-2 bg-orange-400'"
-                :checked="i === Math.round(user.rating * 2)"
-                disabled
-              />
-            </template>
+      <h2 class="text-3xl font-bold text-center mb-10">Популярные продавцы</h2>
+
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+        <!-- Карточки продавца -->
+        <div v-for="(user, uuid) in popularUsers" :key="uuid"
+          class="card bg-base-300 shadow-md h-[400px] w-full mx-auto">
+          <figure class="h-[306px] overflow-hidden">
+            <img :src="user.avatar_url || '/uploads/user_example.webp'" :alt="user.name"
+              class="w-full h-full object-cover">
+          </figure>
+          <div class="card-body p-4">
+            <h3 class="card-title text-lg">{{ user.name }}</h3>
+            <p class="text-sm">На сайте с {{ formatDate(user.registration_date) }}</p>
+
+            <div class="text-sm text-center">Рейтинг: {{ user.rating.toFixed(2) }}</div>
+            <div class="rating rating-sm rating-half justify-center mb-2">
+              <template v-for="i in 10" :key="i">
+                <input type="radio" :name="'rating-' + user.uuid" class="mask mask-star-2"
+                  :class="i % 2 === 1 ? 'mask-half-1 bg-orange-400' : 'mask-half-2 bg-orange-400'"
+                  :checked="i === Math.round(user.rating * 2)" disabled />
+              </template>
+            </div>
+            <router-link :to="'/user/' + user.uuid" class="btn btn-outline btn-sm mt-2">Подробнее</router-link>
           </div>
-          <router-link :to="'/user/' + user.uuid" class="btn btn-outline btn-sm mt-2">Подробнее</router-link>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
   </div>
 </template>
 <script setup>
@@ -206,7 +199,7 @@ async function loadBrands() {
   isLoadingBrands.value = true
   try {
     const { data } = await api.get('/brands/')
-    brands.value = data
+    brands.value = data.slice(0, 6)
   } catch (error) {
     console.error('Ошибка загрузки брендов:', error)
   } finally {

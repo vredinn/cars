@@ -162,12 +162,18 @@ def create_car(car: CarCreate, db: Session = Depends(get_db), user: User = Depen
     user_id = user.id
     return crud.create_car(db, car, user_id)
 
-@router.put("/{car_id}", response_model=Car)
-def update_car(car_id: int, car: CarUpdate, db: Session = Depends(get_db)):
+@router.put("/{car_uuid}", response_model=Car)
+def update_car(car_uuid: UUID, car: CarUpdate, user: User = Depends(security.require_user), db: Session = Depends(get_db)):
+    if (not crud.check_ownership(db, car_uuid, user.uuid) or user.is_admin):
+        return HTTPException(status_code=403, detail="Нет прав на Изменение")
+    car_id = crud.get_car_id_by_uuid(db, car_uuid)
     return crud.update_car(db, car_id, car)
 
-@router.delete("/{car_id}")
-def delete_car(car_id: int, db: Session = Depends(get_db)):
+@router.delete("/{car_uuid}")
+def delete_car(car_uuid: UUID, user: User = Depends(security.require_user), db: Session = Depends(get_db)):
+    if (not crud.check_ownership(db, car_uuid, user.uuid) or user.is_admin):
+        return HTTPException(status_code=403, detail="Нет прав на удаление")
+    car_id = crud.get_car_id_by_uuid(db, car_uuid)
     if not crud.delete_car(db, car_id):
         raise HTTPException(status_code=404, detail="Car not found")
     return {"message": "Car deleted successfully"}

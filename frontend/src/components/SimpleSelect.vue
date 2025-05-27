@@ -12,7 +12,7 @@
       @click="toggle"
       :disabled="disabled"
     >
-      <span class="text-neutral-content">{{ selectedLabel || placeholder }}</span>
+      <span>{{ selectedLabel || placeholder }}</span>
     </button>
       <!-- Стрелочка вниз -->
       <svg

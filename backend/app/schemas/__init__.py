@@ -7,6 +7,5 @@ from .favorite_scheme import *
 from .message_scheme import *
 from .ad_moderation_scheme import *
 from .review_scheme import *
-from .saved_search_scheme import *
 from .user_scheme import *
 from .price_history_scheme import *

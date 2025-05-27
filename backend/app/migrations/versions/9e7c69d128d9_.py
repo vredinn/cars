@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 5c9e84b5d07c
+Revision ID: 9e7c69d128d9
 Revises: 
-Create Date: 2025-04-28 14:58:24.200844
+Create Date: 2025-05-27 14:06:18.245612
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '5c9e84b5d07c'
+revision: str = '9e7c69d128d9'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -123,14 +123,14 @@ def upgrade() -> None:
     )
     op.create_table('messages',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('car_id', sa.Integer(), nullable=False),
-    sa.Column('sender_id', sa.Integer(), nullable=False),
-    sa.Column('receiver_id', sa.Integer(), nullable=False),
+    sa.Column('car_uuid', sa.UUID(), nullable=False),
+    sa.Column('sender_uuid', sa.UUID(), nullable=False),
+    sa.Column('receiver_uuid', sa.UUID(), nullable=False),
     sa.Column('message_text', sa.Text(), nullable=False),
     sa.Column('sent_at', sa.DateTime(), server_default=sa.text('now()'), nullable=True),
-    sa.ForeignKeyConstraint(['car_id'], ['cars.id'], ondelete='CASCADE'),
-    sa.ForeignKeyConstraint(['receiver_id'], ['users.id'], ondelete='CASCADE'),
-    sa.ForeignKeyConstraint(['sender_id'], ['users.id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['car_uuid'], ['cars.uuid'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['receiver_uuid'], ['users.uuid'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['sender_uuid'], ['users.uuid'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('price_history',

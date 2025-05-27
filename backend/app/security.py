@@ -21,7 +21,6 @@ auth = AuthX(config=auth_config)
 
 def require_user(token: str = Depends(auth.access_token_required), db: Session = Depends(get_db)):
     user = get_user_by_uuid(db, UUID(token.sub))
-
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return user

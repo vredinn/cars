@@ -1,12 +1,13 @@
-import uuid
+from uuid import UUID, uuid4
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 from PIL import Image
 from PIL import ImageOps
 from pathlib import Path
 from database import get_db
-from schemas import CarImage, CarImageCreate
+from schemas import CarImage, CarImageCreate, User
 import models as m
+import security
 import crud
 import io
 
@@ -23,17 +24,21 @@ UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 router = APIRouter(prefix="/car-images", tags=["Car Images"])
 
 
-@router.get("/car/{car_id}", response_model=list[CarImage])
-def get_images_by_car(car_id: int, db: Session = Depends(get_db)):
-    return crud.get_car_images(db, car_id)
+@router.get("/car/{car_uuid}", response_model=list[CarImage])
+def get_images_by_car(car_uuid: UUID, db: Session = Depends(get_db)):
+    return crud.get_car_images(db, car_uuid)
 
 @router.post("/", response_model=CarImageCreate)
 async def create_car_image(
-    car_id: int,
+    car_uuid: UUID,
     file: UploadFile = File(...),
+    user: User = Depends(security.require_user),
     db: Session = Depends(get_db)
 ):
-    # 1. Получаем машину
+    if (not crud.check_ownership(db, car_uuid, user.uuid) or user.is_admin):
+        return HTTPException(status_code=403, detail="Нет прав на добавление изображения")
+    
+    car_id = crud.get_car_id_by_uuid(db, car_uuid)
     car = db.query(m.Car).filter(m.Car.id == car_id).first()
     if not car:
         raise HTTPException(status_code=404, detail="Car not found")
@@ -55,7 +60,7 @@ async def create_car_image(
         car_dir = UPLOAD_DIR / str(car.uuid)
         car_dir.mkdir(parents=True, exist_ok=True)
 
-        filename = f"{uuid.uuid4().hex}.webp"
+        filename = f"{uuid4().hex}.webp"
         save_path = car_dir / filename
         image.save(save_path, "webp", quality=80)
 
@@ -67,7 +72,9 @@ async def create_car_image(
     return new_image
 
 @router.delete("/{image_id}")
-def delete_car_image(image_id: int, db: Session = Depends(get_db)):
+def delete_car_image(image_id: int, db: Session = Depends(get_db), user: User = Depends(security.require_user)):
+    if (not crud.is_car_image_owner(db, image_id, user.id or user.is_admin)):
+        raise HTTPException(status_code=403, detail="Вы не являетесь владельцем изображения")
     if not crud.delete_car_image(db, image_id):
         raise HTTPException(status_code=404, detail="Car image not found")
     return {"message": "Car image deleted successfully"}

@@ -3,17 +3,14 @@
     <div class="card-body p-4">
       <div class="flex flex-col lg:flex-row gap-4">
         <div class="w-full lg:w-1/4">
-          <img 
-            :src="car.preview_image_url" 
-            class="w-full h-52 object-cover rounded-box"
-            :alt="`${car.brand_name} ${car.model_name}`"
-          />
+          <img :src="car.preview_image_url || '/uploads/no_car_image.png'" class="w-full h-52 object-cover rounded-box"
+            :alt="`${car.brand_name} ${car.model_name}`" />
         </div>
 
         <div class="w-full lg:w-3/4">
           <h3 class="card-title">{{ car.brand_name }} {{ car.model_name }} - {{ car.year }} г.</h3>
           <p>
-            {{ car.engine_power }} л.с. {{ car.fuel_type }}, {{ car.engine_capacity }} л, 
+            {{ car.engine_power }} л.с. {{ car.fuel_type }}, {{ car.engine_capacity }} л,
             {{ car.steering_side }} руль, {{ car.drive_type }} привод
           </p>
           <div class="mt-2">
@@ -30,24 +27,26 @@
           </div>
 
           <div class="card-actions justify-end mt-4">
-            <div v-if="isOwner" class="badge badge-lg h-10 badge-outline">
+            <div v-if="isOwner" class="badge badge-lg h-10 badge-dash">
               Ваше объявление
             </div>
             <div v-else>
               <div v-if="!isFavorite" class="tooltip tooltip-left" data-tip="Добавить в избранное">
-                <button @click.stop="toggleFavorite" v-if="user" class="btn btn-accent p-2">
-                  <svg class="w-4 h-4 fill-accent-content">
+                <button @click.stop="toggleFavorite" v-if="user"
+                  class="btn btn-outline p-2 w-10 h-10 md:w-full md:h-auto">
+                  <svg class="w-4 h-4 fill-base-content">
                     <use href="#icon_favorite" />
                   </svg>
-                  В избранное
+                  <template class="hidden md:block">В избранное</template>
                 </button>
               </div>
               <div v-if="isFavorite" class="tooltip tooltip-left" data-tip="Удалить из избранного">
-                <button @click.stop="toggleFavorite" v-if="user" class="btn btn-secondary p-2">
+                <button @click.stop="toggleFavorite" v-if="user"
+                  class="btn btn-secondary p-2 w-10 h-10 md:w-full md:h-auto">
                   <svg class="w-4 h-4 fill-secondary-content">
                     <use href="#icon_favorite" />
                   </svg>
-                  Уже в избранном
+                  <template class="hidden md:block">Уже в избранном</template>
                 </button>
               </div>
             </div>
@@ -116,7 +115,7 @@ async function toggleFavorite() {
 
   if (isFavorite.value) {
     try {
-      await api.delete(`/favorites/${user.value.uuid}/${car.uuid}`)
+      await api.delete(`/favorites/${car.uuid}`)
       isFavorite.value = false
     } catch (error) {
       console.error(error)
@@ -133,7 +132,7 @@ async function toggleFavorite() {
   }
 }
 
-onMounted(() => {
-  checkFavorite()
+onMounted(async () => {
+  await checkFavorite()
 })
 </script>

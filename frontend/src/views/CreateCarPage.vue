@@ -139,7 +139,7 @@
           <div class="mb-2">
               <label class="label mb-2">Местоположение</label>
             <div>                
-              <AddressSearch @select-coords="onCoordsSelected" />
+              <AddressSearch @selected="onAddressSelected" />
             </div>         
           </div>
           <div>
@@ -206,9 +206,9 @@ const filteredModels = computed(() =>
   models.value.filter(m => m.brand_id === form.brand_id)
 )
 
-function onCoordsSelected(coords) {
-  form.latitude = coords.lat;
-  form.longitude = coords.lng;
+function onAddressSelected({ latitude, longitude }) {
+  form.latitude = latitude;
+  form.longitude = longitude;
 }
 
 function handleFiles(event) {
@@ -254,7 +254,7 @@ async function handleSubmit() {
     for (const file of files.value) {
       const formData = new FormData()
       formData.append('file', file)
-      await api.post(`/car-images/?car_id=${carId}`, formData)
+      await api.post(`/car-images/?car_uuid=${carUuid}`, formData)
     }
 
     router.push(`/car/${carUuid}`)

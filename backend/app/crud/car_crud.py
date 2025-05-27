@@ -28,8 +28,6 @@ def get_car_by_uuid(db: Session, car_uuid: UUID):
 def check_ownership(db: Session, car_uuid: UUID, user_uuid: UUID):
     return db.query(m.Car).filter(and_(m.Car.uuid == car_uuid, m.Car.user.has(uuid=user_uuid))).first() is not None
 
-
-
 def get_all_cars_paginated(
     db: Session,
     filters: dict,

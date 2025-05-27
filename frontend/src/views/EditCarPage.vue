@@ -1,0 +1,468 @@
+<template>
+  <div class="container mx-auto p-4">
+    <!-- Индикатор загрузки -->
+    <div v-if="isLoadingFilters" class="flex justify-center items-center h-64">
+      <div class="loading loading-spinner loading-lg"></div>
+    </div>
+    <div v-else>
+      <h1 class="text-2xl font-bold mb-6">Редактирование объявления</h1>
+
+      <form @submit.prevent="handleSubmit">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div
+            class="bg-base-200 border-2 border-dashed rounded-box p-4 text-center transition"
+            @dragover.prevent
+            @drop.prevent="handleDrop"
+          >
+            <label class="label mb-2 block text-balance">Перетащите фото сюда или выберите файл</label>
+            <input type="file" class="hidden" ref="fileInput" multiple @change="handleFiles" accept="image/*">
+            <button class="btn btn-primary" type="button" @click="$refs.fileInput.click()">Выбрать фото</button>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4" v-if="previews.length">
+              <div v-for="(src, index) in previews" :key="index" class="flex flex-col">
+                <img :src="src" class="rounded w-full h-32 object-cover border mb-2" />
+                <button
+                  type="button"
+                  class="btn btn-error text-error-content rounded-full flex items-center justify-center"
+                  @click="removeImage(index)"
+                >
+                  Удалить
+                </button>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div>
+                <label class="label mb-2">Марка</label>
+                <SearchableSelect
+                  v-model="form.brand_id"
+                  :options="brands"
+                  labelKey="name"
+                  valueKey="id"
+                  placeholder="Выберите марку"
+                  :disabled="loading"
+                />
+              </div>
+
+              <div>
+                <label class="label mb-2">Модель</label>
+                <SearchableSelect
+                  v-model="form.model_id"
+                  :options="filteredModels"
+                  labelKey="name"
+                  valueKey="id"
+                  placeholder="Выберите модель"
+                  :disabled="!form.brand_id || loading"
+                />
+              </div>
+
+              <div>
+                <label class="label mb-2">Год выпуска</label>
+                <input
+                  type="number"
+                  min="1900"
+                  :max="currentYear"
+                  class="input input-bordered w-full"
+                  v-model="form.year"
+                  required
+                  :disabled="loading"
+                >
+              </div>
+
+              <div>
+                <label class="label mb-2">Цена</label>
+                <input
+                  type="number"
+                  min="0"
+                  class="input input-bordered w-full"
+                  v-model="form.price"
+                  required
+                  :disabled="loading"
+                >
+              </div>
+
+              <div>
+                <label class="label mb-2">Тип кузова</label>
+                <SearchableSelect
+                  v-model="form.body_type"
+                  :options="bodyTypes"
+                  placeholder="Тип кузова"
+                  :disabled="loading"
+                />
+              </div>
+
+              <div>
+                <label class="label mb-2">Привод</label>
+                <SearchableSelect
+                  v-model="form.drive_type"
+                  :options="driveTypes"
+                  placeholder="Тип привода"
+                  :disabled="loading"
+                />
+              </div>
+
+              <div>
+                <label class="label mb-2">КПП</label>
+                <SearchableSelect
+                  v-model="form.transmission"
+                  :options="transmissions"
+                  placeholder="Коробка передач"
+                  :disabled="loading"
+                />
+              </div>
+
+              <div>
+                <label class="label mb-2">Тип топлива</label>
+                <SearchableSelect
+                  v-model="form.fuel_type"
+                  :options="fuelTypes"
+                  placeholder="Тип топлива"
+                  :disabled="loading"
+                />
+              </div>
+
+              <div>
+                <label class="label mb-2">Сторона руля</label>
+                <SearchableSelect
+                  v-model="form.steering_side"
+                  :options="steeringSides"
+                  placeholder="Сторона руля"
+                  :disabled="loading"
+                />
+              </div>
+
+              <div>
+                <label class="label mb-2">Состояние</label>
+                <SearchableSelect
+                  v-model="form.car_condition"
+                  :options="carConditions"
+                  placeholder="Состояние автомобиля"
+                  :disabled="loading"
+                />
+              </div>
+
+              <div>
+                <label class="label mb-2">Объем двигателя (л)</label>
+                <input
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  class="input input-bordered w-full"
+                  v-model="form.engine_capacity"
+                  :disabled="loading"
+                >
+              </div>
+
+              <div>
+                <label class="label mb-2">Мощность (л.с.)</label>
+                <input
+                  type="number"
+                  min="0"
+                  class="input input-bordered w-full"
+                  v-model="form.engine_power"
+                  :disabled="loading"
+                >
+              </div>
+
+              <div>
+                <label class="label mb-2">Пробег (км)</label>
+                <input
+                  type="number"
+                  min="0"
+                  class="input input-bordered w-full"
+                  v-model="form.mileage"
+                  :disabled="loading"
+                >
+              </div>
+
+              <div>
+                <label class="label mb-2">Цвет</label>
+                <input
+                  type="text"
+                  class="input input-bordered w-full"
+                  v-model="form.color"
+                  :disabled="loading"
+                >
+              </div>
+            </div>
+            <!-- Карта -->
+            <div class="mb-2">
+              <label class="label mb-2">Местоположение</label>
+              <div>
+                <AddressSearch
+                  @selected="onAddressSelected"
+                  :latitude="form.latitude"
+                  :longitude="form.longitude"
+                  :disabled="loading"
+                />
+              </div>
+            </div>
+            <div>
+              <label class="label mb-2">Описание</label>
+              <textarea
+                class="textarea textarea-bordered w-full p-4"
+                rows="4"
+                v-model="form.description"
+                :disabled="loading"
+              ></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Кнопки -->
+        <div class="pt-4">
+          <div v-if="errorMessage" role="alert" class="alert alert-error alert-soft">
+            <span>{{ errorMessage }}</span>
+            <button @click="errorMessage = ''" class="btn btn-sm btn-circle btn-ghost ml-auto">✕</button>
+          </div>
+          <div class="flex flex-row gap-4">
+            <button class="btn btn-primary flex-1 leading-4" type="submit" :disabled="loading">
+              {{ loading ? 'Сохранение...' : 'Сохранить изменения' }}
+            </button>
+            <button class="btn btn-error flex-1 leading-4" type="button" @click="deleteCar" :disabled="loading">
+              {{ loading ? 'Удаление...' : 'Удалить объявление' }}
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import SearchableSelect from '@/components/SearchableSelect.vue'
+import AddressSearch from '@/components/AddressSearch.vue'
+import api from '@/api'
+import { useAuthStore } from '@/stores/auth'
+import { useFiltersStore } from '@/stores/filters'
+
+const route = useRoute()
+const router = useRouter()
+const authStore = useAuthStore()
+const filtersStore = useFiltersStore()
+
+const loading = ref(false)
+const isLoadingFilters = ref(true)
+const errorMessage = ref('')
+
+const form = reactive({
+  brand_id: null,
+  model_id: null,
+  year: null,
+  price: null,
+  description: null,
+  body_type: null,
+  drive_type: null,
+  transmission: null,
+  fuel_type: null,
+  steering_side: null,
+  car_condition: null,
+  engine_capacity: null,
+  engine_power: null,
+  mileage: null,
+  color: null,
+  latitude: null,
+  longitude: null
+})
+
+const files = ref([]) // Новые файлы для загрузки
+const previews = ref([]) // Превью изображений (существующие + новые)
+const existingImages = ref([]) // Существующие изображения с сервера
+
+const brands = computed(() => filtersStore.brands)
+const models = computed(() => filtersStore.models)
+const carConditions = computed(() => filtersStore.carConditions)
+const steeringSides = computed(() => filtersStore.steeringSides)
+const bodyTypes = computed(() => filtersStore.bodyTypes)
+const transmissions = computed(() => filtersStore.transmissions)
+const fuelTypes = computed(() => filtersStore.fuelTypes)
+const driveTypes = computed(() => filtersStore.driveTypes)
+
+const currentYear = computed(() => new Date().getFullYear())
+const filteredModels = computed(() => models.value.filter(m => m.brand_id === form.brand_id))
+
+async function loadFilters() {
+  try {
+    // Предполагается, что filtersStore имеет метод для загрузки всех фильтров
+    await filtersStore.loadAll() // Замените на реальный метод, если он отличается
+    isLoadingFilters.value = false
+  } catch (error) {
+    console.error('Ошибка загрузки фильтров:', error)
+    errorMessage.value = 'Не удалось загрузить фильтры'
+    isLoadingFilters.value = false
+  }
+}
+
+async function loadCarData(carUUID) {
+  try {
+    const response = await api.get(`/cars/${carUUID}`)
+    const data = response.data
+    Object.assign(form, {
+      brand_id: data.brand_id,
+      model_id: data.model_id,
+      year: data.year,
+      price: data.price,
+      description: data.description || '',
+      body_type: data.body_type,
+      drive_type: data.drive_type,
+      transmission: data.transmission,
+      fuel_type: data.fuel_type,
+      steering_side: data.steering_side,
+      car_condition: data.car_condition,
+      engine_capacity: data.engine_capacity,
+      engine_power: data.engine_power,
+      mileage: data.mileage,
+      color: data.color,
+      latitude: data.latitude,
+      longitude: data.longitude
+    })
+    if (data.images && data.images.length > 0) {
+      existingImages.value = data.images.map(img => ({
+        id: img.id,
+        url: img.image_url
+      }))
+      previews.value = data.images.map(img => img.image_url)
+    }
+    // Проверяем, является ли пользователь владельцем
+    if (authStore.user && authStore.user.uuid) {
+      const ownRes = await api.get(`/cars/check_ownership/${carUUID}/${authStore.user.uuid}`)
+      if (!ownRes.data) {
+        errorMessage.value = 'У вас нет прав для редактирования этого объявления'
+        router.push(`/car/${carUUID}`)
+      }
+    } else {
+      errorMessage.value = 'Войдите в систему для редактирования'
+      router.push('/login')
+    }
+  } catch (error) {
+    console.error('Ошибка загрузки данных автомобиля:', error)
+    errorMessage.value = 'Не удалось загрузить данные автомобиля'
+  }
+}
+
+function onAddressSelected({ latitude, longitude }) {
+  form.latitude = latitude
+  form.longitude = longitude
+}
+
+function handleFiles(event) {
+  const selectedFiles = Array.from(event.target.files)
+  if (!selectedFiles.length) {
+    errorMessage.value = 'Не удалось выбрать файл. Попробуйте снова.'
+    return
+  }
+  addFiles(selectedFiles)
+}
+
+function handleDrop(event) {
+  event.preventDefault()
+  const droppedFiles = Array.from(event.dataTransfer.files)
+  addFiles(droppedFiles)
+}
+
+function addFiles(fileList) {
+  for (const file of fileList) {
+    if (!file.type.startsWith('image/')) {
+      errorMessage.value = 'Поддерживаются только изображения'
+      continue
+    }
+    if (previews.value.length >= 10) {
+      errorMessage.value = 'Максимум 10 изображений'
+      return
+    }
+    files.value.push(file)
+    previews.value.push(URL.createObjectURL(file))
+  }
+}
+
+function removeImage(index) {
+  if (index < existingImages.value.length) {
+    existingImages.value.splice(index, 1)
+  } else {
+    const fileIndex = index - existingImages.value.length
+    files.value.splice(fileIndex, 1)
+    URL.revokeObjectURL(previews.value[index])
+  }
+  previews.value.splice(index, 1)
+}
+
+async function handleSubmit() {
+  if (!validateForm()) return
+
+  loading.value = true
+  errorMessage.value = ''
+
+  try {
+    const carUUID = route.params.uuid
+    const payload = { ...form }
+    await api.put(`/cars/${carUUID}`, payload)
+
+    // Удаление удаленных изображений
+    const existingImageIds = existingImages.value.map(img => img.id)
+    const originalImageIds = (await api.get(`/cars/${carUUID}`)).data.images.map(img => img.id)
+    const imagesToDelete = originalImageIds.filter(id => !existingImageIds.includes(id))
+    for (const imageId of imagesToDelete) {
+      await api.delete(`/car-images/${imageId}`)
+    }
+
+    // Загрузка новых изображений
+    for (const file of files.value) {
+      const formData = new FormData()
+      formData.append('file', file)
+      await api.post(`/car-images/?car_uuid=${carUUID}`, formData)
+    }
+
+    router.push(`/car/${carUUID}`)
+  } catch (error) {
+    console.error('Ошибка обновления:', error)
+    errorMessage.value = error.response?.data?.detail || 'Не удалось обновить объявление'
+  } finally {
+    loading.value = false
+  }
+}
+
+function validateForm() {
+  if (!form.brand_id || !form.model_id) {
+    errorMessage.value = 'Выберите марку и модель автомобиля'
+    return false
+  }
+  if (!form.year || form.year < 1900 || form.year > currentYear.value) {
+    errorMessage.value = `Год выпуска должен быть между 1900 и ${currentYear.value}`
+    return false
+  }
+  if (!form.price || form.price <= 0) {
+    errorMessage.value = 'Укажите корректную цену'
+    return false
+  }
+  return true
+}
+
+async function deleteCar() {
+  if (!confirm('Вы уверены, что хотите удалить это объявление?')) return
+  loading.value = true
+  errorMessage.value = ''
+
+  try {
+    const carUUID = route.params.uuid
+    await api.delete(`/cars/${carUUID}`)
+    router.push('/')
+  } catch (error) {
+    console.error('Ошибка удаления:', error)
+    errorMessage.value = error.response?.data?.detail || 'Не удалось удалить объявление'
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(async () => {
+  isLoadingFilters.value = true
+  await loadFilters()
+  if (!isLoadingFilters.value) {
+    const carUUID = route.params.uuid
+    await loadCarData(carUUID)
+  }
+})
+</script>
