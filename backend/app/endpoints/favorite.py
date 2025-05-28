@@ -12,17 +12,52 @@ import crud
 router = APIRouter(prefix="/favorites", tags=["Favorites"])
 
 @router.get("/user_paginated/{user_uuid}", response_model=Page[Favorite])
-def get_user_favorites(user_uuid: UUID, params: Params = Depends(), db: Session = Depends(get_db)):
+def get_user_favorites(
+    user_uuid: UUID, 
+    params: Params = Depends(), 
+    db: Session = Depends(get_db),
+    current_user: User = Depends(security.require_user)
+):
+    # Проверяем, что пользователь запрашивает свои избранные
+    if current_user.uuid != user_uuid:
+        raise HTTPException(
+            status_code=403,
+            detail="Доступ запрещен. Вы можете просматривать только свои избранные объявления"
+        )
+    
     user_id = crud.get_user_id_by_uuid(db, user_uuid)
     return crud.get_user_favorites_paginated(db, user_id, params=params)
 
 @router.get("/user/{user_uuid}", response_model=List[Favorite])
-def get_user_favorites(user_uuid: UUID, db: Session = Depends(get_db)):
+def get_user_favorites(
+    user_uuid: UUID, 
+    db: Session = Depends(get_db),
+    current_user: User = Depends(security.require_user)
+):
+    # Проверяем, что пользователь запрашивает свои избранные
+    if current_user.uuid != user_uuid:
+        raise HTTPException(
+            status_code=403,
+            detail="Доступ запрещен. Вы можете просматривать только свои избранные объявления"
+        )
+    
     user_id = crud.get_user_id_by_uuid(db, user_uuid)
     return crud.get_user_favorites(db, user_id)
 
 @router.get("/check/{user_uuid}/{car_uuid}")
-def check_favorite(user_uuid: UUID, car_uuid: UUID, db: Session = Depends(get_db)):
+def check_favorite(
+    user_uuid: UUID, 
+    car_uuid: UUID, 
+    db: Session = Depends(get_db),
+    current_user: User = Depends(security.require_user)
+):
+    # Проверяем, что пользователь проверяет свои избранные
+    if current_user.uuid != user_uuid:
+        raise HTTPException(
+            status_code=403,
+            detail="Доступ запрещен. Вы можете проверять только свои избранные объявления"
+        )
+    
     user_id = crud.get_user_id_by_uuid(db, user_uuid)
     car_id = crud.get_car_id_by_uuid(db, car_uuid)
 
@@ -32,15 +67,23 @@ def check_favorite(user_uuid: UUID, car_uuid: UUID, db: Session = Depends(get_db
         return False
     
 @router.post("/", response_model=Favorite)
-def create_favorite(data: FavoriteCreate, db: Session = Depends(get_db), user: User = Depends(security.require_user)):
-    user_id = user.id
+def create_favorite(
+    data: FavoriteCreate, 
+    db: Session = Depends(get_db), 
+    current_user: User = Depends(security.require_user)
+):
+    user_id = current_user.id
     car_id = crud.get_car_id_by_uuid(db, data.car_uuid)
 
     return crud.create_favorite(db, user_id, car_id)
 
 @router.delete("/{car_uuid}")
-def delete_favorite(car_uuid: UUID,user: User = Depends(security.require_user), db: Session = Depends(get_db)):
-    user_id = user.id
+def delete_favorite(
+    car_uuid: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(security.require_user)
+):
+    user_id = current_user.id
     car_id = crud.get_car_id_by_uuid(db, car_uuid)
     if not crud.delete_favorite(db, user_id, car_id):
         raise HTTPException(status_code=404, detail="Favorite not found")

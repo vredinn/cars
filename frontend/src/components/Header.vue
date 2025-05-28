@@ -36,7 +36,6 @@
       </template>
 
       <template v-else>
-        <router-link to="/create_car" class="btn btn-primary hidden md:flex">Создать объявление</router-link>
         <router-link to="/chats" class="btn btn-primary hidden md:inline-flex">Сообщения</router-link>
 
         <!-- Профиль -->
@@ -55,8 +54,8 @@
               </div>
               <div class="text-center text-pretty">{{ user.name }} <br /> {{ user.email }}</div>
             </div>
-            <li><router-link to="/create_car" class="btn btn-primary md:hidden">Создать объявление</router-link></li>
             <li><router-link to="/chats" class="btn btn-primary md:hidden">Сообщения</router-link></li>
+            <li><router-link to="/create_car" class="btn btn-primary">Создать объявление</router-link></li>
             <li><router-link :to="`/user/${user.uuid}`" class="btn btn-outline">Профиль</router-link></li>
             <li><label for="logout-modal" class="btn btn-soft btn-error">Выйти</label></li>
           </ul>

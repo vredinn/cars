@@ -21,20 +21,27 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: "http://192.168.0.101:8000",
+        target: "http://backend:8000",
         changeOrigin: true,
         secure: false,
+        ws: true
       },
       '/uploads': {
-        target: "http://192.168.0.101:8000",
+        target: "http://backend:8000",
         changeOrigin: true,
         secure: false,
       },
       '/brand_logos': {
-        target: "http://192.168.0.101:8000",
+        target: "http://backend:8000",
         changeOrigin: true,
         secure: false,
       },
+      '/messages/ws': {
+        target: "ws://backend:8000",
+        ws: true,
+        changeOrigin: true,
+        secure: false,
+      }
     },
     watch: {
       usePolling: true,

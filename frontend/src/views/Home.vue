@@ -87,11 +87,11 @@
     <!-- Новая секция "Получите справедливую цену" -->
     <section class="py-20 container mx-auto px-4 bg-base-100">
       <!-- Верхняя часть: изображение и текст -->
-      <div class="flex flex-col lg:flex-row mb-16  ">
+      <div class="flex flex-col lg:flex-row mb-16">
         <!-- Изображение машины (левая часть) -->
-        <div class="lg:w-1/2 shadow-md rounded-none">
+        <div class="lg:w-1/2 shadow-md rounded-none relative">
           <img src="/src/assets/cars/Background.jpg" alt="Продажа автомобиля"
-            class="w-full h-full rounded-t-[24px] lg:rounded-none lg:rounded-l-[24px]">
+            class="absolute inset-0 w-full h-full object-cover rounded-t-[24px] lg:rounded-none lg:rounded-l-[24px]">
         </div>
 
         <!-- Текст (правая часть) -->

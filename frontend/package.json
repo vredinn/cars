@@ -14,12 +14,14 @@
     "daisyui": "^5.0.27",
     "pinia": "^3.0.2",
     "tailwindcss": "^4.1.4",
+    "vue": "^3.4.15",
     "vue-router": "^4.5.1",
     "vue-slider-component": "^3.2.24",
     "vue-zoomer": "^0.3.10"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "^5.2.2",
-    "vite": "^6.3.1"
+    "@vitejs/plugin-vue": "^5.0.3",
+    "vite": "^5.0.12",
+    "esbuild": "^0.25.2"
   }
 }

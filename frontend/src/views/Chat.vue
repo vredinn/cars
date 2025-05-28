@@ -13,9 +13,11 @@
         <!-- Окно чата, если данные загружены -->
         <div v-else class="flex flex-col h-full min-h-0">
           <!-- Информация об автомобиле и собеседнике -->
-          <div class="flex items-center gap-2 p-1 px-4 bg-base-200 rounded-t-box">
-            <router-link :to="{ name: 'ChatList' }" class="btn btn-lg btn-primary h-8 w-8">
-              ←
+          <div class="flex items-center gap-2 p-1 px-4 bg-base-300 rounded-t-box">
+            <router-link :to="{ name: 'ChatList' }" class="btn btn-lg btn-primary h-8 w-8 flex items-center justify-center p-0">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14 7 L 10 12 L 14 17"/>
+              </svg>
             </router-link>
 
             <div class="avatar-group items-center -space-x-6">
@@ -46,10 +48,10 @@
             {{ errorMessage }}
           </div>
           <!-- Контейнер сообщений -->
-          <div class="flex-1 overflow-y-scroll mx-4 mb-2 min-h-0 flex flex-col">
+          <div ref="messagesContainer" class="flex-1 overflow-y-auto px-4 pb-2 min-h-0 flex flex-col-reverse border-x-2 border-base-300">
             <div class="chat"
               :class="{ 'chat-start': message.sender_uuid !== userUuid, 'chat-end': message.sender_uuid === userUuid }"
-              v-for="message in messages" :key="message.uuid">
+              v-for="message in reversedMessages" :key="message.uuid">
               <div class="chat-bubble" :class="{ 'chat-bubble-primary': message.sender_uuid === userUuid }">
                 <p>{{ message.message_text }}</p>
                 <span class="text-xs text-gray-500">{{ new Date(message.sent_at).toLocaleString() }}</span>
@@ -57,7 +59,7 @@
             </div>
           </div>
           <!-- Поле ввода -->
-          <div class="form-control mx-4 mb-2">
+          <div class="form-control px-4 pb-2 border-x-2 border-base-300">
             <div class="input-group flex gap-2">
               <input v-model="newMessage" type="text" placeholder="Напишите сообщение..."
                 class="input input-bordered w-full" @keyup.enter="sendMessage" />
@@ -71,7 +73,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import api from '@/api';
 import { useAuthStore } from '@/stores/auth';
@@ -86,6 +88,10 @@ const websocket = ref(null);
 const errorMessage = ref('');
 const car = ref(null);
 const otherUser = ref(null);
+const messagesContainer = ref(null);
+
+// Computed property for reversed messages
+const reversedMessages = computed(() => [...messages.value].reverse());
 
 // Загрузка данных для активного чата
 async function loadChatData(carUuid, otherUserUuid) {
@@ -120,6 +126,10 @@ async function loadMessages(carUuid, otherUserUuid) {
   try {
     const response = await api.get(`/messages/chat/${carUuid}/${otherUserUuid}`);
     messages.value = response.data;
+    // Scroll to bottom after messages are loaded
+    nextTick(() => {
+      scrollToBottom();
+    });
   } catch (error) {
     console.error('Ошибка загрузки сообщений:', error);
     errorMessage.value = 'Ошибка загрузки сообщений';
@@ -140,7 +150,12 @@ async function connectWebSocket(carUuid, otherUserUuid) {
     websocket.value.close();
     websocket.value = null;
   }
-  const wsUrl = `ws://192.168.0.101:8000/api/messages/ws/${userUuid.value}/${carUuid}/${otherUserUuid}`;
+  
+  // Use the API path for WebSocket connection
+  const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  const wsUrl = `${wsProtocol}//${window.location.host}/api/messages/ws/${userUuid.value}/${carUuid}/${otherUserUuid}`;
+  
+  console.log('Connecting to WebSocket:', wsUrl);
   websocket.value = new WebSocket(wsUrl);
 
   websocket.value.onopen = () => {
@@ -149,6 +164,7 @@ async function connectWebSocket(carUuid, otherUserUuid) {
   websocket.value.onmessage = (event) => {
     const message = JSON.parse(event.data);
     messages.value.push(message);
+    scrollToBottom();
   };
   websocket.value.onerror = (error) => {
     console.error('Ошибка WebSocket:', error);
@@ -172,6 +188,13 @@ async function sendMessage() {
   const messageData = { message_text: newMessage.value };
   websocket.value.send(JSON.stringify(messageData));
   newMessage.value = '';
+}
+
+// Прокрутка к последнему сообщению
+function scrollToBottom() {
+  if (messagesContainer.value) {
+    messagesContainer.value.scrollTop = 0;
+  }
 }
 
 function isValidUUID(str) {

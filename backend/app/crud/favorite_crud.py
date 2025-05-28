@@ -1,4 +1,4 @@
-from sqlalchemy.orm import Session, selectinload
+from sqlalchemy.orm import Session, selectinload, joinedload
 from uuid import uuid4, UUID
 from fastapi_pagination.ext.sqlalchemy import paginate
 from fastapi_pagination import  Params
@@ -16,11 +16,17 @@ def create_favorite(db: Session, user_id : int, car_id: int):
     return obj
 
 def get_user_favorites_paginated(db: Session, user_id: int, params: Params):
-    q = db.query(m.Favorite).filter(m.Favorite.user_id == user_id)
+    q = db.query(m.Favorite).options(
+        joinedload(m.Favorite.car).joinedload(m.Car.brand),
+        joinedload(m.Favorite.car).joinedload(m.Car.model)
+    ).filter(m.Favorite.user_id == user_id)
     return paginate(q, params)
 
 def get_user_favorites(db: Session, user_id: int):
-    return db.query(m.Favorite).filter(m.Favorite.user_id == user_id).all()
+    return db.query(m.Favorite).options(
+        joinedload(m.Favorite.car).joinedload(m.Car.brand),
+        joinedload(m.Favorite.car).joinedload(m.Car.model)
+    ).filter(m.Favorite.user_id == user_id).all()
 
 def delete_favorite(db: Session, user_id: int, car_id: int):
     obj = db.query(m.Favorite).filter(m.Favorite.user_id == user_id, m.Favorite.car_id == car_id).first()
