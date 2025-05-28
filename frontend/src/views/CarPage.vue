@@ -134,7 +134,14 @@
           <div class="prose bg-base-200 p-4 rounded-xl mt-4">
             <div class="text-gray-500">Местоположение</div>
             <div class="font-bold">
-              <AddressDisplay v-if="car.latitude && car.longitude" :lat="car.latitude" :lng="car.longitude" />
+              <Suspense>
+                <template #default>
+                  <AddressDisplay v-if="car.latitude && car.longitude" :lat="car.latitude" :lng="car.longitude" />
+                </template>
+                <template #fallback>
+                  <div class="skeleton h-6 w-full"></div>
+                </template>
+              </Suspense>
             </div>
           </div>
           <!-- Описание -->
@@ -243,10 +250,9 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, defineAsyncComponent } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import api from '@/api'
-import AddressDisplay from '@/components/AddressDisplay.vue'
 import { useAuthStore } from '@/stores/auth'
 
 const route = useRoute()
@@ -298,6 +304,8 @@ const imageHeight = ref(0)
 
 const initialDistance = ref(null)
 const initialZoom = ref(1)
+
+const AddressDisplay = defineAsyncComponent(() => import('@/components/AddressDisplay.vue'))
 
 async function loadCarData(carUUID) {
   try {

@@ -1,6 +1,21 @@
 <template>
   <div>
-    <HeroSection />
+    <Suspense>
+      <template #default>
+        <HeroSection />
+      </template>
+      <template #fallback>
+        <div class="hero min-h-screen relative flex flex-col">
+          <div class="container mx-auto hero-content w-full flex-1 flex flex-col items-center justify-center">
+            <div class="w-full max-w-3xl">
+              <div class="skeleton h-8 w-3/4 mb-4"></div>
+              <div class="skeleton h-16 w-full mb-8"></div>
+              <div class="skeleton h-16 w-full"></div>
+            </div>
+          </div>
+        </div>
+      </template>
+    </Suspense>
 
     <!-- Секция с брендами -->
     <section class="py-12 container mx-auto px-4 bg-base-100">
@@ -34,35 +49,55 @@
       <h2 class="text-3xl font-bold text-center mb-10">Популярные объявления</h2>
 
       <div ref="carousel" class="carousel w-full rounded-box space-x-4 p-4 scroll-p-4 bg-base-200">
-
-        <router-link v-for="(car, uuid) in popularCars" :key="uuid" :to="`/car/${car.uuid}`"
-          class="card carousel-item btn btn-soft p-0 h-100 w-70 transition-all duration-250">
-          <figure class="w-full max-h-[200px] ">
-            <img :src="car.preview_image_url || '/uploads/no_car_image.png'" :alt="car.title"
-              class="object-cover w-full h-full">
-          </figure>
-          <div class="card-body p-4 text-base-content">
-            <h3 class="card-title text-lg">{{ car.brand_name }} {{ car.model_name }}</h3>
-            <p class="text-sm">{{ car.specs }}</p>
-            <div class="flex flex-wrap gap-2 my-2">
-
-              <div class="badge badge-outline border-gray-300 ">{{ car.car_condition }}</div>
-              <div class="badge badge-outline border-gray-300 ">{{ car.mileage }}</div>
-              <div class="badge badge-outline border-gray-300 ">{{ car.fuel_type }}</div>
-              <div class="badge badge-outline border-gray-300 ">{{ car.transmission }}</div>
-              <div class="badge badge-outline border-gray-300 ">{{ car.engine_power }} л.с.</div>
-            </div>
-            <div class="card-actions justify-between items-center mt-auto">
-              <span class="text-xl font-bold">{{ formatPrice(car.price) }}</span>
-              <router-link :to="`/car/${car.uuid}`" class="btn btn-sm btn-primary" v-if="!isLoadingCars">
-                Подробнее
-              </router-link>
+        <!-- Skeleton loader for cars -->
+        <template v-if="isLoadingCars">
+          <div v-for="n in 4" :key="n" class="carousel-item card btn btn-soft p-0 h-100 w-70">
+            <div class="skeleton h-[200px] w-full"></div>
+            <div class="card-body p-4">
+              <div class="skeleton h-6 w-3/4 mb-2"></div>
+              <div class="skeleton h-4 w-1/2 mb-4"></div>
+              <div class="flex flex-wrap gap-2 my-2">
+                <div v-for="i in 5" :key="i" class="skeleton h-6 w-20"></div>
+              </div>
+              <div class="card-actions justify-between items-center mt-auto">
+                <div class="skeleton h-8 w-32"></div>
+                <div class="skeleton h-8 w-24"></div>
+              </div>
             </div>
           </div>
-        </router-link>
-        <router-link to="/catalog" class="btn btn-soft carousel-item h-100 w-70 p-0 text-xl">
-          Посмотреть все объявления
-        </router-link>
+        </template>
+
+        <!-- Actual cars -->
+        <template v-else>
+          <router-link v-for="(car, uuid) in popularCars" :key="uuid" :to="`/car/${car.uuid}`"
+            class="card carousel-item btn btn-soft p-0 h-100 w-70 transition-all duration-250">
+            <figure class="w-full max-h-[200px] ">
+              <img :src="car.preview_image_url || '/uploads/no_car_image.png'" :alt="car.title"
+                class="object-cover w-full h-full">
+            </figure>
+            <div class="card-body p-4 text-base-content">
+              <h3 class="card-title text-lg">{{ car.brand_name }} {{ car.model_name }}</h3>
+              <p class="text-sm">{{ car.specs }}</p>
+              <div class="flex flex-wrap gap-2 my-2">
+
+                <div class="badge badge-outline border-gray-300 ">{{ car.car_condition }}</div>
+                <div class="badge badge-outline border-gray-300 ">{{ car.mileage }}</div>
+                <div class="badge badge-outline border-gray-300 ">{{ car.fuel_type }}</div>
+                <div class="badge badge-outline border-gray-300 ">{{ car.transmission }}</div>
+                <div class="badge badge-outline border-gray-300 ">{{ car.engine_power }} л.с.</div>
+              </div>
+              <div class="card-actions justify-between items-center mt-auto">
+                <span class="text-xl font-bold">{{ formatPrice(car.price) }}</span>
+                <router-link :to="`/car/${car.uuid}`" class="btn btn-sm btn-primary" v-if="!isLoadingCars">
+                  Подробнее
+                </router-link>
+              </div>
+            </div>
+          </router-link>
+          <router-link to="/catalog" class="btn btn-soft carousel-item h-100 w-70 p-0 text-xl">
+            Посмотреть все объявления
+          </router-link>
+        </template>
       </div>
 
       <!-- Навигационные кнопки -->
@@ -147,35 +182,50 @@
       <h2 class="text-3xl font-bold text-center mb-10">Популярные продавцы</h2>
 
       <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-        <!-- Карточки продавца -->
-        <div v-for="(user, uuid) in popularUsers" :key="uuid"
-          class="card bg-base-300 shadow-md h-[400px] w-full mx-auto">
-          <figure class="h-[306px] overflow-hidden">
-            <img :src="user.avatar_url || '/uploads/user_example.webp'" :alt="user.name"
-              class="w-full h-full object-cover">
-          </figure>
-          <div class="card-body p-4">
-            <h3 class="card-title text-lg">{{ user.name }}</h3>
-            <p class="text-sm">На сайте с {{ formatDate(user.registration_date) }}</p>
-
-            <div class="text-sm text-center">Рейтинг: {{ user.rating.toFixed(2) }}</div>
-            <div class="rating rating-sm rating-half justify-center mb-2">
-              <template v-for="i in 10" :key="i">
-                <input type="radio" :name="'rating-' + user.uuid" class="mask mask-star-2"
-                  :class="i % 2 === 1 ? 'mask-half-1 bg-orange-400' : 'mask-half-2 bg-orange-400'"
-                  :checked="i === Math.round(user.rating * 2)" disabled />
-              </template>
+        <!-- Skeleton loader for sellers -->
+        <template v-if="isLoadingUsers">
+          <div v-for="n in 4" :key="n" class="card bg-base-300 shadow-md h-[400px] w-full mx-auto">
+            <div class="skeleton h-[306px] w-full"></div>
+            <div class="card-body p-4">
+              <div class="skeleton h-6 w-3/4 mb-2"></div>
+              <div class="skeleton h-4 w-1/2 mb-2"></div>
+              <div class="skeleton h-4 w-1/4 mb-2"></div>
+              <div class="skeleton h-8 w-full mt-2"></div>
             </div>
-            <router-link :to="'/user/' + user.uuid" class="btn btn-outline btn-sm mt-2">Подробнее</router-link>
           </div>
-        </div>
+        </template>
+
+        <!-- Actual sellers -->
+        <template v-else>
+          <div v-for="(user, uuid) in popularUsers" :key="uuid"
+            class="card bg-base-300 shadow-md h-[400px] w-full mx-auto">
+            <figure class="h-[306px] overflow-hidden">
+              <img :src="user.avatar_url || '/uploads/user_example.webp'" :alt="user.name"
+                class="w-full h-full object-cover">
+            </figure>
+            <div class="card-body p-4">
+              <h3 class="card-title text-lg">{{ user.name }}</h3>
+              <p class="text-sm">На сайте с {{ formatDate(user.registration_date) }}</p>
+
+              <div class="text-sm text-center">Рейтинг: {{ user.rating.toFixed(2) }}</div>
+              <div class="rating rating-sm rating-half justify-center mb-2">
+                <template v-for="i in 10" :key="i">
+                  <input type="radio" :name="'rating-' + user.uuid" class="mask mask-star-2"
+                    :class="i % 2 === 1 ? 'mask-half-1 bg-orange-400' : 'mask-half-2 bg-orange-400'"
+                    :checked="i === Math.round(user.rating * 2)" disabled />
+                </template>
+              </div>
+              <router-link :to="'/user/' + user.uuid" class="btn btn-outline btn-sm mt-2">Подробнее</router-link>
+            </div>
+          </div>
+        </template>
       </div>
     </section>
   </div>
 </template>
 <script setup>
-import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
-import HeroSection from '@/components/HeroSection.vue'
+import { ref, onMounted, onBeforeUnmount, nextTick, defineAsyncComponent } from 'vue'
+const HeroSection = defineAsyncComponent(() => import('@/components/HeroSection.vue'))
 import api from '@/api'
 
 // Состояния

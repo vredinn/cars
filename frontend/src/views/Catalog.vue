@@ -13,21 +13,50 @@
 
           <div v-else>
             <div class="flex flex-col gap-4" v-if="cars.length > 0">
-              
-                <button class="btn btn-lg btn-primary md:hidden w-full" @click="showDrawer = true">
-                  Показать фильтры
-                </button>
-              <CarCard v-for="car in cars" :key="car.id" :car="car" />
+              <button class="btn btn-lg btn-primary md:hidden w-full" @click="showDrawer = true">
+                Показать фильтры
+              </button>
+              <Suspense>
+                <template #default>
+                  <CarCard v-for="car in cars" :key="car.id" :car="car" />
+                </template>
+                <template #fallback>
+                  <div v-for="i in 3" :key="i" class="card bg-base-200 shadow-xl">
+                    <div class="skeleton h-48 w-full"></div>
+                    <div class="card-body">
+                      <div class="skeleton h-8 w-3/4 mb-2"></div>
+                      <div class="skeleton h-4 w-1/2 mb-4"></div>
+                      <div class="flex gap-2 mb-4">
+                        <div class="skeleton h-6 w-20"></div>
+                        <div class="skeleton h-6 w-20"></div>
+                        <div class="skeleton h-6 w-20"></div>
+                      </div>
+                      <div class="skeleton h-8 w-32"></div>
+                    </div>
+                  </div>
+                </template>
+              </Suspense>
             </div>
             <div v-else class="text-center py-8">
               <p class="text-lg">Ничего не найдено. Попробуйте изменить параметры поиска.</p>
             </div>
-            <Pagination 
-              v-if="totalPages > 1"
-              :currentPage="currentPage"
-              :totalPages="totalPages"
-              @page-changed="changePage"
-            />
+            <Suspense>
+              <template #default>
+                <Pagination 
+                  v-if="totalPages > 1"
+                  :currentPage="currentPage"
+                  :totalPages="totalPages"
+                  @page-changed="changePage"
+                />
+              </template>
+              <template #fallback>
+                <div class="flex justify-center gap-2">
+                  <div class="skeleton h-10 w-10"></div>
+                  <div class="skeleton h-10 w-10"></div>
+                  <div class="skeleton h-10 w-10"></div>
+                </div>
+              </template>
+            </Suspense>
           </div>
         </div>
         <div class="drawer-side md:pr-2">
@@ -304,15 +333,16 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch, onMounted } from 'vue'
+import { ref, reactive, computed, watch, onMounted, defineAsyncComponent } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import CarCard from '@/components/CarCard.vue'
-import Pagination from '@/components/Pagination.vue'
-import SearchableSelect from '@/components/SearchableSelect.vue'
-import SimpleSelect from '@/components/SimpleSelect.vue'
-import AddressSearch from '@/components/AddressSearch.vue'
 import { useFiltersStore } from '@/stores/filters'
 import api from '@/api'
+
+const CarCard = defineAsyncComponent(() => import('@/components/CarCard.vue'))
+const Pagination = defineAsyncComponent(() => import('@/components/Pagination.vue'))
+const SimpleSelect = defineAsyncComponent(() => import('@/components/SimpleSelect.vue'))
+const SearchableSelect = defineAsyncComponent(() => import('@/components/SearchableSelect.vue'))
+const AddressSearch = defineAsyncComponent(() => import('@/components/AddressSearch.vue'))
 
 const route = useRoute()
 const router = useRouter()

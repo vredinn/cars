@@ -1,54 +1,43 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import Home from '@/views/Home.vue'
-
-import Catalog from '@/views/Catalog.vue'
-import CarPage from '@/views/CarPage.vue'
-import UserProfile from '@/views/UserProfile.vue'
-import CreateCarPage from '@/views/CreateCarPage.vue'
-import EditCarPage from '@/views/EditCarPage.vue'
 import { useAuthStore } from '@/stores/auth'
-import Chat from '@/views/Chat.vue';
-import ChatList from '@/views/ChatList.vue'
 
 const routes = [
   {
     path: '/',
     name: 'Home',
-    component: Home
+    component: () => import('@/views/Home.vue')
   },
   {
     path: '/car/:uuid',
     name: 'car',
-    component: CarPage,
+    component: () => import('@/views/CarPage.vue'),
     props: true
   },
   {
     path: '/cars/edit/:uuid',
     name: 'Edit',
-    component: EditCarPage,
+    component: () => import('@/views/EditCarPage.vue'),
     props: true
   },
   {
     path: '/catalog',
     name: 'catalog',
-    component: Catalog
-
+    component: () => import('@/views/Catalog.vue')
   },
   {
     path: '/user/:uuid',
     name: 'user',
-    component: UserProfile,
+    component: () => import('@/views/UserProfile.vue'),
     props: true
   },
   {
     path: '/create_car',
     name: 'create_car',
-    component: CreateCarPage,
+    component: () => import('@/views/CreateCarPage.vue'),
     beforeEnter: async (to, from) => {
       const auth = useAuthStore()
 
       try {
-        // Если пользователь уже загружен — ничего не делаем
         if (!auth.user) {
           await auth.fetchUser()
         }
@@ -66,13 +55,12 @@ const routes = [
   {
     path: '/chat/:carUuid/:otherUserUuid',
     name: 'Chat',
-    component: Chat,
+    component: () => import('@/views/Chat.vue'),
     meta: { hideFooter: true },
     beforeEnter: async (to, from) => {
       const auth = useAuthStore()
 
       try {
-        // Если пользователь уже загружен — ничего не делаем
         if (!auth.user) {
           await auth.fetchUser()
         }
@@ -90,14 +78,12 @@ const routes = [
   {
     path: '/chats',
     name: 'ChatList',
-    component: ChatList,
-
+    component: () => import('@/views/ChatList.vue'),
     meta: { hideFooter: true },
     beforeEnter: async (to, from) => {
       const auth = useAuthStore()
 
       try {
-        // Если пользователь уже загружен — ничего не делаем
         if (!auth.user) {
           await auth.fetchUser()
         }

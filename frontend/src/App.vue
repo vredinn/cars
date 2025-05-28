@@ -28,27 +28,55 @@
   </svg>
 
   <div id="app">
-    <Header />
+    <Suspense>
+      <template #default>
+        <Header />
+      </template>
+      <template #fallback>
+        <div class="navbar bg-base-100">
+          <div class="skeleton h-12 w-full"></div>
+        </div>
+      </template>
+    </Suspense>
+
     <main>
-      <router-view />
+      <Suspense>
+        <template #default>
+          <router-view />
+        </template>
+        <template #fallback>
+          <div class="container mx-auto p-4">
+            <div class="skeleton h-96 w-full"></div>
+          </div>
+        </template>
+      </Suspense>
     </main>
-    <Footer v-if="!hideFooter" />
+
+    <Suspense v-if="!hideFooter">
+      <template #default>
+        <Footer />
+      </template>
+      <template #fallback>
+        <div class="footer bg-base-200">
+          <div class="skeleton h-32 w-full"></div>
+        </div>
+      </template>
+    </Suspense>
   </div>
 </template>
 
 <script setup>
-import { onMounted, watch, computed } from 'vue'
+import { onMounted, watch, computed, defineAsyncComponent } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useFiltersStore } from '@/stores/filters'
 
-import Header from '@/components/Header.vue'
-import Footer from '@/components/Footer.vue'
+const Header = defineAsyncComponent(() => import('@/components/Header.vue'))
+const Footer = defineAsyncComponent(() => import('@/components/Footer.vue'))
 
 const route = useRoute()
 const auth = useAuthStore()
 const filtersStore = useFiltersStore()
-
 
 const hideFooter = computed(() => route.meta.hideFooter)
 

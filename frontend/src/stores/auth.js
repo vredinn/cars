@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import api, { refreshAuthToken } from '@/api'
+import api, { refreshAuthToken, getCookie } from '@/api'
 
 export const useAuthStore = defineStore('auth', () => {
     const user = ref(null)
@@ -9,6 +9,14 @@ export const useAuthStore = defineStore('auth', () => {
     const isAuthenticated = computed(() => !!user.value)
 
     async function fetchUser() {
+        // Check if we have an access token before attempting to fetch user
+        const hasAccessToken = !!getCookie('csrf_access_token')
+        if (!hasAccessToken) {
+            user.value = null
+            stopAutoRefresh()
+            return
+        }
+
         try {
             const res = await api.get('/auth/me')
             user.value = res.data

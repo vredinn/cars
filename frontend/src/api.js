@@ -16,10 +16,15 @@ let lastRefresh = 0
 let refreshingPromise = null
 
 async function maybeRefreshToken() {
+    const csrfToken = getCookie('csrf_refresh_token')
+    // Don't attempt refresh if we don't have a refresh token
+    if (!csrfToken) {
+        return Promise.resolve()
+    }
+
     const now = Date.now()
     if (now - lastRefresh > REFRESH_INTERVAL) {
         if (!refreshingPromise) {
-            const csrfToken = getCookie('csrf_refresh_token')
             refreshingPromise = api.post('/auth/refresh', null, {
                 headers: { 'X-CSRF-TOKEN': csrfToken },
                 withCredentials: true,
@@ -27,10 +32,12 @@ async function maybeRefreshToken() {
             })
                 .then(() => {
                     lastRefresh = Date.now()
-                    console.log('[Auth] Token refreshed')
                 })
                 .catch(err => {
-                    console.warn('[Auth] Token refresh failed', err)
+                    // Only log warning if we actually had a token
+                    if (getCookie('csrf_refresh_token')) {
+                        console.warn('[Auth] Token refresh failed', err)
+                    }
                     throw err
                 })
                 .finally(() => {

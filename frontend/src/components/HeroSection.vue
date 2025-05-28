@@ -22,48 +22,59 @@
       <div class="container mx-auto">
         <div class="w-full rounded-[20px] lg:rounded-full p-1 bg-base-100">
           <div class="flex flex-col md:flex-row gap-3">
-            <SearchableSelect
-              class="flex-1"
-              :options="brands"
-              v-model="filters.brand_id"
-              placeholder="Марка"
-              label-key="name"
-              value-key="id"
-            />
+            <!-- Skeleton loader for filters -->
+            <template v-if="isLoading">
+              <div v-for="i in 4" :key="i" class="flex-1">
+                <div class="skeleton h-12 w-full"></div>
+              </div>
+              <div class="skeleton h-12 w-[100px]"></div>
+            </template>
 
-            <SearchableSelect
-              class="flex-1"
-              :options="filteredModels"
-              v-model="filters.model_id"
-              placeholder="Модель"
-              label-key="name"
-              value-key="id"
-              :disabled="!filters.brand_id"
-            />
-
-            <SearchableSelect
-              class="flex-1"
-              :options="carConditions"
-              v-model="filters.car_condition"
-              placeholder="Состояние"
-            />
-
-            <div>
-              <input
-                type="number"
-                class="input input-bordered w-full"
-                v-model="filters.max_price"
-                placeholder="Цена"
-                min="50000"
+            <!-- Actual filters -->
+            <template v-else>
+              <SearchableSelect
+                class="flex-1"
+                :options="brands"
+                v-model="filters.brand_id"
+                placeholder="Марка"
+                label-key="name"
+                value-key="id"
               />
-            </div>
 
-            <button class="btn btn-primary flex items-center" @click="searchCars">
-              <svg class="w-3 h-3 fill-primary-content">
-                <use href="#icon_search"></use>
-              </svg>
-              Поиск
-            </button>
+              <SearchableSelect
+                class="flex-1"
+                :options="filteredModels"
+                v-model="filters.model_id"
+                placeholder="Модель"
+                label-key="name"
+                value-key="id"
+                :disabled="!filters.brand_id"
+              />
+
+              <SearchableSelect
+                class="flex-1"
+                :options="carConditions"
+                v-model="filters.car_condition"
+                placeholder="Состояние"
+              />
+
+              <div>
+                <input
+                  type="number"
+                  class="input input-bordered w-full"
+                  v-model="filters.max_price"
+                  placeholder="Цена"
+                  min="50000"
+                />
+              </div>
+
+              <button class="btn btn-primary flex items-center" @click="searchCars">
+                <svg class="w-3 h-3 fill-primary-content">
+                  <use href="#icon_search"></use>
+                </svg>
+                Поиск
+              </button>
+            </template>
           </div>
         </div>
       </div>
@@ -83,6 +94,7 @@ import { useFiltersStore } from '@/stores/filters'
 import SearchableSelect from '@/components/SearchableSelect.vue'
 
 const filtersStore = useFiltersStore()
+const isLoading = ref(true)
 
 const router = useRouter()
 
@@ -126,4 +138,13 @@ const searchCars = () => {
   const query = buildQueryParams(filters)
   router.push({ path: '/catalog', query }).catch(() => {})
 }
+
+onMounted(async () => {
+  isLoading.value = true
+  try {
+    await filtersStore.loadAll()
+  } finally {
+    isLoading.value = false
+  }
+})
 </script>
