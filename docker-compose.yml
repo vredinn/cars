@@ -4,7 +4,7 @@ services:
     image: postgres:15
     env_file: .env
     volumes:
-      - db_data:/var/lib/postgresql/data # том для сохранения данных
+      - ./db/db_data:/var/lib/postgresql/data # монтируем локальную директорию
     networks:
       - app_network
     ports:
@@ -39,6 +39,3 @@ services:
 networks:
   app_network:
     driver: bridge
-
-volumes:
-  db_data:

@@ -17,92 +17,68 @@ const routes = [
     path: '/cars/edit/:uuid',
     name: 'Edit',
     component: () => import('@/views/EditCarPage.vue'),
-    props: true
+    props: true,
+    meta: { requiresAuth: true }
   },
   {
     path: '/catalog',
-    name: 'catalog',
+    name: 'Catalog',
     component: () => import('@/views/Catalog.vue')
   },
   {
+    path: '/create_car',
+    name: 'CreateCar',
+    component: () => import('@/views/CreateCarPage.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/user/:uuid',
-    name: 'user',
+    name: 'UserProfile',
     component: () => import('@/views/UserProfile.vue'),
     props: true
-  },
-  {
-    path: '/create_car',
-    name: 'create_car',
-    component: () => import('@/views/CreateCarPage.vue'),
-    beforeEnter: async (to, from) => {
-      const auth = useAuthStore()
-
-      try {
-        if (!auth.user) {
-          await auth.fetchUser()
-        }
-
-        if (auth.user) {
-          return true
-        }
-
-        return { name: 'Home' }
-      } catch (e) {
-        return { name: 'Home' }
-      }
-    }
-  },
-  {
-    path: '/chat/:carUuid/:otherUserUuid',
-    name: 'Chat',
-    component: () => import('@/views/Chat.vue'),
-    meta: { hideFooter: true },
-    beforeEnter: async (to, from) => {
-      const auth = useAuthStore()
-
-      try {
-        if (!auth.user) {
-          await auth.fetchUser()
-        }
-
-        if (auth.user) {
-          return true
-        }
-
-        return { name: 'Home' }
-      } catch (e) {
-        return { name: 'Home' }
-      }
-    }
   },
   {
     path: '/chats',
     name: 'ChatList',
     component: () => import('@/views/ChatList.vue'),
-    meta: { hideFooter: true },
-    beforeEnter: async (to, from) => {
-      const auth = useAuthStore()
+    meta: { requiresAuth: true, hideFooter: true }
+  },
+  {
+    path: '/chat/:carUuid/:otherUserUuid',
+    name: 'Chat',
+    component: () => import('@/views/Chat.vue'),
+    meta: { requiresAuth: true, hideFooter: true }
 
-      try {
-        if (!auth.user) {
-          await auth.fetchUser()
-        }
-
-        if (auth.user) {
-          return true
-        }
-
-        return { name: 'Home' }
-      } catch (e) {
-        return { name: 'Home' }
-      }
-    }
+  },
+  {
+    path: '/auth',
+    name: 'Auth',
+    component: () => import('@/views/Auth.vue'),
+    meta: { hideForAuth: true, hideFooter: true }
   }
 ]
 
 const router = createRouter({
   history: createWebHistory(),
   routes
+})
+
+router.beforeEach(async (to, from, next) => {
+  const auth = useAuthStore()
+
+  // Если требуется авторизация
+  if (to.meta.requiresAuth && !auth.isAuthenticated) {
+    next({ name: 'Auth', query: { redirect: to.fullPath } })
+    return
+  }
+
+  // Если страница скрыта для авторизованных пользователей
+  if (to.meta.hideForAuth && auth.isAuthenticated) {
+    next({ name: 'Home' })
+    return
+  }
+
+  next()
 })
 
 export default router

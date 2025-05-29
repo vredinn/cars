@@ -1,5 +1,5 @@
 <template>
-  <button class="btn btn-ghost flex items-center" @click="openLoginModal">
+  <button class="btn btn-ghost flex items-center" @click="handleClick">
     <svg class="w-3 h-3 fill-base-content">
       <use href="#icon_login"></use>
     </svg>
@@ -95,8 +95,8 @@
 <script setup>
 import { ref } from 'vue'
 import { useAuthStore } from '@/stores/auth'
-import api from '@/api'
 import { useRouter } from 'vue-router'
+import api from '@/api'
 
 const email = ref('')
 const password = ref('')
@@ -105,8 +105,12 @@ const loginModal = ref(null)
 const auth = useAuthStore()
 const router = useRouter()
 
-const openLoginModal = () => {
-  loginModal.value?.showModal()
+const handleClick = () => {
+  if (!auth.isAuthenticated) {
+    router.push('/auth')
+  } else {
+    loginModal.value?.showModal()
+  }
 }
 
 const login = async () => {
@@ -117,20 +121,12 @@ const login = async () => {
         email: email.value,
         password: password.value,
       },
-      {
-        skipAuthRefresh: true,
-      }
     )
-
-    errorMessage.value = ''
     await auth.fetchUser()
-    router.go()
-  } catch (err) {
-    if (err.response && err.response.status === 401) {
-      errorMessage.value = 'Неверный email или пароль'
-    } else {
-      errorMessage.value = 'Сетевая ошибка. Попробуйте позже.'
-    }
+    loginModal.value?.close()
+  } catch (error) {
+    errorMessage.value = error.response?.data?.detail || 'Ошибка при входе'
   }
 }
 </script>
+

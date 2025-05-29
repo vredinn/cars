@@ -164,8 +164,8 @@ def create_car(car: CarCreate, db: Session = Depends(get_db), user: User = Depen
 
 @router.put("/{car_uuid}", response_model=Car)
 def update_car(car_uuid: UUID, car: CarUpdate, user: User = Depends(security.require_user), db: Session = Depends(get_db)):
-    if (not crud.check_ownership(db, car_uuid, user.uuid) or user.is_admin):
-        return HTTPException(status_code=403, detail="Нет прав на Изменение")
+    if not (crud.check_ownership(db, car_uuid, user.uuid) or user.is_admin):
+        raise HTTPException(status_code=403, detail="Нет прав на Изменение")
     car_id = crud.get_car_id_by_uuid(db, car_uuid)
     return crud.update_car(db, car_id, car)
 

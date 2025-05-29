@@ -1,7 +1,8 @@
 from datetime import datetime
 from typing import List, Optional
 from uuid import UUID
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator
+import re
 
 # ================ User Schemas ================
 class UserBase(BaseModel):
@@ -18,10 +19,28 @@ class UserWithImage(UserBase):
         from_attributes = True
 
 class UserCreate(BaseModel):
-    name: str
+    name: str = Field(..., min_length=2, max_length=50)
     email: EmailStr
     phone: str
-    password: str
+    password: str = Field(..., min_length=8)
+
+    @field_validator('name')
+    def validate_name(cls, v):
+        if not re.match(r'^[A-Za-zА-Яа-яЁё\s-]+$', v):
+            raise ValueError('Имя может содержать только буквы, пробелы и дефис')
+        return v
+
+    @field_validator('phone')
+    def validate_phone(cls, v):
+        if not re.match(r'^\+?[0-9]{10,15}$', v):
+            raise ValueError('Неверный формат номера телефона')
+        return v
+
+    @field_validator('password')
+    def validate_password(cls, v):
+        if not re.match(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$', v):
+            raise ValueError('Пароль должен содержать минимум 8 символов, включая заглавные и строчные буквы, и цифры')
+        return v
 
 class User(UserWithImage):
     id: int
@@ -52,4 +71,10 @@ class UserChangeRights(BaseModel):
 
 class UserLogin(BaseModel):
     email: EmailStr
-    password: str
+    password: str = Field(..., min_length=8)
+
+    @field_validator('password')
+    def validate_password(cls, v):
+        if not re.match(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$', v):
+            raise ValueError('Пароль должен содержать минимум 8 символов, включая заглавные и строчные буквы, и цифры')
+        return v

@@ -10,7 +10,7 @@
                 <div v-else-if="errorMessage" class="alert alert-error">
                     {{ errorMessage }}
                 </div>
-                <div v-else-if="chats.length === 0" class="alert alert-info">
+                <div v-else-if="chats.length === 0" class="alert alert-info justify-center">
                     У вас пока нет чатов
                 </div>
                 <!-- Список чатов -->

@@ -59,7 +59,7 @@
             </div>
           </div>
           <!-- Поле ввода -->
-          <div class="form-control px-4 pb-2 border-x-2 border-base-300">
+          <div class="form-control px-4 py-2 border-x-2 border-base-300">
             <div class="input-group flex gap-2">
               <input v-model="newMessage" type="text" placeholder="Напишите сообщение..."
                 class="input input-bordered w-full" @keyup.enter="sendMessage" />
