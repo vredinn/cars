@@ -12,10 +12,10 @@
           </div>
 
           <div v-else>
-            <div class="flex flex-col gap-4" v-if="cars.length > 0">
-              <button class="btn btn-lg btn-primary md:hidden w-full" @click="showDrawer = true">
+              <button class="btn btn-lg btn-primary md:hidden w-full mb-4" @click="showDrawer = true">
                 Показать фильтры
               </button>
+            <div class="flex flex-col gap-4" v-if="cars.length > 0">
               <Suspense>
                 <template #default>
                   <CarCard v-for="car in cars" :key="car.id" :car="car" />
@@ -117,8 +117,12 @@
                         <span class="label-text">Радиус от города (км)</span>
                       </label>
                       <div class="flex gap-2 items-center">
-                        <input type="range" min="10" max="5000" v-model="tempFilters.radius_km" class="range" />
-                        <input type="number" min="10" max="5000" class="input input-bordered w-20" v-model="tempFilters.radius_km" />
+                        <NumberInput
+                          v-model="tempFilters.radius_km"
+                          :min="0"
+                          :max="5000"
+                          :step="10"
+                        />
                       </div>
                     </div>
                   </div>
@@ -172,34 +176,56 @@
                       <label class="label mb-1">
                         <span class="label-text">Цена от</span>
                       </label>
-                      <input type="number" class="input input-bordered w-full" v-model="tempFilters.min_price" placeholder="Любая">
+                      <NumberInput
+                        v-model="tempFilters.min_price"
+                        :min="1"
+                        :step="1"
+                        placeholder="Любая"
+                      />
                     </div>
 
                     <div>
                       <label class="label mb-1">
                         <span class="label-text">Цена до</span>
                       </label>
-                      <input type="number" class="input input-bordered w-full" v-model="tempFilters.max_price" placeholder="Любая">
+                      <NumberInput
+                        v-model="tempFilters.max_price"
+                        :min="0"
+                        :step="10000"
+                        placeholder="Любая"
+                      />
                     </div>
 
                     <div>
                       <label class="label mb-1">
                         <span class="label-text">Год от</span>
                       </label>
-                      <input type="number" class="input input-bordered w-full" v-model="tempFilters.min_year" placeholder="Любой">
+                      <NumberInput
+                        v-model="tempFilters.min_year"
+                        :min="1900"
+                        :max="currentYear"
+                        :step="1"
+                        placeholder="Любой"
+                      />
                     </div>
 
                     <div>
                       <label class="label mb-1">
                         <span class="label-text">Год до</span>
                       </label>
-                      <input type="number" class="input input-bordered w-full" v-model="tempFilters.max_year" placeholder="Любой">
+                      <NumberInput
+                        v-model="tempFilters.max_year"
+                        :min="1900"
+                        :max="currentYear"
+                        :step="1"
+                        placeholder="Любой"
+                      />
                     </div>
 
                     <!-- Продано -->
                     <div>
-                      <label class="label cursor-pointer">
-                        <span class="label-text">Показать проданные</span>
+                      <label class="label cursor-pointer flex justify-between">
+                        <span class="text-base-content">Показать проданные</span>
                         <input type="checkbox" class="checkbox" v-model="tempFilters.is_sold">
                       </label>
                     </div>
@@ -279,42 +305,76 @@
                       <label class="label mb-1">
                         <span class="label-text">Мощность от</span>
                       </label>
-                      <input type="number" class="input input-bordered w-full" v-model="tempFilters.min_engine_power" placeholder="Любая">
+                      <NumberInput
+                        v-model="tempFilters.min_engine_power"
+                        :min="1"
+                        :max="2000"
+                        :step="1"
+                        placeholder="Любая"
+                      />
                     </div>
 
                     <div>
                       <label class="label mb-1">
                         <span class="label-text">Мощность до</span>
                       </label>
-                      <input type="number" class="input input-bordered w-full" v-model="tempFilters.max_engine_power" placeholder="Любая">
+                      <NumberInput
+                        v-model="tempFilters.max_engine_power"
+                        :min="1"
+                        :max="2000"
+                        :step="1"
+                        placeholder="Любая"
+                      />
                     </div>
 
                     <div>
                       <label class="label mb-1">
                         <span class="label-text">Объем двигателя от</span>
                       </label>
-                      <input type="number" class="input input-bordered w-full" v-model="tempFilters.min_engine_capacity" placeholder="Любой">
+                      <NumberInput
+                        v-model="tempFilters.min_engine_capacity"
+                        :min="0.1"
+                        :max="10.0"
+                        :step="0.1"
+                        placeholder="Любой"
+                      />
                     </div>
 
                     <div>
                       <label class="label mb-1">
                         <span class="label-text">Объем двигателя до</span>
                       </label>
-                      <input type="number" class="input input-bordered w-full" v-model="tempFilters.max_engine_capacity" placeholder="Любой">
+                      <NumberInput
+                        v-model="tempFilters.max_engine_capacity"
+                        :min="0.1"
+                        :max="10.0"
+                        :step="0.1"
+                        placeholder="Любой"
+                      />
                     </div>
 
                     <div>
                       <label class="label mb-1">
                         <span class="label-text">Пробег от</span>
                       </label>
-                      <input type="number" class="input input-bordered w-full" v-model="tempFilters.min_millage" placeholder="Любой">
+                      <NumberInput
+                        v-model="tempFilters.min_millage"
+                        :min="0"
+                        :step="1000"
+                        placeholder="Любой"
+                      />
                     </div>
 
                     <div>
                       <label class="label mb-1">
                         <span class="label-text">Пробег до</span>
                       </label>
-                      <input type="number" class="input input-bordered w-full" v-model="tempFilters.max_millage" placeholder="Любой">
+                      <NumberInput
+                        v-model="tempFilters.max_millage"
+                        :min="0"
+                        :step="1000"
+                        placeholder="Любой"
+                      />
                     </div>
                   </div>
                 </div>
@@ -337,12 +397,13 @@ import { ref, reactive, computed, watch, onMounted, defineAsyncComponent } from 
 import { useRoute, useRouter } from 'vue-router'
 import { useFiltersStore } from '@/stores/filters'
 import api from '@/api'
+import SearchableSelect from '@/components/SearchableSelect.vue'
+import AddressSearch from '@/components/AddressSearch.vue'
+import NumberInput from '@/components/NumberInput.vue'
 
 const CarCard = defineAsyncComponent(() => import('@/components/CarCard.vue'))
 const Pagination = defineAsyncComponent(() => import('@/components/Pagination.vue'))
 const SimpleSelect = defineAsyncComponent(() => import('@/components/SimpleSelect.vue'))
-const SearchableSelect = defineAsyncComponent(() => import('@/components/SearchableSelect.vue'))
-const AddressSearch = defineAsyncComponent(() => import('@/components/AddressSearch.vue'))
 
 const route = useRoute()
 const router = useRouter()
@@ -421,6 +482,9 @@ watch(route, () => {
 function onAddressSelected({ latitude, longitude }) {
   tempFilters.center_latitude = latitude
   tempFilters.center_longitude = longitude
+  if (!tempFilters.radius_km) {
+    tempFilters.radius_km = 100
+  }
 }
 
 function parseQueryParams() {
@@ -488,13 +552,18 @@ function searchCars() {
 
 function resetFilters() {
   Object.keys(tempFilters).forEach(key => {
-    tempFilters[key] = key === 'radius_km' ? 10 : key === 'is_sold' ? false : null
+    tempFilters[key] = null
   })
   Object.keys(activeFilters).forEach(key => {
-    activeFilters[key] = key === 'radius_km' ? 10 : key === 'is_sold' ? false : null
+    activeFilters[key] = null
   })
+  tempFilters.is_sold = false
+  activeFilters.is_sold = false
+  tempFilters.radius_km = null
+  activeFilters.radius_km = null
   currentPage.value = 1
   updateRoute()
+  showDrawer.value = false
 }
 
 function changePage(page) {
@@ -507,6 +576,12 @@ function updateRoute() {
   const query = buildQueryParams(activeFilters)
   router.push({ query }).catch(() => {})
 }
+
+watch(() => tempFilters.sort_by, (newVal) => {
+  if (newVal && !tempFilters.sort_order) {
+    tempFilters.sort_order = 'asc'
+  }
+})
 
 onMounted(() => {
   parseQueryParams()

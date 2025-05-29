@@ -55,32 +55,25 @@
 
             <div>
               <label class="label mb-2">Год выпуска</label>
-              <label class="input validator w-full">
-                <input 
-                  type="number" 
-                  :min="1900" 
-                  :max="currentYear" 
-                  class="w-full" 
-                  v-model="form.year" 
-                  required
-                >
-              </label>
-              <div class="validator-hint hidden mt-0">Год должен быть между 1900 и {{ currentYear }}</div>
+              <NumberInput
+                v-model="form.year"
+                :min="1900"
+                :max="currentYear"
+                :step="1"
+                required
+                :validator-hint="`Год должен быть между 1900 и ${currentYear}`"
+              />
             </div>
 
             <div>
               <label class="label mb-2">Цена</label>
-              <label class="input validator w-full">
-                <input 
-                  type="number" 
-                  min="1" 
-                  step="1" 
-                  class="w-full" 
-                  v-model="form.price" 
-                  required
-                >
-              </label>
-              <div class="validator-hint hidden mt-0">Цена должна быть положительным числом</div>
+              <NumberInput
+                v-model="form.price"
+                :min="1"
+                :step="1"
+                required
+                validator-hint="Цена должна быть положительным числом"
+              />
             </div>
 
             <div>
@@ -145,47 +138,37 @@
 
             <div>
               <label class="label mb-2">Объем двигателя (л)</label>
-              <label class="input validator w-full">
-                <input 
-                  type="number" 
-                  step="0.1" 
-                  min="0.1" 
-                  max="10.0" 
-                  class="w-full" 
-                  v-model="form.engine_capacity"
-                  required
-                >
-              </label>
-              <div class="validator-hint hidden mt-0">Объем двигателя должен быть от 0.1 до 10.0 литров</div>
+              <NumberInput
+                v-model="form.engine_capacity"
+                :min="0.1"
+                :max="10.0"
+                :step="0.1"
+                required
+                validator-hint="Объем двигателя должен быть от 0.1 до 10.0 литров"
+              />
             </div>
 
             <div>
               <label class="label mb-2">Мощность (л.с.)</label>
-              <label class="input validator w-full">
-                <input 
-                  type="number" 
-                  min="1" 
-                  max="2000" 
-                  class="w-full" 
-                  v-model="form.engine_power"
-                  required
-                >
-              </label>
-              <div class="validator-hint hidden mt-0">Мощность должна быть от 1 до 2000 л.с.</div>
+              <NumberInput
+                v-model="form.engine_power"
+                :min="1"
+                :max="2000"
+                :step="1"
+                required
+                validator-hint="Мощность должна быть от 1 до 2000 л.с."
+              />
             </div>
 
             <div>
               <label class="label mb-2">Пробег (км)</label>
-              <label class="input validator w-full">
-                <input 
-                  type="number" 
-                  min="0" 
-                  class="w-full" 
-                  v-model="form.mileage"
-                  required
-                >
-              </label>
-              <div class="validator-hint hidden mt-0">Пробег не может быть отрицательным</div>
+              <NumberInput
+                v-model="form.mileage"
+                :min="0"
+                :step="1"
+                required
+                validator-hint="Пробег не может быть отрицательным"
+              />
             </div>
 
             <div>
@@ -245,6 +228,7 @@ import { ref, reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import SearchableSelect from '@/components/SearchableSelect.vue'
 import AddressSearch from '@/components/AddressSearch.vue'
+import NumberInput from '@/components/NumberInput.vue'
 
 import api from '@/api'
 import { useAuthStore } from '@/stores/auth'

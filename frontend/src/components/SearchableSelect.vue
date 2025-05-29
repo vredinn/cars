@@ -28,27 +28,30 @@
       </svg>
     </div>
 
-    <ul
-      v-if="open && filteredOptions.length"
-      class="absolute z-10 w-full bg-base-300 border-1 border-base-100 rounded-box mt-1 max-h-60 overflow-auto"
-    >
-      <li
-        v-for="(option, index) in filteredOptions"
-        :key="optionKey(option)"
-        @mousedown.prevent="selectOption(option)"
-        :class="[
-          'py-2 px-4 hover:bg-base-200 cursor-pointer',
-          index !== 0 ? 'border-t border-base-100' : ''
-        ]"
+    <teleport to="body">
+      <ul
+        v-if="open && filteredOptions.length"
+        class="absolute z-10 bg-base-300 border-1 border-base-100 rounded-box max-h-60 overflow-auto"
+        :style="dropdownStyle"
       >
-        {{ optionLabel(option) }}
-      </li>
-    </ul>
+        <li
+          v-for="(option, index) in filteredOptions"
+          :key="optionKey(option)"
+          @mousedown.prevent="selectOption(option)"
+          :class="[
+            'py-2 px-4 hover:bg-base-200 cursor-pointer',
+            index !== 0 ? 'border-t border-base-100' : ''
+          ]"
+        >
+          {{ optionLabel(option) }}
+        </li>
+      </ul>
+    </teleport>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 
 // Принимаем пропсы
 const props = defineProps({
@@ -84,6 +87,7 @@ const emit = defineEmits(['update:modelValue'])
 const root = ref(null)
 const open = ref(false)
 const searchQuery = ref('')
+const dropdownPos = ref({ top: 0, left: 0, width: 0 })
 
 // Получить лейбл опции
 function optionLabel(option) {
@@ -101,6 +105,29 @@ const filteredOptions = computed(() =>
     optionLabel(opt).toLowerCase().includes(searchQuery.value.toLowerCase())
   )
 )
+
+function updateDropdownPosition() {
+  if (!root.value) return
+  const rect = root.value.getBoundingClientRect()
+  dropdownPos.value = {
+    top: rect.bottom + window.scrollY,
+    left: rect.left + window.scrollX,
+    width: rect.width,
+  }
+}
+
+watch(open, async (val) => {
+  if (val) {
+    await nextTick()
+    updateDropdownPosition()
+  }
+})
+
+function onScrollResize() {
+  if (open.value) {
+    updateDropdownPosition()
+  }
+}
 
 // Выбор опции
 function selectOption(option) {
@@ -123,15 +150,23 @@ function validateInput() {
     emit('update:modelValue', null)
     searchQuery.value = ''
   }
+  setTimeout(() => (open.value = false), 200)
 }
 
 // Обработка клика вне компонента
 function onClickOutside(e) {
   if (root.value && !root.value.contains(e.target)) {
     validateInput()
-    open.value = false
   }
 }
+
+const dropdownStyle = computed(() => ({
+  position: 'absolute',
+  top: `${dropdownPos.value.top}px`,
+  left: `${dropdownPos.value.left}px`,
+  width: `${dropdownPos.value.width}px`,
+  zIndex: 50,
+}))
 
 // Следим за изменением modelValue, чтобы обновить searchQuery
 watch(
@@ -145,9 +180,14 @@ watch(
 
 // Слушатели для кликов вне компонента
 onMounted(() => {
+  window.addEventListener('resize', onScrollResize)
+  window.addEventListener('scroll', onScrollResize, true)
   document.addEventListener('mousedown', onClickOutside)
 })
+
 onBeforeUnmount(() => {
+  window.removeEventListener('resize', onScrollResize)
+  window.removeEventListener('scroll', onScrollResize, true)
   document.removeEventListener('mousedown', onClickOutside)
 })
 </script>

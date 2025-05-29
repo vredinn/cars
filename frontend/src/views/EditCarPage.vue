@@ -59,27 +59,25 @@
 
               <div>
                 <label class="label mb-2">Год выпуска</label>
-                <input
-                  type="number"
-                  min="1900"
-                  :max="currentYear"
-                  class="input input-bordered w-full"
+                <NumberInput
                   v-model="form.year"
+                  :min="1900"
+                  :max="currentYear"
+                  :step="1"
                   required
-                  :disabled="loading"
-                >
+                  :validator-hint="`Год должен быть между 1900 и ${currentYear}`"
+                />
               </div>
 
               <div>
                 <label class="label mb-2">Цена</label>
-                <input
-                  type="number"
-                  min="0"
-                  class="input input-bordered w-full"
+                <NumberInput
                   v-model="form.price"
+                  :min="1"
+                  :step="1"
                   required
-                  :disabled="loading"
-                >
+                  validator-hint="Цена должна быть положительным числом"
+                />
               </div>
 
               <div>
@@ -144,36 +142,37 @@
 
               <div>
                 <label class="label mb-2">Объем двигателя (л)</label>
-                <input
-                  type="number"
-                  step="0.1"
-                  min="0"
-                  class="input input-bordered w-full"
+                <NumberInput
                   v-model="form.engine_capacity"
-                  :disabled="loading"
-                >
+                  :min="0.1"
+                  :max="10.0"
+                  :step="0.1"
+                  required
+                  validator-hint="Объем двигателя должен быть от 0.1 до 10.0 литров"
+                />
               </div>
 
               <div>
                 <label class="label mb-2">Мощность (л.с.)</label>
-                <input
-                  type="number"
-                  min="0"
-                  class="input input-bordered w-full"
+                <NumberInput
                   v-model="form.engine_power"
-                  :disabled="loading"
-                >
+                  :min="1"
+                  :max="2000"
+                  :step="1"
+                  required
+                  validator-hint="Мощность должна быть от 1 до 2000 л.с."
+                />
               </div>
 
               <div>
                 <label class="label mb-2">Пробег (км)</label>
-                <input
-                  type="number"
-                  min="0"
-                  class="input input-bordered w-full"
+                <NumberInput
                   v-model="form.mileage"
-                  :disabled="loading"
-                >
+                  :min="0"
+                  :step="1"
+                  required
+                  validator-hint="Пробег не может быть отрицательным"
+                />
               </div>
 
               <div>
@@ -235,6 +234,7 @@ import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import SearchableSelect from '@/components/SearchableSelect.vue'
 import AddressSearch from '@/components/AddressSearch.vue'
+import NumberInput from '@/components/NumberInput.vue'
 import api from '@/api'
 import { useAuthStore } from '@/stores/auth'
 import { useFiltersStore } from '@/stores/filters'

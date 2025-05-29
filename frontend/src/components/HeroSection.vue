@@ -59,12 +59,12 @@
               />
 
               <div>
-                <input
-                  type="number"
-                  class="input input-bordered w-full"
+                <NumberInput
                   v-model="filters.max_price"
+                  :min="1000"
+                  :step="1000"
                   placeholder="Цена"
-                  min="50000"
+                  validator-hint="Минимальная цена 50 000 ₽"
                 />
               </div>
 
@@ -92,6 +92,7 @@ import { useRouter } from 'vue-router'
 import { useFiltersStore } from '@/stores/filters'
 
 import SearchableSelect from '@/components/SearchableSelect.vue'
+import NumberInput from '@/components/NumberInput.vue'
 
 const filtersStore = useFiltersStore()
 const isLoading = ref(true)

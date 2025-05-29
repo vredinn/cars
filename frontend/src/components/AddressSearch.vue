@@ -1,5 +1,5 @@
 <template>
-  <div class="relative w-full">
+  <div class="relative w-full" ref="root">
     <input
       v-model="search"
       autocomplete="off"
@@ -8,36 +8,40 @@
       class="input input-bordered w-full"
       @focus="open = true"
       @blur="handleBlur"
+      :disabled="disabled"
     />
 
-    <ul
-      v-if="open"
-      class="absolute z-10 w-full bg-base-300 border-1 border-base-100 rounded-box max-h-60 overflow-auto mt-1"
-    >
-      <li
-        v-if="suggestions.length === 0 && search.trim() !== ''"
-        class="py-2 px-4 text-center text-base-content/50"
+    <teleport to="body">
+      <ul
+        v-if="open"
+        class="absolute z-10 bg-base-300 border-1 border-base-100 rounded-box max-h-60 overflow-auto"
+        :style="dropdownStyle"
       >
-        Ничего не найдено
-      </li>
+        <li
+          v-if="suggestions.length === 0 && search.trim() !== ''"
+          class="py-2 px-4 text-center text-base-content/50"
+        >
+          Ничего не найдено
+        </li>
 
-      <li
-        v-for="(item, index) in suggestions"
-        :key="index"
-        @mousedown.prevent="selectOption(item)"
-        :class="[
-          'py-2 px-4 hover:bg-base-200 cursor-pointer',
-          index !== 0 ? 'border-t border-base-100' : ''
-        ]"
-      >
-        {{ item.name }}
-      </li>
-    </ul>
+        <li
+          v-for="(item, index) in suggestions"
+          :key="index"
+          @mousedown.prevent="selectOption(item)"
+          :class="[
+            'py-2 px-4 hover:bg-base-200 cursor-pointer',
+            index !== 0 ? 'border-t border-base-100' : ''
+          ]"
+        >
+          {{ item.name }}
+        </li>
+      </ul>
+    </teleport>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { ref, watch, onMounted } from 'vue'
+import { ref, watch, onMounted, onBeforeUnmount, nextTick, computed } from 'vue'
 
 const emit = defineEmits<{
   (e: 'selected', payload: { latitude: number; longitude: number }): void
@@ -46,17 +50,51 @@ const emit = defineEmits<{
 const props = defineProps<{
   latitude?: number
   longitude?: number
+  disabled?: boolean
 }>()
 
+const root = ref(null)
 const search = ref('')
 const suggestions = ref<{ name: string; coords: [number, number] }[]>([])
 const open = ref(false)
+const dropdownPos = ref({ top: 0, left: 0, width: 0 })
 
 const API_KEY = '249a7a27-d3cf-46ac-8920-d1f2c656a79b'
+
+function updateDropdownPosition() {
+  if (!root.value) return
+  const rect = root.value.getBoundingClientRect()
+  dropdownPos.value = {
+    top: rect.bottom + window.scrollY,
+    left: rect.left + window.scrollX,
+    width: rect.width,
+  }
+}
+
+watch(open, async (val) => {
+  if (val) {
+    await nextTick()
+    updateDropdownPosition()
+  }
+})
+
+function onScrollResize() {
+  if (open.value) {
+    updateDropdownPosition()
+  }
+}
 
 function handleBlur() {
   setTimeout(() => (open.value = false), 200)
 }
+
+const dropdownStyle = computed(() => ({
+  position: 'absolute',
+  top: `${dropdownPos.value.top}px`,
+  left: `${dropdownPos.value.left}px`,
+  width: `${dropdownPos.value.width}px`,
+  zIndex: 50,
+}))
 
 watch(search, async val => {
   if (!val.trim()) {
@@ -113,6 +151,8 @@ onMounted(async () => {
     const name = await reverseGeocode(props.latitude, props.longitude)
     if (name) search.value = name
   }
+  window.addEventListener('resize', onScrollResize)
+  window.addEventListener('scroll', onScrollResize, true)
 })
 
 // и при изменении координат (если нужно)
@@ -122,9 +162,16 @@ watch(
     if (lat && lon) {
       const name = await reverseGeocode(lat, lon)
       if (name) search.value = name
+    } else {
+      search.value = ''
     }
   }
 )
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', onScrollResize)
+  window.removeEventListener('scroll', onScrollResize, true)
+})
 
 function selectOption(item: { name: string; coords: [number, number] }) {
   search.value = item.name
