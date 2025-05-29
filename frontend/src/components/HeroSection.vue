@@ -61,8 +61,8 @@
               <div>
                 <NumberInput
                   v-model="filters.max_price"
-                  :min="1000"
-                  :step="1000"
+                  :min="50000"
+                  :step="5000"
                   placeholder="Цена"
                   validator-hint="Минимальная цена 50 000 ₽"
                 />

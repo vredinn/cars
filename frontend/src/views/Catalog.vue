@@ -431,6 +431,8 @@ const transmissions = computed(() => filtersStore.transmissions)
 const fuelTypes = computed(() => filtersStore.fuelTypes)
 const driveTypes = computed(() => filtersStore.driveTypes)
 
+const currentYear = computed(() => new Date().getFullYear())
+
 const activeFilters = reactive({
   brand_id: null,
   model_id: null,

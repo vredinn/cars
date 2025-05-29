@@ -42,7 +42,8 @@ import { ref, watch, computed } from 'vue'
 const props = defineProps({
   modelValue: {
     type: Number,
-    required: true
+    required: false,
+    default: null
   },
   min: {
     type: Number,
@@ -76,7 +77,7 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue'])
 
-const localValue = ref(props.modelValue)
+const localValue = ref(props.modelValue === null ? '' : props.modelValue)
 const hasError = computed(() => {
   if (props.required && (localValue.value === null || localValue.value === undefined || localValue.value === '')) return true
   if (localValue.value !== null && localValue.value !== undefined && localValue.value !== '') {
