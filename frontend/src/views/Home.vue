@@ -141,7 +141,7 @@
           <ul class="space-y-4 mb-8">
             <li class="flex items-center">
               <input type="checkbox" checked class="checkbox checkbox-black mr-3" disabled />
-              <span class="">Бесплатная оценка автомобиля онлайн за 5 минут</span>
+              <span class="">Быстрое создание объявления за 5 минут</span>
             </li>
             <li class="flex items-center">
               <input type="checkbox" checked class="checkbox checkbox-black mr-3" disabled />
@@ -153,7 +153,7 @@
             </li>
           </ul>
 
-          <button class="btn btn-primary px-8 py-3 text-lg w-fit mx-auto">Начать</button>
+          <router-link to="/create_car" class="btn btn-primary px-8 py-3 text-lg w-fit mx-auto">Начать</router-link>
         </div>
       </div>
 
