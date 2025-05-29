@@ -1,5 +1,11 @@
 <template>
-  <button class="btn btn-ghost flex items-center" @click="handleClick">
+  <button 
+    :class="[
+      'btn flex items-center',
+      $route.path === '/auth' ? 'btn-outline' : 'btn-ghost'
+    ]" 
+    @click="handleClick"
+  >
     <svg class="w-3 h-3 fill-base-content">
       <use href="#icon_login"></use>
     </svg>
@@ -95,7 +101,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useAuthStore } from '@/stores/auth'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import api from '@/api'
 
 const email = ref('')
@@ -104,6 +110,7 @@ const errorMessage = ref('')
 const loginModal = ref(null)
 const auth = useAuthStore()
 const router = useRouter()
+const route = useRoute()
 
 const handleClick = () => {
   if (!auth.isAuthenticated) {
