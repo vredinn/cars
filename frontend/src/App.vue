@@ -70,6 +70,7 @@ import { onMounted, watch, computed, defineAsyncComponent } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useFiltersStore } from '@/stores/filters'
+import { getCookie } from '@/api'
 
 const Header = defineAsyncComponent(() => import('@/components/Header.vue'))
 const Footer = defineAsyncComponent(() => import('@/components/Footer.vue'))
@@ -81,7 +82,10 @@ const filtersStore = useFiltersStore()
 const hideFooter = computed(() => route.meta.hideFooter)
 
 onMounted(() => {
-  auth.fetchUser()
+  const hasAccessToken = !!getCookie('csrf_access_token')
+  if (hasAccessToken) {
+    auth.fetchUser()
+  }
   filtersStore.loadAll()
 })
 

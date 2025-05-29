@@ -81,7 +81,7 @@
               <div class="flex flex-wrap gap-2 my-2">
 
                 <div class="badge badge-outline border-gray-300 ">{{ car.car_condition }}</div>
-                <div class="badge badge-outline border-gray-300 ">{{ car.mileage }}</div>
+                <div class="badge badge-outline border-gray-300 ">{{ car.mileage }} км</div>
                 <div class="badge badge-outline border-gray-300 ">{{ car.fuel_type }}</div>
                 <div class="badge badge-outline border-gray-300 ">{{ car.transmission }}</div>
                 <div class="badge badge-outline border-gray-300 ">{{ car.engine_power }} л.с.</div>
