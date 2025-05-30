@@ -81,7 +81,7 @@ const localValue = ref(props.modelValue === null ? '' : props.modelValue)
 const hasError = computed(() => {
   if (props.required && (localValue.value === null || localValue.value === undefined || localValue.value === '')) return true
   if (localValue.value !== null && localValue.value !== undefined && localValue.value !== '') {
-    const value = Number(localValue.value)
+    const value = parseFloat(localValue.value)
     if (isNaN(value)) return true
     if (value < props.min) return true
     if (value > props.max) return true
@@ -90,18 +90,28 @@ const hasError = computed(() => {
 })
 
 watch(() => props.modelValue, (newVal) => {
-  localValue.value = newVal === null ? '' : newVal
+  if (newVal === null) {
+    localValue.value = ''
+  } else {
+    // Convert string numbers to actual numbers
+    const numValue = typeof newVal === 'string' ? parseFloat(newVal) : newVal
+    localValue.value = isNaN(numValue) ? '' : numValue
+  }
 })
 
 watch(localValue, (newValue) => {
-  const value = newValue === '' ? null : Number(newValue)
-  if (value === null || !isNaN(value)) {
-    emit('update:modelValue', value)
+  if (newValue === '') {
+    emit('update:modelValue', null)
+  } else {
+    const value = parseFloat(newValue)
+    if (!isNaN(value)) {
+      emit('update:modelValue', value)
+    }
   }
 })
 
 const increase = () => {
-  const currentValue = Number(localValue.value) || 0
+  const currentValue = parseFloat(localValue.value) || 0
   const newValue = currentValue + props.step
   if (newValue <= props.max) {
     localValue.value = newValue
@@ -109,7 +119,7 @@ const increase = () => {
 }
 
 const decrease = () => {
-  const currentValue = Number(localValue.value) || 0
+  const currentValue = parseFloat(localValue.value) || 0
   const newValue = currentValue - props.step
   if (newValue >= props.min) {
     localValue.value = newValue
@@ -124,7 +134,7 @@ const onBlur = () => {
   }
   
   // Конвертируем в число
-  let value = Number(localValue.value)
+  let value = parseFloat(localValue.value)
   
   // Если значение невалидное и поле обязательное, устанавливаем минимальное или 0
   if (isNaN(value)) {

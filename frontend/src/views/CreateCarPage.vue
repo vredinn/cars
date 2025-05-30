@@ -181,7 +181,7 @@
                   required
                   minlength="2"
                   maxlength="50"
-                  pattern="[A-Za-zА-Яа-яЁё\s-]+"
+                  pattern="[A-Za-zА-Яа-яЁё\- ]+"
                 >
               </label>
               <div class="validator-hint hidden mt-0">Цвет должен содержать от 2 до 50 символов, только буквы, пробелы и дефис</div>
@@ -191,7 +191,10 @@
           <div class="mb-2">
             <label class="label mb-2">Местоположение</label>
             <div>                
-              <AddressSearch @selected="onAddressSelected" />
+              <AddressSearch 
+                @selected="onAddressSelected" 
+                v-model="isAddressValid"
+              />
             </div>         
           </div>
           <div>
@@ -263,6 +266,7 @@ const form = reactive({
 
 const files = ref([])
 const previews = ref([])
+const isAddressValid = ref(false)
 
 const brands = computed(() => filtersStore.brands)
 const models = computed(() => filtersStore.models)
@@ -295,8 +299,7 @@ const isFormValid = computed(() => {
     form.mileage >= 0 &&
     form.color?.length >= 2 && form.color?.length <= 50 &&
     (!form.description || (form.description.length >= 10 && form.description.length <= 2000)) &&
-    form.latitude &&
-    form.longitude
+    isAddressValid.value
   )
 })
 

@@ -7,7 +7,7 @@
     <div v-else>
       <h1 class="text-2xl font-bold mb-6">Редактирование объявления</h1>
 
-      <form @submit.prevent="handleSubmit">
+      <form @submit.prevent="showSaveConfirmation">
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div
             class="bg-base-200 border-2 border-dashed rounded-box p-4 text-center transition"
@@ -177,12 +177,18 @@
 
               <div>
                 <label class="label mb-2">Цвет</label>
-                <input
-                  type="text"
-                  class="input input-bordered w-full"
-                  v-model="form.color"
-                  :disabled="loading"
-                >
+                <label class="input validator w-full">
+                  <input 
+                    type="text" 
+                    class="w-full" 
+                    v-model="form.color"
+                    required
+                    minlength="2"
+                    maxlength="50"
+                    pattern="[A-Za-zА-Яа-яЁё\- ]+"
+                  >
+                </label>
+                <div class="validator-hint hidden mt-0">Цвет должен содержать от 2 до 50 символов, только буквы, пробелы и дефис</div>
               </div>
             </div>
             <!-- Карта -->
@@ -194,6 +200,7 @@
                   :latitude="form.latitude"
                   :longitude="form.longitude"
                   :disabled="loading"
+                  v-model="isAddressValid"
                 />
               </div>
             </div>
@@ -219,13 +226,47 @@
             <button class="btn btn-primary flex-1 leading-4" type="submit" :disabled="loading">
               {{ loading ? 'Сохранение...' : 'Сохранить изменения' }}
             </button>
-            <button class="btn btn-error flex-1 leading-4" type="button" @click="deleteCar" :disabled="loading">
+            <button class="btn btn-error flex-1 leading-4" type="button" @click="showDeleteConfirmation" :disabled="loading">
               {{ loading ? 'Удаление...' : 'Удалить объявление' }}
             </button>
           </div>
         </div>
       </form>
     </div>
+
+    <!-- Модальное окно подтверждения сохранения -->
+    <dialog id="save-modal" class="modal modal-bottom sm:modal-middle">
+      <div class="modal-box">
+        <h3 class="font-bold text-lg mb-4">Сохранение изменений</h3>
+        <p>Вы уверены, что хотите сохранить изменения в объявлении?</p>
+        <div class="modal-action">
+          <form method="dialog" class="flex gap-2">
+            <button class="btn" @click="closeSaveModal">Отмена</button>
+            <button class="btn btn-primary" @click="handleSubmit">Сохранить</button>
+          </form>
+        </div>
+      </div>
+      <form method="dialog" class="modal-backdrop">
+        <button>закрыть</button>
+      </form>
+    </dialog>
+
+    <!-- Модальное окно подтверждения удаления -->
+    <dialog id="delete-modal" class="modal modal-bottom sm:modal-middle">
+      <div class="modal-box">
+        <h3 class="font-bold text-lg text-error mb-4">Удаление объявления</h3>
+        <p>Вы уверены, что хотите удалить это объявление? Это действие нельзя отменить.</p>
+        <div class="modal-action">
+          <form method="dialog" class="flex gap-2">
+            <button class="btn" @click="closeDeleteModal">Отмена</button>
+            <button class="btn btn-error" @click="handleDelete">Удалить</button>
+          </form>
+        </div>
+      </div>
+      <form method="dialog" class="modal-backdrop">
+        <button>закрыть</button>
+      </form>
+    </dialog>
   </div>
 </template>
 
@@ -247,6 +288,7 @@ const filtersStore = useFiltersStore()
 const loading = ref(false)
 const isLoadingFilters = ref(true)
 const errorMessage = ref('')
+const isAddressValid = ref(false)
 
 const form = reactive({
   brand_id: null,
@@ -304,7 +346,7 @@ async function loadCarData(carUUID) {
       brand_id: data.brand_id,
       model_id: data.model_id,
       year: data.year,
-      price: data.price,
+      price: typeof data.price === 'string' ? parseInt(data.price) : data.price,
       description: data.description || '',
       body_type: data.body_type,
       drive_type: data.drive_type,
@@ -319,6 +361,9 @@ async function loadCarData(carUUID) {
       latitude: data.latitude,
       longitude: data.longitude
     })
+    if (data.latitude && data.longitude) {
+      isAddressValid.value = true
+    }
     if (data.images && data.images.length > 0) {
       existingImages.value = data.images.map(img => ({
         id: img.id,
@@ -344,8 +389,8 @@ async function loadCarData(carUUID) {
 }
 
 function onAddressSelected({ latitude, longitude }) {
-  form.latitude = latitude
-  form.longitude = longitude
+  form.latitude = latitude;
+  form.longitude = longitude;
 }
 
 function handleFiles(event) {
@@ -389,11 +434,33 @@ function removeImage(index) {
   previews.value.splice(index, 1)
 }
 
-async function handleSubmit() {
+function showSaveConfirmation(e) {
+  e.preventDefault()
   if (!validateForm()) return
+  
+  const modal = document.getElementById('save-modal')
+  modal?.showModal()
+}
 
+function closeSaveModal() {
+  const modal = document.getElementById('save-modal')
+  modal?.close()
+}
+
+function showDeleteConfirmation() {
+  const modal = document.getElementById('delete-modal')
+  modal?.showModal()
+}
+
+function closeDeleteModal() {
+  const modal = document.getElementById('delete-modal')
+  modal?.close()
+}
+
+async function handleSubmit() {
   loading.value = true
   errorMessage.value = ''
+  closeSaveModal()
 
   try {
     const carUUID = route.params.uuid
@@ -437,13 +504,17 @@ function validateForm() {
     errorMessage.value = 'Укажите корректную цену'
     return false
   }
+  if (!isAddressValid.value) {
+    errorMessage.value = 'Выберите местоположение из списка'
+    return false
+  }
   return true
 }
 
-async function deleteCar() {
-  if (!confirm('Вы уверены, что хотите удалить это объявление?')) return
+async function handleDelete() {
   loading.value = true
   errorMessage.value = ''
+  closeDeleteModal()
 
   try {
     const carUUID = route.params.uuid
