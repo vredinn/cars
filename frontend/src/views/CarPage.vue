@@ -150,6 +150,54 @@
             <div class="font-bold">{{ car.description }}</div>
           </div>
         </div>
+
+        <!-- История цен -->
+        <div v-if="car.price_history && car.price_history.length > 1" class="bg-base-200 p-4 rounded-xl">
+          <div class="text-gray-500 mb-2">История изменения цены</div>
+          <div class="overflow-x-auto" style="direction: rtl">
+            <ul class="timeline timeline-horizontal px-4 pb-2" style="direction: ltr; width: max-content">
+              <li v-for="(history, index) in chronologicalPriceHistory" :key="index">
+                <hr :class="[
+                  index === 0 ? 'hidden' : '',
+                  'bg-primary'
+                ]" />
+                <div class="timeline-middle">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" 
+                       :class="[
+                         'h-5 w-5',
+                         index === currentPriceIndex ? 'text-primary' : 'text-base-300'
+                       ]">
+                    <path
+                      fill-rule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
+                      clip-rule="evenodd"
+                    />
+                  </svg>
+                </div>
+                <div :class="[
+                  'timeline-box w-36',
+                  index % 2 === 0 ? 'timeline-start' : 'timeline-end',
+                  index === currentPriceIndex ? 'bg-primary text-primary-content' : 'bg-base-300'
+                ]">
+                  <div class="text-lg font-bold">
+                    {{ formatPrice(history.price) }}
+                  </div>
+                  <div :class="[
+                    'text-sm',
+                    index === currentPriceIndex ? 'opacity-90' : 'opacity-70'
+                  ]">
+                    {{ formatPriceHistoryDate(history.change_date) }}
+                  </div>
+                </div>
+                <hr :class="[
+                  index === chronologicalPriceHistory.length - 1 ? 'hidden' : '',
+                  'bg-primary'
+                ]" />
+              </li>
+            </ul>
+          </div>
+        </div>
+
         <!-- Связь с продавцом -->
         <div v-if="!isOwner">
           <p class="text-lg font-bold mb-4">Продавец:</p>
@@ -250,7 +298,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, defineAsyncComponent } from 'vue'
+import { ref, reactive, computed, onMounted, defineAsyncComponent, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import api from '@/api'
 import { useAuthStore } from '@/stores/auth'
@@ -306,6 +354,29 @@ const initialDistance = ref(null)
 const initialZoom = ref(1)
 
 const AddressDisplay = defineAsyncComponent(() => import('@/components/AddressDisplay.vue'))
+
+const chronologicalPriceHistory = computed(() => {
+  if (!car.price_history) return []
+  return [...car.price_history].sort((a, b) => 
+    new Date(a.change_date).getTime() - new Date(b.change_date).getTime()
+  )
+})
+
+const currentPriceIndex = computed(() => {
+  if (!car.price_history) return -1
+  const lastPrice = car.price
+  return chronologicalPriceHistory.value.findIndex(history => 
+    Number(history.price) === Number(lastPrice)
+  )
+})
+
+const timelineMarginRight = computed(() => {
+  // Примерная ширина одного элемента таймлайна (можно настроить по необходимости)
+  const itemWidth = 200
+  // Количество элементов, которые нужно показать без скролла (в данном случае последний элемент)
+  const visibleItems = 1
+  return itemWidth * visibleItems
+})
 
 async function loadCarData(carUUID) {
   try {
@@ -374,6 +445,20 @@ onMounted(async () => {
     currentIndex.value = 0
   }
   await checkFavorite()
+  
+  // Scroll to the current price after the component is mounted
+  nextTick(() => {
+    const container = document.querySelector('.overflow-x-auto')
+    if (container) {
+      const timelineBoxes = container.querySelectorAll('.timeline-box')
+      const lastBox = timelineBoxes[timelineBoxes.length - 1]
+      if (lastBox) {
+        const containerWidth = container.offsetWidth
+        const scrollTo = lastBox.offsetLeft - (containerWidth / 2) + (lastBox.offsetWidth / 2)
+        container.scrollLeft = Math.max(0, scrollTo)
+      }
+    }
+  })
 })
 
 function goToUser(uuid) {
@@ -418,6 +503,19 @@ function formatTraderDate(dateString) {
     day: 'numeric',
     month: 'long',
     year: 'numeric'
+  }).format(date)
+}
+
+function formatPriceHistoryDate(dateString) {
+  if (!dateString) return 'Дата не указана'
+  const date = new Date(dateString)
+  if (isNaN(date.getTime())) return 'Некорректная дата'
+  return new Intl.DateTimeFormat('ru-RU', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
   }).format(date)
 }
 

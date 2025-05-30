@@ -13,7 +13,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 @router.post("/register")
 def register(user: UserCreate, response: Response, db: Session = Depends(get_db)):
     if get_user_by_email(db, email=user.email):
-        raise HTTPException(status_code=400, detail="Email уже зарегистрирован")
+        raise HTTPException(status_code=409, detail="Email уже зарегистрирован")
     
     db_user = create_user(db, user)
     user_uuid = str(db_user.uuid)

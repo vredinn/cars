@@ -18,6 +18,11 @@
             <p>Телефон: {{ user.phone }}</p>
             <p>Рейтинг: {{ user.rating.toFixed(2) }}</p>
             <p>Регистрация: {{ formatDate(user.registration_date) }}</p>
+            <div v-if="isOwnProfile" class="mt-4">
+              <router-link :to="`/profile/edit/${user.uuid}`" class="btn btn-primary">
+                Редактировать профиль
+              </router-link>
+            </div>
           </div>
         </div>
       </div>

@@ -107,7 +107,7 @@
             required
             minlength="2"
             maxlength="50"
-            pattern="[A-Za-zА-Яа-яЁё\s-]+"
+            pattern="[A-Za-zА-Яа-яЁё\-]+"
             v-model="registerForm.name"
           />
         </label>
@@ -193,6 +193,30 @@
           Хотя бы одну заглавную букву
         </p>
 
+        <label class="input validator w-full">
+          <svg class="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <g
+              stroke-linejoin="round"
+              stroke-linecap="round"
+              stroke-width="2.5"
+              fill="none"
+              stroke="currentColor"
+            >
+              <path
+                d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"
+              ></path>
+              <circle cx="16.5" cy="7.5" r=".5" fill="currentColor"></circle>
+            </g>
+          </svg>
+          <input
+            type="password"
+            required
+            placeholder="Повторите пароль"
+            v-model="registerForm.passwordConfirm"
+          />
+        </label>
+        <p class="validator-hint hidden mt-0">Повторите пароль</p>
+
         <button type="submit" class="btn btn-primary w-full">Зарегистрироваться</button>
       </form>
     </div>
@@ -200,7 +224,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import api from '@/api'
@@ -221,8 +245,35 @@ const registerForm = ref({
   name: '',
   email: '',
   phone: '',
-  password: ''
+  password: '',
+  passwordConfirm: ''
 })
+
+// Очистка данных при переключении табов
+watch(activeTab, () => {
+  // Очищаем формы
+  loginForm.value = {
+    email: '',
+    password: ''
+  }
+  registerForm.value = {
+    name: '',
+    email: '',
+    phone: '',
+    password: '',
+    passwordConfirm: ''
+  }
+  // Очищаем сообщение об ошибке
+  errorMessage.value = ''
+})
+
+const validatePasswords = () => {
+  if (registerForm.value.password !== registerForm.value.passwordConfirm) {
+    errorMessage.value = 'Пароли не совпадают'
+    return false
+  }
+  return true
+}
 
 const login = async () => {
   try {
@@ -231,18 +282,43 @@ const login = async () => {
     const redirectPath = route.query.redirect || '/'
     router.push(redirectPath)
   } catch (error) {
-    errorMessage.value = error.response?.data?.detail || 'Ошибка при входе'
+    if (!error.response) {
+      errorMessage.value = 'Ошибка сети. Пожалуйста, проверьте подключение к интернету'
+    } else if (error.response.status === 401) {
+      errorMessage.value = 'Неверный email или пароль'
+    } else if (error.response.status === 422) {
+      errorMessage.value = 'Пожалуйста, проверьте правильность введенных данных'
+    } else {
+      errorMessage.value = 'Произошла ошибка при входе. Попробуйте позже'
+    }
   }
 }
 
 const register = async () => {
+  if (!validatePasswords()) return
+
   try {
-    await api.post('/auth/register', registerForm.value)
+    // Отправляем форму без поля passwordConfirm
+    const { passwordConfirm, ...formData } = registerForm.value
+    await api.post('/auth/register', formData)
     await auth.fetchUser()
     const redirectPath = route.query.redirect || '/'
     router.push(redirectPath)
   } catch (error) {
-    errorMessage.value = error.response?.data?.detail || 'Ошибка при регистрации'
+    if (!error.response) {
+      errorMessage.value = 'Ошибка сети. Пожалуйста, проверьте подключение к интернету'
+    } else if (error.response.status === 409) {
+      errorMessage.value = 'Пользователь с таким email уже существует'
+    } else if (error.response.status === 422) {
+      const detail = error.response.data?.detail
+      if (typeof detail === 'string') {
+        errorMessage.value = detail
+      } else {
+        errorMessage.value = 'Пожалуйста, проверьте правильность введенных данных'
+      }
+    } else {
+      errorMessage.value = 'Произошла ошибка при регистрации. Попробуйте позже'
+    }
   }
 }
 </script>

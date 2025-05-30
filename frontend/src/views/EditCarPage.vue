@@ -42,7 +42,9 @@
                   valueKey="id"
                   placeholder="Выберите марку"
                   :disabled="loading"
+                  required
                 />
+                <div class="validator-hint hidden mt-0">Выберите марку автомобиля</div>
               </div>
 
               <div>
@@ -54,7 +56,9 @@
                   valueKey="id"
                   placeholder="Выберите модель"
                   :disabled="!form.brand_id || loading"
+                  required
                 />
+                <div class="validator-hint hidden mt-0">Выберите модель автомобиля</div>
               </div>
 
               <div>
@@ -66,6 +70,7 @@
                   :step="1"
                   required
                   :validator-hint="`Год должен быть между 1900 и ${currentYear}`"
+                  class="validator"
                 />
               </div>
 
@@ -77,6 +82,7 @@
                   :step="1"
                   required
                   validator-hint="Цена должна быть положительным числом"
+                  class="validator"
                 />
               </div>
 
@@ -87,7 +93,9 @@
                   :options="bodyTypes"
                   placeholder="Тип кузова"
                   :disabled="loading"
+                  required
                 />
+                <div class="validator-hint hidden mt-0">Выберите тип кузова</div>
               </div>
 
               <div>
@@ -97,7 +105,9 @@
                   :options="driveTypes"
                   placeholder="Тип привода"
                   :disabled="loading"
+                  required
                 />
+                <div class="validator-hint hidden mt-0">Выберите тип привода</div>
               </div>
 
               <div>
@@ -107,7 +117,9 @@
                   :options="transmissions"
                   placeholder="Коробка передач"
                   :disabled="loading"
+                  required
                 />
+                <div class="validator-hint hidden mt-0">Выберите тип коробки передач</div>
               </div>
 
               <div>
@@ -117,7 +129,9 @@
                   :options="fuelTypes"
                   placeholder="Тип топлива"
                   :disabled="loading"
+                  required
                 />
+                <div class="validator-hint hidden mt-0">Выберите тип топлива</div>
               </div>
 
               <div>
@@ -127,7 +141,9 @@
                   :options="steeringSides"
                   placeholder="Сторона руля"
                   :disabled="loading"
+                  required
                 />
+                <div class="validator-hint hidden mt-0">Выберите сторону руля</div>
               </div>
 
               <div>
@@ -137,7 +153,9 @@
                   :options="carConditions"
                   placeholder="Состояние автомобиля"
                   :disabled="loading"
+                  required
                 />
+                <div class="validator-hint hidden mt-0">Выберите состояние автомобиля</div>
               </div>
 
               <div>
@@ -149,6 +167,7 @@
                   :step="0.1"
                   required
                   validator-hint="Объем двигателя должен быть от 0.1 до 10.0 литров"
+                  class="validator"
                 />
               </div>
 
@@ -161,6 +180,7 @@
                   :step="1"
                   required
                   validator-hint="Мощность должна быть от 1 до 2000 л.с."
+                  class="validator"
                 />
               </div>
 
@@ -172,6 +192,7 @@
                   :step="1"
                   required
                   validator-hint="Пробег не может быть отрицательным"
+                  class="validator"
                 />
               </div>
 
@@ -207,11 +228,15 @@
             <div>
               <label class="label mb-2">Описание</label>
               <textarea
-                class="textarea textarea-bordered w-full p-4"
+                class="textarea textarea-bordered validator w-full p-4"
                 rows="4"
                 v-model="form.description"
                 :disabled="loading"
+                minlength="10"
+                maxlength="2000"
+                required
               ></textarea>
+              <div class="validator-hint hidden mt-0">Описание должно содержать от 10 до 2000 символов</div>
             </div>
           </div>
         </div>
@@ -223,7 +248,7 @@
             <button @click="errorMessage = ''" class="btn btn-sm btn-circle btn-ghost ml-auto">✕</button>
           </div>
           <div class="flex flex-row gap-4">
-            <button class="btn btn-primary flex-1 leading-4" type="submit" :disabled="loading">
+            <button class="btn btn-primary flex-1 leading-4" type="submit" :disabled="loading || !isFormValid">
               {{ loading ? 'Сохранение...' : 'Сохранить изменения' }}
             </button>
             <button class="btn btn-error flex-1 leading-4" type="button" @click="showDeleteConfirmation" :disabled="loading">
@@ -325,6 +350,27 @@ const driveTypes = computed(() => filtersStore.driveTypes)
 
 const currentYear = computed(() => new Date().getFullYear())
 const filteredModels = computed(() => models.value.filter(m => m.brand_id === form.brand_id))
+
+const isFormValid = computed(() => {
+  return (
+    form.brand_id &&
+    form.model_id &&
+    form.year >= 1900 && form.year <= currentYear.value + 1 &&
+    form.price > 0 &&
+    form.body_type &&
+    form.drive_type &&
+    form.transmission &&
+    form.fuel_type &&
+    form.steering_side &&
+    form.car_condition &&
+    form.engine_capacity >= 0.1 && form.engine_capacity <= 10.0 &&
+    form.engine_power >= 1 && form.engine_power <= 2000 &&
+    form.mileage >= 0 &&
+    form.color?.length >= 2 && form.color?.length <= 50 &&
+    (!form.description || (form.description.length >= 10 && form.description.length <= 2000)) &&
+    isAddressValid.value
+  )
+})
 
 async function loadFilters() {
   try {
@@ -436,7 +482,10 @@ function removeImage(index) {
 
 function showSaveConfirmation(e) {
   e.preventDefault()
-  if (!validateForm()) return
+  if (!isFormValid.value) {
+    errorMessage.value = 'Пожалуйста, заполните все обязательные поля корректно'
+    return
+  }
   
   const modal = document.getElementById('save-modal')
   modal?.showModal()
@@ -492,20 +541,38 @@ async function handleSubmit() {
 }
 
 function validateForm() {
-  if (!form.brand_id || !form.model_id) {
-    errorMessage.value = 'Выберите марку и модель автомобиля'
-    return false
-  }
-  if (!form.year || form.year < 1900 || form.year > currentYear.value) {
-    errorMessage.value = `Год выпуска должен быть между 1900 и ${currentYear.value}`
-    return false
-  }
-  if (!form.price || form.price <= 0) {
-    errorMessage.value = 'Укажите корректную цену'
-    return false
-  }
-  if (!isAddressValid.value) {
-    errorMessage.value = 'Выберите местоположение из списка'
+  if (!isFormValid.value) {
+    if (!form.brand_id || !form.model_id) {
+      errorMessage.value = 'Выберите марку и модель автомобиля'
+    } else if (!form.year || form.year < 1900 || form.year > currentYear.value) {
+      errorMessage.value = `Год выпуска должен быть между 1900 и ${currentYear.value}`
+    } else if (!form.price || form.price <= 0) {
+      errorMessage.value = 'Укажите корректную цену'
+    } else if (!form.body_type) {
+      errorMessage.value = 'Выберите тип кузова'
+    } else if (!form.drive_type) {
+      errorMessage.value = 'Выберите тип привода'
+    } else if (!form.transmission) {
+      errorMessage.value = 'Выберите тип коробки передач'
+    } else if (!form.fuel_type) {
+      errorMessage.value = 'Выберите тип топлива'
+    } else if (!form.steering_side) {
+      errorMessage.value = 'Выберите сторону руля'
+    } else if (!form.car_condition) {
+      errorMessage.value = 'Выберите состояние автомобиля'
+    } else if (!form.engine_capacity || form.engine_capacity < 0.1 || form.engine_capacity > 10.0) {
+      errorMessage.value = 'Объем двигателя должен быть от 0.1 до 10.0 литров'
+    } else if (!form.engine_power || form.engine_power < 1 || form.engine_power > 2000) {
+      errorMessage.value = 'Мощность должна быть от 1 до 2000 л.с.'
+    } else if (!form.mileage || form.mileage < 0) {
+      errorMessage.value = 'Пробег не может быть отрицательным'
+    } else if (!form.color || form.color.length < 2 || form.color.length > 50) {
+      errorMessage.value = 'Цвет должен содержать от 2 до 50 символов'
+    } else if (form.description && (form.description.length < 10 || form.description.length > 2000)) {
+      errorMessage.value = 'Описание должно содержать от 10 до 2000 символов'
+    } else if (!isAddressValid.value) {
+      errorMessage.value = 'Выберите местоположение из списка'
+    }
     return false
   }
   return true

@@ -14,7 +14,7 @@ router = APIRouter(prefix="/users", tags=["Users"])
 @router.post("/", response_model=User)
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
     if crud.get_user_by_email(db, email=user.email):
-        raise HTTPException(status_code=400, detail="Email already registered")
+        raise HTTPException(status_code=409, detail="Email already registered")
     return crud.create_user(db, user)
 
 @router.get("/", response_model=List[UserBase])
