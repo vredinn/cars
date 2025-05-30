@@ -36,7 +36,7 @@
           class="flex flex-col items-center">
           <div
             class="w-full aspect-square rounded-full bg-white flex flex-col items-center justify-center p-4 transition-all shadow-md">
-            <img :src="`${brand.image_url}`" :alt="brand.name" class="w-1/2 h-auto mb-2">
+            <img :src="`${brand.image_url}`" :alt="brand.name" class="w-1/2 h-auto object-contain mb-2">
             <span class="text-sm font-medium text-center text-black">{{ brand.name }}</span>
           </div>
         </router-link>
@@ -73,7 +73,7 @@
             class="card carousel-item btn btn-soft p-0 h-100 w-70 transition-all duration-250">
             <figure class="w-full max-h-[200px] ">
               <img :src="car.preview_image_url || '/uploads/no_car_image.png'" :alt="car.title"
-                class="object-cover w-full h-full">
+                class="w-full h-full object-cover rounded-box">
             </figure>
             <div class="card-body p-4 text-base-content">
               <h3 class="card-title text-lg">{{ car.brand_name }} {{ car.model_name }}</h3>
@@ -201,7 +201,7 @@
             class="card bg-base-300 shadow-md h-[400px] w-full mx-auto">
             <figure class="h-[306px] overflow-hidden">
               <img :src="user.avatar_url || '/uploads/user_example.webp'" :alt="user.name"
-                class="w-full h-full object-cover">
+                class="w-full h-full object-cover rounded-box">
             </figure>
             <div class="card-body p-4">
               <h3 class="card-title text-lg">{{ user.name }}</h3>

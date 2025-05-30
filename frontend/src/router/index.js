@@ -39,6 +39,13 @@ const routes = [
     props: true
   },
   {
+    path: '/profile/edit/:uuid',
+    name: 'EditProfile',
+    component: () => import('@/views/EditProfile.vue'),
+    props: true,
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/chats',
     name: 'ChatList',
     component: () => import('@/views/ChatList.vue'),

@@ -34,8 +34,10 @@
           <!-- Основное изображение -->
           <div class="w-full rounded-xl overflow-hidden">
             <img :src="currentImage || '/uploads/no_car_image.png'"
-              class="w-full h-96 object-contain cursor-pointer bg-black rounded" alt="Фото автомобиля"
-              @click="openModal(currentImage)">
+              class="w-full h-96 object-contain cursor-pointer bg-black rounded" 
+              alt="Фото автомобиля"
+              @click="openModal(currentImage)"
+            >
           </div>
 
           <!-- Превью изображений -->
@@ -43,8 +45,10 @@
             <div v-for="(img, index) in car.images" :key="index" class="flex-none w-24 h-20">
               <img :src="img.image_url"
                 class="w-full h-full object-cover rounded-xl cursor-pointer transition-all duration-75"
-                :class="{ 'border-2': currentImage === img.image_url }" @click="currentImage = img.image_url"
-                alt="Превью фото">
+                :class="{ 'border-2': currentImage === img.image_url }" 
+                @click="currentImage = img.image_url"
+                alt="Превью фото"
+              >
             </div>
           </div>
         </div>
@@ -205,7 +209,10 @@
             class="flex flex-col sm:flex-row bg-base-200 rounded-2xl items-center justify-between p-4 cursor-pointer">
             <div class="flex flex-col text-center sm:text-left sm:flex-row items-center gap-4">
               <figure class="w-32 sm:w-16 h-32 sm:h-16">
-                <img :src="user.avatar_url || '/uploads/user_example.webp'" :alt="user.name" class="rounded-2xl" />
+                <img :src="user.avatar_url || '/uploads/user_example.webp'" 
+                  :alt="user.name" 
+                  class="rounded-2xl w-full h-full object-cover" 
+                />
               </figure>
               <div>
                 <h3 class="font-bold">{{ user.name }}</h3>

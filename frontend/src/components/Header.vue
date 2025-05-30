@@ -44,14 +44,18 @@
           <input type="checkbox" v-model="isProfileMenuOpen" class="hidden" />
           <label tabindex="0" class="btn btn-ghost btn-circle avatar" @click="toggleProfileMenu">
             <div class="w-10 rounded-full">
-              <img :src="user.avatar_url || '/uploads/user_example.webp'" alt="avatar" />
+              <img :src="user.avatar_url || '/uploads/user_example.webp'" alt="avatar" class="w-full h-full object-cover" />
             </div>
           </label>
           <ul tabindex="0" class="menu dropdown-content z-[1] mt-3 w-64 rounded-box bg-base-200 p-2 shadow gap-2" :class="{ 'hidden': !isProfileMenuOpen }">
             <div class="flex flex-col gap-2">
               <div class="avatar">
-                <div class="h-36 w-full rounded-box">
-                  <img :src="user.avatar_url || '/uploads/user_example.webp'" alt="avatar" />
+                <div class="w-10 h-10 rounded-full">
+                  <img 
+                    :src="user.avatar_url || '/uploads/user_example.webp'" 
+                    alt="avatar" 
+                    class="w-full h-full object-cover"
+                  />
                 </div>
               </div>
               <div class="text-center text-pretty">{{ user.name }} <br /> {{ user.email }}</div>

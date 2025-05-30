@@ -60,11 +60,19 @@ class UserMinimal(BaseModel):
         from_attributes = True
 
 class UserUpdate(BaseModel):
-    name: Optional[str] = None
-    email: Optional[str] = None
-    phone: Optional[str] = None
-    password: Optional[str] = None
-    is_admin: Optional[bool] = None
+    name: str
+    email: str
+    phone: str
+
+    class Config:
+        from_attributes = True
+
+class UserPasswordUpdate(BaseModel):
+    current_password: str
+    new_password: str
+
+    class Config:
+        from_attributes = True
 
 class UserChangeRights(BaseModel):
     is_admin: Optional[bool] = None

@@ -1,4 +1,3 @@
-
 from pydantic import EmailStr
 from sqlalchemy.orm import Session, selectinload
 from passlib.context import CryptContext
@@ -7,6 +6,7 @@ from fastapi_pagination.ext.sqlalchemy import paginate
 from fastapi_pagination import Params
 from sqlalchemy import asc, desc
 from pathlib import Path
+from typing import Optional
 
 import models as m
 from schemas import (
@@ -20,7 +20,8 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # ================ User CRUD ================
 def get_user_id_by_uuid(db: Session, user_uuid: UUID):
-    return db.query(m.User).filter(m.User.uuid == user_uuid).first().id
+    user = db.query(m.User).filter(m.User.uuid == user_uuid).first()
+    return user.id if user else None
 
 def get_user_uuid_by_id(db: Session, user_id: int):
     return db.query(m.User).filter(m.User.id == user_id).first().uuid
@@ -48,18 +49,51 @@ def create_user(db: Session, user: UserCreate):
     db.refresh(db_user)
     return db_user
 
-def update_user(db: Session, user_id: int, user_update: UserUpdate):
+def update_user(db: Session, user_id: int, user_update: UserUpdate) -> Optional[m.User]:
     db_user = db.query(m.User).filter(m.User.id == user_id).first()
     if not db_user:
         return None
-    update_data = user_update.dict(exclude_unset=True)
-    if "password" in update_data:
-        update_data["password"] = pwd_context.hash(update_data["password"] + settings.SALT)
-    for key, value in update_data.items():
-        setattr(db_user, key, value)
-    db.commit()
-    db.refresh(db_user)
-    return db_user
+    
+    for field, value in user_update.dict().items():
+        setattr(db_user, field, value)
+    
+    try:
+        db.commit()
+        db.refresh(db_user)
+        return db_user
+    except:
+        db.rollback()
+        return None
+
+def update_user_password(db: Session, user_id: int, new_password: str) -> Optional[m.User]:
+    db_user = db.query(m.User).filter(m.User.id == user_id).first()
+    if not db_user:
+        return None
+    
+    db_user.password = pwd_context.hash(new_password + settings.SALT)
+    
+    try:
+        db.commit()
+        db.refresh(db_user)
+        return db_user
+    except:
+        db.rollback()
+        return None
+
+def update_user_avatar(db: Session, user_id: int, avatar_url: str) -> Optional[m.User]:
+    db_user = db.query(m.User).filter(m.User.id == user_id).first()
+    if not db_user:
+        return None
+    
+    db_user.avatar_url = avatar_url
+    
+    try:
+        db.commit()
+        db.refresh(db_user)
+        return db_user
+    except:
+        db.rollback()
+        return None
 
 def user_change_rights(db: Session, user_id: int, user_update: UserChangeRights):    
     db_user = db.query(m.User).filter(m.User.id == user_id).first()

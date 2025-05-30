@@ -9,7 +9,11 @@
         <div class="flex flex-col md:flex-row items-center gap-4">
           <div class="avatar">
             <div class="h-54 w-full rounded-box">
-              <img :src="user.avatar_url || '/uploads/user_example.webp'" alt="avatar" />
+              <img 
+                :src="user.avatar_url || '/uploads/user_example.webp'" 
+                alt="avatar" 
+                class="w-full h-full object-cover"
+              />
             </div>
           </div>
           <div>

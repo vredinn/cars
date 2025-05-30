@@ -25,10 +25,13 @@
                                         <img :src="chat.car_image_url || '/uploads/no_car_image.png'" alt="Автомобиль">
                                     </div>
                                 </div>
-                                <div class="avatar w-10 h-10">
-                                    <div>
-                                        <img :src="chat.other_user_avatar_url || '/uploads/user_example.webp'"
-                                            alt="Пользователь">
+                                <div class="avatar">
+                                    <div class="w-12 h-12 rounded-full">
+                                        <img 
+                                            :src="chat.other_user_avatar_url || '/uploads/user_example.webp'" 
+                                            alt="avatar" 
+                                            class="w-full h-full object-cover"
+                                        />
                                     </div>
                                 </div>
                             </div>
