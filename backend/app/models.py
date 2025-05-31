@@ -69,6 +69,13 @@ class BodyTypeEnum(str, enum.Enum):
     fastback = "Фастбэк"
     microcar = "Микрокар"
 
+class DealStatusEnum(str, enum.Enum):
+    pending = "Ожидает подтверждения"
+    accepted = "Подтверждена"
+    rejected = "Отклонена"
+    completed = "Завершена"
+    cancelled = "Отменена"
+
 class User(Base):
     __tablename__ = "users"
 
@@ -87,7 +94,8 @@ class User(Base):
     favorites = relationship("Favorite", backref="user", cascade="all, delete-orphan")
     sent_messages = relationship("Message", foreign_keys="[Message.sender_uuid]", back_populates="sender", cascade="all, delete-orphan")
     received_messages = relationship("Message", foreign_keys="[Message.receiver_uuid]", back_populates="receiver", cascade="all, delete-orphan")
-    reviews = relationship("Review", backref="user", cascade="all, delete-orphan")
+    reviews_given = relationship("Review", foreign_keys="[Review.user_uuid]", back_populates="reviewer", cascade="all, delete-orphan")
+    reviews_received = relationship("Review", foreign_keys="[Review.seller_uuid]", back_populates="seller", cascade="all, delete-orphan")
 
 class Brand(Base):
     __tablename__ = "brands"
@@ -140,10 +148,10 @@ class Car(Base):
 
     images = relationship("CarImage", back_populates="car", cascade="all, delete-orphan")
     price_history = relationship("PriceHistory", back_populates="car", cascade="all, delete-orphan")
-    reviews = relationship("Review", back_populates="car", cascade="all, delete-orphan")
     favorites = relationship("Favorite", backref="car", cascade="all, delete-orphan")
     messages = relationship("Message", back_populates="car", cascade="all, delete-orphan")
     moderation = relationship("AdModeration", backref="car", uselist=False, cascade="all, delete-orphan")
+    deals = relationship("Deal", back_populates="car", cascade="all, delete-orphan")
 
     @property
     def user_uuid(self):
@@ -199,15 +207,30 @@ class Review(Base):
     __tablename__ = "reviews"
 
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    car_id = Column(Integer, ForeignKey("cars.id", ondelete="CASCADE"), nullable=False)
-    review_text = Column(Text)
-    rating = Column(Float, CheckConstraint("rating >= 0 AND rating <= 5"))
+    uuid = Column(UUID(as_uuid=True), unique=True, nullable=False, index=True, default=uuid.uuid4)
+    user_uuid = Column(UUID(as_uuid=True), ForeignKey("users.uuid", ondelete="CASCADE"), nullable=False)  # Кто оставил отзыв
+    seller_uuid = Column(UUID(as_uuid=True), ForeignKey("users.uuid", ondelete="CASCADE"), nullable=False)  # О ком отзыв
+    deal_uuid = Column(UUID(as_uuid=True), ForeignKey("deals.uuid", ondelete="CASCADE"), nullable=False)
+    review_text = Column(Text, nullable=False)
+    rating = Column(Float, CheckConstraint("rating >= 1 AND rating <= 5"), nullable=False)
     review_date = Column(DateTime, server_default=func.now())
 
-    car = relationship("Car", back_populates="reviews")
+    deal = relationship("Deal", back_populates="review")
+    reviewer = relationship("User", foreign_keys=[user_uuid], back_populates="reviews_given")
+    seller = relationship("User", foreign_keys=[seller_uuid], back_populates="reviews_received")
 
-    __table_args__ = (UniqueConstraint("user_id", "car_id", name="uq_user_car_review"),)
+    __table_args__ = (
+        # Один отзыв на сделку
+        UniqueConstraint("deal_uuid", name="uq_deal_uuid_review"),
+    )
+
+    @property
+    def user_name(self):
+        return self.reviewer.name if self.reviewer else None
+
+    @property
+    def user_avatar_url(self):
+        return self.reviewer.avatar_url if self.reviewer else None
 
 class PriceHistory(Base):
     __tablename__ = "price_history"
@@ -227,3 +250,35 @@ class CarImage(Base):
     image_url = Column(Text, nullable=False)
 
     car = relationship("Car", back_populates="images")
+
+class Deal(Base):
+    __tablename__ = "deals"
+
+    id = Column(Integer, primary_key=True)
+    uuid = Column(UUID(as_uuid=True), unique=True, nullable=False, index=True, default=uuid.uuid4)
+    car_id = Column(Integer, ForeignKey("cars.id", ondelete="CASCADE"), nullable=False)
+    seller_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    buyer_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    created_at = Column(DateTime, server_default=func.now(), nullable=False)
+
+    car = relationship("Car", back_populates="deals")
+    seller = relationship("User", foreign_keys=[seller_id], backref="sales")
+    buyer = relationship("User", foreign_keys=[buyer_id], backref="purchases")
+    review = relationship("Review", back_populates="deal", uselist=False, cascade="all, delete-orphan")
+
+    __table_args__ = (
+        # Проверка что продавец и покупатель разные пользователи
+        CheckConstraint("seller_id != buyer_id", name="check_different_users"),
+    )
+
+    @property
+    def seller_uuid(self):
+        return self.seller.uuid if self.seller else None
+
+    @property
+    def buyer_uuid(self):
+        return self.buyer.uuid if self.buyer else None
+
+    @property
+    def car_uuid(self):
+        return self.car.uuid if self.car else None

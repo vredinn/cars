@@ -9,7 +9,7 @@ from .brand_scheme import *
 from .user_scheme import *
 from .car_image_scheme import *
 from .price_history_scheme import *
-from .review_scheme import *
+from .review_schema import *
 # ================ Car ================
 class CarBase(BaseModel):
     year: int = Field(..., ge=1900, le=datetime.now().year + 1)
@@ -125,4 +125,4 @@ class CarCard(Car):
 
 class UserProfile(User):
     cars: List[CarCard]
-    reviews: List[Review]
+    reviews_received: List[Review]

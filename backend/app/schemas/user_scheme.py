@@ -4,6 +4,8 @@ from uuid import UUID
 from pydantic import BaseModel, EmailStr, Field, field_validator
 import re
 
+from .review_schema import Review
+
 # ================ User Schemas ================
 class UserBase(BaseModel):
     uuid: UUID
@@ -46,6 +48,8 @@ class User(UserWithImage):
     id: int
     registration_date: datetime
     is_admin: bool
+    reviews_given: List[Review] = []
+    reviews_received: List[Review] = []
 
     class Config:
         from_attributes = True

@@ -6,6 +6,7 @@ from .enum_scheme import *
 from .favorite_scheme import *
 from .message_scheme import *
 from .ad_moderation_scheme import *
-from .review_scheme import *
+from .review_schema import *
 from .user_scheme import *
 from .price_history_scheme import *
+from .deal_scheme import *

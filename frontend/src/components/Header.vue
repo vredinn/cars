@@ -8,9 +8,12 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h8m-8 6h16" />
         </svg>
       </label>
-      <ul tabindex="0" class="menu menu-sm dropdown-content bg-base-200 rounded-box z-10 mt-3 w-64 p-2 shadow gap-2" :class="{ 'hidden': !isMobileMenuOpen }">
-        <li><router-link to="/" class="btn btn-ghost" active-class="btn btn-outline" @click="closeMobileMenu">Главная</router-link></li>
-        <li><router-link to="/catalog" class="btn btn-ghost" active-class="btn btn-outline" @click="closeMobileMenu">Поиск</router-link></li>
+      <ul tabindex="0" class="menu menu-sm dropdown-content bg-base-200 rounded-box z-10 mt-3 w-64 p-2 shadow gap-2"
+        :class="{ 'hidden': !isMobileMenuOpen }">
+        <li><router-link to="/" class="btn btn-ghost" active-class="btn btn-outline"
+            @click="closeMobileMenu">Главная</router-link></li>
+        <li><router-link to="/catalog" class="btn btn-ghost" active-class="btn btn-outline"
+            @click="closeMobileMenu">Поиск</router-link></li>
       </ul>
     </div>
 
@@ -44,25 +47,27 @@
           <input type="checkbox" v-model="isProfileMenuOpen" class="hidden" />
           <label tabindex="0" class="btn btn-ghost btn-circle avatar" @click="toggleProfileMenu">
             <div class="w-10 rounded-full">
-              <img :src="user.avatar_url || '/uploads/user_example.webp'" alt="avatar" class="w-full h-full object-cover" />
+              <img :src="user.avatar_url || '/uploads/user_example.webp'" alt="avatar"
+                class="w-full h-full object-cover" />
             </div>
           </label>
-          <ul tabindex="0" class="menu dropdown-content z-[1] mt-3 w-64 rounded-box bg-base-200 p-2 shadow gap-2" :class="{ 'hidden': !isProfileMenuOpen }">
+          <ul tabindex="0" class="menu dropdown-content z-[1] mt-3 w-64 rounded-box bg-base-200 p-2 shadow gap-2"
+            :class="{ 'hidden': !isProfileMenuOpen }">
             <div class="flex flex-col gap-2">
               <div class="avatar">
-                <div class="w-10 h-10 rounded-full">
-                  <img 
-                    :src="user.avatar_url || '/uploads/user_example.webp'" 
-                    alt="avatar" 
-                    class="w-full h-full object-cover"
-                  />
+                <div class="h-36 w-full rounded-box">
+                  <img :src="user.avatar_url || '/uploads/user_example.webp'" alt="avatar"
+                    class="w-full h-full object-cover" />
                 </div>
               </div>
               <div class="text-center text-pretty">{{ user.name }} <br /> {{ user.email }}</div>
             </div>
-            <li><router-link to="/chats" class="btn btn-primary md:hidden" @click="closeProfileMenu">Сообщения</router-link></li>
-            <li><router-link to="/create_car" class="btn btn-primary" @click="closeProfileMenu">Создать объявление</router-link></li>
-            <li><router-link :to="`/user/${user.uuid}`" class="btn btn-outline" @click="closeProfileMenu">Профиль</router-link></li>
+            <li><router-link to="/chats" class="btn btn-primary md:hidden"
+                @click="closeProfileMenu">Сообщения</router-link></li>
+            <li><router-link to="/create_car" class="btn btn-primary" @click="closeProfileMenu">Создать
+                объявление</router-link></li>
+            <li><router-link :to="`/user/${user.uuid}`" class="btn btn-outline"
+                @click="closeProfileMenu">Профиль</router-link></li>
             <li><label for="logout-modal" class="btn btn-soft btn-error" @click="closeProfileMenu">Выйти</label></li>
           </ul>
 

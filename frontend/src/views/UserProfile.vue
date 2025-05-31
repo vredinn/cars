@@ -6,26 +6,58 @@
 
     <div v-else>
       <div class="mb-4">
-        <div class="flex flex-col md:flex-row items-center gap-4">
-          <div class="avatar">
-            <div class="h-54 w-full rounded-box">
-              <img 
-                :src="user.avatar_url || '/uploads/user_example.webp'" 
-                alt="avatar" 
-                class="w-full h-full object-cover"
-              />
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Левая колонка с информацией о пользователе -->
+          <div class="flex flex-col md:flex-row items-start gap-4">
+            <div class="avatar">
+              <div class="h-54 w-full rounded-box">
+                <img 
+                  :src="user.avatar_url || '/uploads/user_example.webp'" 
+                  alt="avatar" 
+                  class="w-full h-full object-cover"
+                />
+              </div>
+            </div>
+            <div class="flex-1">
+              <h1 class="text-2xl font-bold mb-4">{{ user.name }}</h1>
+              <p>Email: {{ user.email }}</p>
+              <p>Телефон: {{ user.phone }}</p>
+              <p>Рейтинг: {{ user.rating.toFixed(2) }}</p>
+              <p>Регистрация: {{ formatDate(user.registration_date) }}</p>
+              <div v-if="isOwnProfile" class="mt-4">
+                <router-link :to="`/profile/edit/${user.uuid}`" class="btn btn-primary">
+                  Редактировать профиль
+                </router-link>
+              </div>
             </div>
           </div>
-          <div>
-            <h1 class="text-2xl font-bold mb-4">{{ user.name }}</h1>
-            <p>Email: {{ user.email }}</p>
-            <p>Телефон: {{ user.phone }}</p>
-            <p>Рейтинг: {{ user.rating.toFixed(2) }}</p>
-            <p>Регистрация: {{ formatDate(user.registration_date) }}</p>
-            <div v-if="isOwnProfile" class="mt-4">
-              <router-link :to="`/profile/edit/${user.uuid}`" class="btn btn-primary">
-                Редактировать профиль
-              </router-link>
+
+          <!-- Правая колонка с отзывами -->
+          <div v-if="user?.uuid" class="bg-base-100 rounded-box">
+            <UserReviews 
+              :reviews="reviews"
+              :isLoading="isReviewsLoading"
+              :totalReviews="reviewsTotalCount"
+            />
+            <!-- Пагинация для отзывов -->
+            <div v-if="reviewsTotalPages > 1" class="flex justify-center mt-4">
+              <div class="join">
+                <button 
+                  class="join-item btn"
+                  :class="{ 'btn-disabled': reviewsPage === 1 }"
+                  @click="changeReviewsPage(reviewsPage - 1)"
+                >
+                  «
+                </button>
+                <button class="join-item btn">{{ reviewsPage }} из {{ reviewsTotalPages }}</button>
+                <button 
+                  class="join-item btn"
+                  :class="{ 'btn-disabled': reviewsPage === reviewsTotalPages }"
+                  @click="changeReviewsPage(reviewsPage + 1)"
+                >
+                  »
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -91,6 +123,7 @@ import { useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import CarCard from '@/components/CarCard.vue'
 import Pagination from '@/components/Pagination.vue'
+import UserReviews from '@/components/UserReviews.vue'
 import api from '@/api'
 
 // Маршрут и авторизация
@@ -100,6 +133,11 @@ const authStore = useAuthStore()
 // Состояния
 const user = ref(null)
 const isUserLoading = ref(true)
+const reviews = ref([])
+const isReviewsLoading = ref(true)
+const reviewsPage = ref(1)
+const reviewsTotalPages = ref(1)
+const reviewsTotalCount = ref(0)
 
 const cars = ref([])
 const favorites = ref([])
@@ -172,13 +210,39 @@ function setActiveTab(tab) {
   }
 }
 
-// Получение профиля пользователя
+// Получение отзывов о пользователе
+async function fetchReviews(page = 1) {
+  isReviewsLoading.value = true
+  try {
+    const { data } = await api.get(`/reviews/seller/${user.value.uuid}`, {
+      params: {
+        page,
+        size: 5
+      }
+    })
+    reviews.value = data.items
+    reviewsTotalPages.value = data.pages
+    reviewsPage.value = data.page
+    reviewsTotalCount.value = data.total
+  } catch (error) {
+    console.error('Ошибка загрузки отзывов:', error)
+    reviews.value = []
+    reviewsTotalCount.value = 0
+  } finally {
+    isReviewsLoading.value = false
+  }
+}
+
+// Обновляем функцию fetchUserProfile
 async function fetchUserProfile() {
   isUserLoading.value = true
   try {
     const uuid = route.params.uuid
     const { data } = await api.get(`/users/${uuid}`)
     user.value = data
+    
+    // После загрузки пользователя загружаем отзывы
+    await fetchReviews()
     
     // Если это собственный профиль, загружаем избранное
     if (isOwnProfile.value) {
@@ -188,6 +252,22 @@ async function fetchUserProfile() {
     console.error('Ошибка загрузки профиля пользователя:', error)
   } finally {
     isUserLoading.value = false
+  }
+}
+
+// Получение автомобилей пользователя
+async function fetchCars(page = 1) {
+  isCarsLoading.value = true
+  try {
+    const uuid = route.params.uuid
+    const { data } = await api.get(`/cars/user_cars/${uuid}?page=${page}`)
+    cars.value = data.items
+    carsTotalPages.value = data.pages
+    carsPage.value = data.page
+  } catch (error) {
+    console.error('Ошибка загрузки автомобилей:', error)
+  } finally {
+    isCarsLoading.value = false
   }
 }
 
@@ -218,22 +298,6 @@ async function fetchFavorites(page = 1) {
   }
 }
 
-// Получение автомобилей пользователя
-async function fetchCars(page = 1) {
-  isCarsLoading.value = true
-  try {
-    const uuid = route.params.uuid
-    const { data } = await api.get(`/cars/user_cars/${uuid}?page=${page}`)
-    cars.value = data.items
-    carsTotalPages.value = data.pages
-    carsPage.value = data.page
-  } catch (error) {
-    console.error('Ошибка загрузки автомобилей:', error)
-  } finally {
-    isCarsLoading.value = false
-  }
-}
-
 // Смена страницы
 function changePage(page) {
   if (page < 1 || page > totalPages.value || page === currentPage.value) return
@@ -245,6 +309,12 @@ function changePage(page) {
     carsPage.value = page
     fetchCars(page)
   }
+}
+
+// Добавляем функцию для смены страницы отзывов
+async function changeReviewsPage(page) {
+  if (page < 1 || page > reviewsTotalPages.value || page === reviewsPage.value) return
+  await fetchReviews(page)
 }
 
 // Загрузка данных при монтировании

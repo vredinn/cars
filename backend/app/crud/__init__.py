@@ -7,3 +7,4 @@ from .message_crud import *
 from .ad_moderation_crud import *
 from .review_crud import *
 from .user_crud import *
+from .deal_crud import *

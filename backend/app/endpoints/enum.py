@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 from schemas import (
     BodyTypeEnum, CarConditionEnum,
-    DriveTypeEnum, TransmissionEnum, FuelTypeEnum, SteeringSideEnum
+    DriveTypeEnum, TransmissionEnum, FuelTypeEnum, SteeringSideEnum, DealStatusEnum
 )
 
 router = APIRouter(prefix="/enums", tags=["Enums"])
@@ -29,3 +29,7 @@ def get_fuel_types():
 @router.get("/steering-sides", response_model=list[str])
 def get_steering_sides():
     return list(SteeringSideEnum.__args__)
+
+@router.get("/deal-statuses", response_model=list[str])
+def get_deal_statuses():
+    return list(DealStatusEnum.__args__)

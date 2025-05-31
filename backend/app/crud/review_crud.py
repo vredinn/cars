@@ -2,39 +2,113 @@ from sqlalchemy.orm import Session, selectinload
 from uuid import uuid4
 from fastapi_pagination.ext.sqlalchemy import paginate
 from fastapi_pagination import Params
+from sqlalchemy import func
+from typing import List, Optional
+from uuid import UUID
 
 import models as m
-from schemas import (
-    ReviewCreate, ReviewUpdate
-)
+from schemas import ReviewCreate, ReviewUpdate
 
 
 # ================ Review CRUD ================
-def get_reviews_by_user(db: Session, user_id: int, params: Params):
-    q = db.query(m.Review).filter(m.Review.user_id == user_id)
+def get_reviews_by_user(db: Session, user_uuid: UUID, params: Params):
+    """Get reviews given by a user"""
+    q = db.query(m.Review).filter(m.Review.user_uuid == user_uuid)
     return paginate(q, params)
 
-def create_review(db: Session, review: ReviewCreate, user_id: int):
-    obj = m.Review(**review.dict(), user_id=user_id)
-    db.add(obj)
-    db.commit()
-    db.refresh(obj)
-    return obj
+def _recalculate_seller_rating(db: Session, seller_uuid: UUID):
+    """Helper function to recalculate seller's rating"""
+    avg_rating = db.query(func.avg(m.Review.rating)).filter(m.Review.seller_uuid == seller_uuid).scalar() or 0
+    seller = db.query(m.User).filter(m.User.uuid == seller_uuid).first()
+    if seller:
+        seller.rating = float(avg_rating)
+        db.commit()
 
-def update_review(db: Session, review_id: int, data: ReviewUpdate):
-    obj = db.query(m.Review).filter(m.Review.id == review_id).first()
+def create_review(db: Session, review_create: ReviewCreate, user_uuid: UUID) -> Optional[m.Review]:
+    # Получаем сделку
+    deal = db.query(m.Deal).filter(m.Deal.uuid == review_create.deal_uuid).first()
+    if not deal:
+        return None
+    
+    # Проверяем, что пользователь является покупателем
+    if deal.buyer_uuid != user_uuid:
+        return None
+
+    # Проверяем, нет ли уже отзыва
+    existing_review = db.query(m.Review).filter(m.Review.deal_uuid == deal.uuid).first()
+    if existing_review:
+        return None
+
+    # Создаем отзыв
+    db_review = m.Review(
+        user_uuid=user_uuid,
+        seller_uuid=deal.seller_uuid,
+        deal_uuid=deal.uuid,
+        review_text=review_create.review_text,
+        rating=review_create.rating
+    )
+    
+    db.add(db_review)
+    db.commit()
+    db.refresh(db_review)
+    
+    # Пересчитываем рейтинг продавца
+    _recalculate_seller_rating(db, deal.seller_uuid)
+    
+    return db_review
+
+def update_review(db: Session, review_uuid: UUID, data: ReviewUpdate):
+    obj = db.query(m.Review).filter(m.Review.uuid == review_uuid).first()
     if not obj:
         return None
+        
+    seller_uuid = obj.seller_uuid
+    
     for key, value in data.dict(exclude_unset=True).items():
         setattr(obj, key, value)
     db.commit()
     db.refresh(obj)
+    
+    # Пересчитываем рейтинг продавца после обновления
+    _recalculate_seller_rating(db, seller_uuid)
+    
     return obj
 
-def delete_review(db: Session, review_id: int):
-    obj = db.query(m.Review).filter(m.Review.id == review_id).first()
+def delete_review(db: Session, review_uuid: UUID):
+    obj = db.query(m.Review).filter(m.Review.uuid == review_uuid).first()
     if not obj:
         return False
+        
+    seller_uuid = obj.seller_uuid
+    
     db.delete(obj)
     db.commit()
+    
+    # Пересчитываем рейтинг продавца после удаления
+    _recalculate_seller_rating(db, seller_uuid)
+    
     return True
+
+def get_reviews_for_seller(db: Session, seller_uuid: UUID, skip: int = 0, limit: int = 10) -> List[m.Review]:
+    """Get all reviews for a seller"""
+    return (
+        db.query(m.Review)
+        .filter(m.Review.seller_uuid == seller_uuid)
+        .order_by(m.Review.review_date.desc())
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
+
+def get_deal_review(db: Session, deal_uuid: UUID) -> Optional[m.Review]:
+    """Get review for a specific deal"""
+    return db.query(m.Review).filter(m.Review.deal_uuid == deal_uuid).first()
+
+def get_reviews_by_seller_paginated(db: Session, seller_uuid: UUID, params: Params):
+    """Get paginated reviews for a seller"""
+    query = (
+        db.query(m.Review)
+        .filter(m.Review.seller_uuid == seller_uuid)
+        .order_by(m.Review.review_date.desc())
+    )
+    return paginate(query, params)

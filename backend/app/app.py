@@ -5,7 +5,7 @@ from fastapi_pagination import add_pagination
 import os
 
 from endpoints import (
-    user, moderation, auth, brand, car, review, message, favorite, car_image, enum, car_model
+    user, moderation, auth, brand, car, review, message, favorite, car_image, enum, car_model, deal
 )
 
 def create_app():
@@ -40,6 +40,7 @@ def create_app():
     api_router.include_router(moderation.router)
     api_router.include_router(enum.router)
     api_router.include_router(auth.router)
+    api_router.include_router(deal.router)
     app.router.include_router(api_router)
 
     # Статические файлы

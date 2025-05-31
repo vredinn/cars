@@ -9,3 +9,4 @@ from .moderation import *
 from .review import *
 from .user import *
 from .auth import *
+from .deal import *
