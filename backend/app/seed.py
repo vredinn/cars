@@ -1,6 +1,7 @@
 import uuid
 import random
 from datetime import datetime
+from decimal import Decimal
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from faker import Faker
@@ -9,9 +10,9 @@ from config import settings
 from database import Base
 from models import (
     Brand, CarModel, User, Car, PriceHistory, Review,
-    Favorite, Message, AdModeration,
+    Favorite, Message, AdModeration, Deal, CarImage,
     BodyTypeEnum, DriveTypeEnum, TransmissionEnum, FuelTypeEnum,
-    SteeringSideEnum, CarConditionEnum
+    SteeringSideEnum, CarConditionEnum, DealStatusEnum
 )
 from passlib.context import CryptContext
 
@@ -29,6 +30,8 @@ def seed_data(session: Session):
     session.query(Favorite).delete()
     session.query(Review).delete()
     session.query(AdModeration).delete()
+    session.query(Deal).delete()
+    session.query(CarImage).delete()
     session.query(Car).delete()
     session.query(CarModel).delete()
     session.query(Brand).delete()
@@ -39,32 +42,38 @@ def seed_data(session: Session):
     # Users
     users = [
         User(
+            uuid=uuid.uuid4(),
             name="Админ",
             email="admin@example.com",
             phone="+79990001122",
             password=pwd_context.hash("Password123" + settings.SALT),
             is_admin=True,
             rating=random.uniform(3.0, 5.0),
-            registration_date=datetime.now()
+            registration_date=datetime.now(),
+            avatar_url="/uploads/admin_avatar.webp"
         ),
         User(
+            uuid=uuid.uuid4(),
             name="Обычный",
             email="user@example.com",
             phone="+79998887766",
             password=pwd_context.hash("Password123" + settings.SALT),
             rating=random.uniform(3.0, 5.0),
-            registration_date=datetime.now()
+            registration_date=datetime.now(),
+            avatar_url="/uploads/user_example.webp"
         )
     ]
     # Additional users
     for i in range(8):
         users.append(User(
+            uuid=uuid.uuid4(),
             name=faker.name(),
             email=faker.unique.email(),
             phone=faker.phone_number(),
             password=pwd_context.hash("Password123" + settings.SALT),
             rating=random.uniform(2.0, 5.0),
-            registration_date=datetime.now()
+            registration_date=datetime.now(),
+            avatar_url=f"/uploads/user_{i+1}.webp" if random.choice([True, False]) else None
         ))
     session.add_all(users)
     session.flush()
@@ -111,13 +120,15 @@ def seed_data(session: Session):
     session.flush()
 
     # Cars + Related
+    cars = []
     for i in range(20):
         user = random.choice(users)
         model = random.choice(models)
+        price = Decimal(str(random.randint(500_000, 10_000_000)))
         car = Car(
             uuid=uuid.uuid4(),
             year=random.randint(2000, 2025),
-            price=random.randint(500_000, 10_000_000),
+            price=price,
             description=faker.text(max_nb_chars=200),
             user_id=user.id,
             body_type=random.choice(list(BodyTypeEnum)),
@@ -134,22 +145,28 @@ def seed_data(session: Session):
             mileage=random.randint(0, 400_000),
             color=faker.color_name(),
             listing_date=datetime.now(),
-            latitude=faker.latitude(),
-            longitude=faker.longitude()
+            latitude=Decimal(str(faker.latitude())),
+            longitude=Decimal(str(faker.longitude()))
         )
+        cars.append(car)
         session.add(car)
         session.flush()
 
+        # Car Images (3-5 images per car)
+        num_images = random.randint(3, 5)
+        for img_idx in range(num_images):
+            session.add(CarImage(
+                car_id=car.id,
+                image_url=f"/uploads/cars/{car.uuid}/{img_idx + 1}.webp"
+            ))
+
         # Price History
-        session.add(PriceHistory(car_id=car.id, price=car.price, change_date=datetime.now()))
-        # Review
-        session.add(Review(
-            user_id=random.choice(users).id,
+        session.add(PriceHistory(
             car_id=car.id,
-            rating=random.uniform(2.0, 5.0),
-            review_text=faker.paragraph(nb_sentences=2),
-            review_date=datetime.now()
+            price=price,
+            change_date=datetime.now()
         ))
+
         # Ad Moderation
         session.add(AdModeration(
             car_id=car.id,
@@ -158,11 +175,52 @@ def seed_data(session: Session):
             moderation_date=datetime.now()
         ))
 
-        # Favorite and Message
+        # Favorite
+        if random.choice([True, False]):
+            potential_users = [u for u in users if u.id != car.user_id]
+            if potential_users:
+                session.add(Favorite(
+                    user_id=random.choice(potential_users).id,
+                    car_id=car.id
+                ))
+
+    # Create Deals and Reviews
+    for car in cars:
+        if car.is_sold:
+            # Create a deal
+            buyer = random.choice([u for u in users if u.id != car.user_id])
+            deal = Deal(
+                uuid=uuid.uuid4(),
+                car_id=car.id,
+                seller_id=car.user_id,
+                buyer_id=buyer.id,
+                created_at=datetime.now(),
+                status=random.choice(list(DealStatusEnum))
+            )
+            session.add(deal)
+            session.flush()
+
+            # Add a review from buyer to seller (only for completed deals)
+            if deal.status == DealStatusEnum.completed and random.choice([True, True, False]):  # 66% chance
+                review = Review(
+                    uuid=uuid.uuid4(),
+                    user_uuid=buyer.uuid,  # reviewer (buyer)
+                    seller_uuid=car.user.uuid,  # seller
+                    deal_uuid=deal.uuid,
+                    rating=random.uniform(2.0, 5.0),
+                    review_text=faker.paragraph(nb_sentences=2),
+                    review_date=datetime.now()
+                )
+                session.add(review)
+
+    # Add some messages
+    for _ in range(30):
+        car = random.choice(cars)
         sender = random.choice(users)
-        receiver = random.choice([u for u in users if u != sender])
-        session.add(Favorite(user_id=sender.id, car_id=car.id))
+        # Получатель - либо владелец машины (если отправитель не он), либо случайный другой пользователь
+        receiver = car.user if sender != car.user else random.choice([u for u in users if u != sender])
         session.add(Message(
+            uuid=uuid.uuid4(),
             car_uuid=car.uuid,
             sender_uuid=sender.uuid,
             receiver_uuid=receiver.uuid,

@@ -69,12 +69,6 @@ class BodyTypeEnum(str, enum.Enum):
     fastback = "Фастбэк"
     microcar = "Микрокар"
 
-class DealStatusEnum(str, enum.Enum):
-    pending = "Ожидает подтверждения"
-    accepted = "Подтверждена"
-    rejected = "Отклонена"
-    completed = "Завершена"
-    cancelled = "Отменена"
 
 class User(Base):
     __tablename__ = "users"

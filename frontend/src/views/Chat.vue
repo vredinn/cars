@@ -13,105 +13,85 @@
         <!-- Окно чата, если данные загружены -->
         <div v-else class="flex flex-col h-full min-h-0">
           <!-- Информация об автомобиле и собеседнике -->
-          <div class="flex items-center gap-2 p-1 px-4 bg-base-300 rounded-t-box">
-            <router-link :to="{ name: 'ChatList' }" class="btn btn-lg btn-primary h-8 w-8 flex items-center justify-center p-0">
+          <div class="flex flex-col gap-2 p-1 px-4 bg-base-300 rounded-t-box">
+            <!-- Верхняя строка с кнопкой назад и аватарами -->
+            <div class="flex items-center gap-2">
+              <router-link :to="{ name: 'ChatList' }" class="btn btn-lg btn-primary h-8 w-8 flex items-center justify-center p-0">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M14 7 L 10 12 L 14 17"/>
-              </svg>
-            </router-link>
+                </svg>
+              </router-link>
 
-            <div class="avatar-group items-center -space-x-6">
-              <div class="avatar">
-                <div class="w-14 h-12">
-                  <img :src="car.image_url || '/uploads/no_car_image.png'" alt="Автомобиль">
+              <div class="avatar-group items-center -space-x-6">
+                <div class="avatar">
+                  <div class="w-14 h-12">
+                    <img :src="car.image_url || '/uploads/no_car_image.png'" alt="Автомобиль">
+                  </div>
+                </div>
+                <div class="avatar">
+                  <div class="w-12 h-12 rounded-full">
+                    <img 
+                      :src="otherUser.avatar_url || '/uploads/user_example.webp'" 
+                      alt="avatar" 
+                      class="w-full h-full object-cover"
+                    />
+                  </div>
                 </div>
               </div>
-              <div class="avatar">
-                <div class="w-12 h-12 rounded-full">
-                  <img 
-                    :src="otherUser.avatar_url || '/uploads/user_example.webp'" 
-                    alt="avatar" 
-                    class="w-full h-full object-cover"
-                  />
+
+              <!-- Информация о машине и пользователе -->
+              <div class="flex-1 min-w-0">
+                <p class="font-semibold truncate" :title="car.brand_name + ' ' + car.model_name">
+                  {{ car.brand_name }} {{ car.model_name }}
+                </p>
+                <p class="text-sm truncate" :title="otherUser.name">
+                  {{ otherUser.name }}
+                </p>
+              </div>
+            </div>
+
+            <!-- Нижняя строка с кнопками и статусами -->
+            <div class="flex flex-wrap items-center gap-2 pb-1">
+              <!-- Кнопки для сделки -->
+              <div class="flex gap-2" v-if="car && isSeller">
+                <button 
+                  v-if="!car.is_sold"
+                  class="btn btn-primary btn-sm" 
+                  @click="showConfirmDialog = true"
+                  :disabled="isCreatingDeal"
+                >
+                  {{ isCreatingDeal ? 'Подтверждение...' : 'Подтвердить продажу' }}
+                </button>
+              </div>
+
+              <!-- Кнопка оставить отзыв для покупателя -->
+              <div class="flex gap-2" v-if="car?.is_sold && !isSeller && !hasReview">
+                <button 
+                  class="btn btn-primary btn-sm"
+                  @click="showReviewDialog = true"
+                >
+                  Оставить отзыв
+                </button>
+              </div>
+
+              <!-- Статус продажи и отзыва -->
+              <div class="flex items-center gap-2">
+                <div v-if="car?.is_sold" class="badge badge-info">
+                  Продано
                 </div>
-              </div>
-            </div>
-
-            <!-- ВАЖНО: flex-1 и min-w-0 -->
-            <div class="flex-1 min-w-0">
-              <p class="font-semibold truncate" :title="car.brand_name + ' ' + car.model_name">
-                {{ car.brand_name }} {{ car.model_name }}
-              </p>
-              <p class="text-sm truncate" :title="otherUser.name">
-                {{ otherUser.name }}
-              </p>
-            </div>
-
-            <!-- Кнопки для сделки -->
-            <div class="flex gap-2" v-if="car && isSeller">
-              <button 
-                v-if="!car.is_sold"
-                class="btn btn-primary btn-sm" 
-                @click="showConfirmDialog = true"
-                :disabled="isCreatingDeal"
-              >
-                {{ isCreatingDeal ? 'Подтверждение...' : 'Подтвердить продажу' }}
-              </button>
-            </div>
-
-            <!-- Кнопка оставить отзыв для покупателя -->
-            <div class="flex gap-2" v-if="car?.is_sold && !isSeller && !hasReview">
-              <button 
-                class="btn btn-primary btn-sm"
-                @click="showReviewDialog = true"
-              >
-                Оставить отзыв
-              </button>
-            </div>
-
-            <!-- Статус продажи и отзыва -->
-            <div class="flex items-center gap-2">
-              <div v-if="car?.is_sold" class="badge badge-info">
-                Продано
-              </div>
-              <div v-if="car?.is_sold && hasReview" class="badge badge-success">
-                Отзыв оставлен
+                <button 
+                  v-if="car?.is_sold && hasReview" 
+                  class="badge badge-success cursor-pointer hover:badge-primary"
+                  @click="showViewReviewDialog = true"
+                >
+                  Отзыв оставлен
+                </button>
               </div>
             </div>
           </div>
 
           <!-- Отображение отзыва, если он есть -->
-          <div v-if="car?.is_sold && hasReview && review" class="bg-base-200 p-4 border-x-2 border-base-300">
-            <div class="flex items-center justify-between mb-2">
-              <div class="flex items-center gap-2">
-                <div class="rating rating-sm">
-                  <template v-for="i in 5" :key="i">
-                    <input 
-                      type="radio"
-                      :name="'review-rating-' + review.id"
-                      class="mask mask-star-2"
-                      :class="{ 'bg-orange-400': i <= review.rating, 'bg-gray-300': i > review.rating }"
-                      :checked="i === Math.round(review.rating)"
-                      disabled
-                    />
-                  </template>
-                </div>
-                <span class="text-sm opacity-70">{{ formatDate(review.review_date) }}</span>
-              </div>
-              <!-- Кнопка редактирования -->
-              <button 
-                v-if="review.user_uuid === authUser.uuid" 
-                class="btn btn-ghost btn-sm"
-                @click="editReview"
-                title="Редактировать отзыв"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                  <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                </svg>
-              </button>
-            </div>
-            <p class="text-sm">{{ review.review_text }}</p>
-          </div>
+          
 
           <div v-if="errorMessage" class="alert alert-error mx-4 mb-4">
             {{ errorMessage }}
@@ -254,6 +234,60 @@
     </div>
     <form method="dialog" class="modal-backdrop">
       <button @click="showEditReviewDialog = false">закрыть</button>
+    </form>
+  </dialog>
+
+  <!-- Модальное окно просмотра отзыва -->
+  <dialog :class="{ 'modal': true, 'modal-open': showViewReviewDialog }">
+    <div class="modal-box">
+      <h3 class="font-bold text-lg mb-4">Отзыв о продавце</h3>
+      <div v-if="review" class="space-y-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-4">
+            <div class="avatar">
+              <div class="w-12 h-12 rounded-full">
+                <img 
+                  :src="review.user_avatar_url || '/uploads/user_example.webp'" 
+                  :alt="review.user_name"
+                  class="w-full h-full object-cover"
+                />
+              </div>
+            </div>
+            <div>
+              <p class="font-semibold">{{ review.user_name }}</p>
+              <div class="rating rating-sm">
+                <template v-for="i in 5" :key="i">
+                  <input 
+                    type="radio"
+                    :name="'review-rating-view-' + review.id"
+                    class="mask mask-star-2"
+                    :class="{ 'bg-orange-400': i <= review.rating, 'bg-gray-300': i > review.rating }"
+                    :checked="i === Math.round(review.rating)"
+                    disabled
+                  />
+                </template>
+              </div>
+            </div>
+          </div>
+          <span class="text-sm opacity-70">{{ formatDate(review.review_date) }}</span>
+        </div>
+        
+        <p class="text-sm bg-base-200 p-4 rounded-box">{{ review.review_text }}</p>
+
+        <div class="modal-action">
+          <button 
+            v-if="review.user_uuid === authUser.uuid"
+            class="btn btn-primary"
+            @click="editReview"
+          >
+            Редактировать
+          </button>
+          <button class="btn" @click="showViewReviewDialog = false">Закрыть</button>
+        </div>
+      </div>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+      <button @click="showViewReviewDialog = false">закрыть</button>
     </form>
   </dialog>
 </template>
@@ -649,15 +683,16 @@ async function submitReview() {
   }
 }
 
+const showViewReviewDialog = ref(false);
 const showEditReviewDialog = ref(false);
 const editReviewText = ref('');
 const editReviewRating = ref(0);
 const isUpdatingReview = ref(false);
 
 function editReview() {
-  if (!review.value) return;
   editReviewText.value = review.value.review_text;
   editReviewRating.value = review.value.rating;
+  showViewReviewDialog.value = false; // Закрываем окно просмотра
   showEditReviewDialog.value = true;
 }
 
