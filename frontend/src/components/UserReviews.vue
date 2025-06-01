@@ -8,9 +8,9 @@
 
     <div v-else>
       <!-- Общий рейтинг -->
-      <div class="flex items-center gap-4 mb-4 bg-base-100 rounded-box w-min">
-        <div class="stats">
-          <div class="stat">
+      <div class="flex items-center gap-4 mb-4 bg-base-100 rounded-box w-min p-4">
+        <div class="stats rounded-none">
+          <div class="stat p-0">
             <div class="stat-title">Средний рейтинг</div>
             <div class="stat-value text-primary">{{ averageRating.toFixed(1) }}</div>
             <div class="stat-desc">На основе {{ totalReviews }} отзывов</div>

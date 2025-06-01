@@ -69,7 +69,6 @@ class BodyTypeEnum(str, enum.Enum):
     fastback = "Фастбэк"
     microcar = "Микрокар"
 
-
 class User(Base):
     __tablename__ = "users"
 

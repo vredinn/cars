@@ -12,7 +12,7 @@ from models import (
     Brand, CarModel, User, Car, PriceHistory, Review,
     Favorite, Message, AdModeration, Deal, CarImage,
     BodyTypeEnum, DriveTypeEnum, TransmissionEnum, FuelTypeEnum,
-    SteeringSideEnum, CarConditionEnum, DealStatusEnum
+    SteeringSideEnum, CarConditionEnum
 )
 from passlib.context import CryptContext
 
@@ -23,8 +23,17 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 Base.metadata.create_all(bind=engine)
 faker = Faker("ru_RU")
 
+def update_user_rating(session: Session, user_uuid: uuid.UUID):
+    """Update user's rating based on their reviews."""
+    reviews = session.query(Review).filter(Review.seller_uuid == user_uuid).all()
+    if reviews:
+        avg_rating = sum(review.rating for review in reviews) / len(reviews)
+        user = session.query(User).filter(User.uuid == user_uuid).first()
+        if user:
+            user.rating = round(avg_rating, 1)
+
 def seed_data(session: Session):
-    print("⚠ Очистка таблиц...")
+    print("Очистка таблиц...")
     session.query(PriceHistory).delete()
     session.query(Message).delete()
     session.query(Favorite).delete()
@@ -37,7 +46,7 @@ def seed_data(session: Session):
     session.query(Brand).delete()
     session.query(User).delete()
     session.commit()
-    print("✅ Очистка завершена, создаём новые данные...")
+    print("Очистка завершена, создание новых данных...")
 
     # Users
     users = [
@@ -48,7 +57,7 @@ def seed_data(session: Session):
             phone="+79990001122",
             password=pwd_context.hash("Password123" + settings.SALT),
             is_admin=True,
-            rating=random.uniform(3.0, 5.0),
+            rating=0,
             registration_date=datetime.now(),
             avatar_url="/uploads/admin_avatar.webp"
         ),
@@ -58,7 +67,7 @@ def seed_data(session: Session):
             email="user@example.com",
             phone="+79998887766",
             password=pwd_context.hash("Password123" + settings.SALT),
-            rating=random.uniform(3.0, 5.0),
+            rating=0,
             registration_date=datetime.now(),
             avatar_url="/uploads/user_example.webp"
         )
@@ -71,9 +80,8 @@ def seed_data(session: Session):
             email=faker.unique.email(),
             phone=faker.phone_number(),
             password=pwd_context.hash("Password123" + settings.SALT),
-            rating=random.uniform(2.0, 5.0),
+            rating=0,
             registration_date=datetime.now(),
-            avatar_url=f"/uploads/user_{i+1}.webp" if random.choice([True, False]) else None
         ))
     session.add_all(users)
     session.flush()
@@ -152,14 +160,6 @@ def seed_data(session: Session):
         session.add(car)
         session.flush()
 
-        # Car Images (3-5 images per car)
-        num_images = random.randint(3, 5)
-        for img_idx in range(num_images):
-            session.add(CarImage(
-                car_id=car.id,
-                image_url=f"/uploads/cars/{car.uuid}/{img_idx + 1}.webp"
-            ))
-
         # Price History
         session.add(PriceHistory(
             car_id=car.id,
@@ -195,23 +195,25 @@ def seed_data(session: Session):
                 seller_id=car.user_id,
                 buyer_id=buyer.id,
                 created_at=datetime.now(),
-                status=random.choice(list(DealStatusEnum))
             )
             session.add(deal)
             session.flush()
 
             # Add a review from buyer to seller (only for completed deals)
-            if deal.status == DealStatusEnum.completed and random.choice([True, True, False]):  # 66% chance
-                review = Review(
-                    uuid=uuid.uuid4(),
-                    user_uuid=buyer.uuid,  # reviewer (buyer)
-                    seller_uuid=car.user.uuid,  # seller
-                    deal_uuid=deal.uuid,
-                    rating=random.uniform(2.0, 5.0),
-                    review_text=faker.paragraph(nb_sentences=2),
-                    review_date=datetime.now()
-                )
-                session.add(review)
+
+            review = Review(
+                uuid=uuid.uuid4(),
+                user_uuid=buyer.uuid,  # reviewer (buyer)
+                seller_uuid=car.user.uuid,  # seller
+                deal_uuid=deal.uuid,
+                rating=random.randint(3, 5),
+                review_text=faker.paragraph(nb_sentences=2),
+                review_date=datetime.now()
+            )
+            session.add(review)
+            session.flush()
+            # Update seller's rating after adding a review
+            update_user_rating(session, car.user.uuid)
 
     # Add some messages
     for _ in range(30):
@@ -229,7 +231,7 @@ def seed_data(session: Session):
         ))
 
     session.commit()
-    print("✅ Данные успешно созданы!")
+    print("Данные успешно созданы")
 
 if __name__ == "__main__":
     with Session(engine) as session:
