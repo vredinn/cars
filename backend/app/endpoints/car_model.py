@@ -9,8 +9,8 @@ import crud
 router = APIRouter(prefix="/models", tags=["Models"])
 
 @router.get("/", response_model=List[CarModel])
-def get_all_models(db: Session = Depends(get_db)):
-    return crud.get_models_by_brand(db, brand_id=None)  # Или сделать универсальный вывод
+def get_all_models(search: str = None, db: Session = Depends(get_db)):
+    return crud.get_models(db, search=search)  # Или сделать универсальный вывод
 
 @router.get("/brand/{brand_id}", response_model=List[CarModel])
 def get_models_by_brand(brand_id: int, db: Session = Depends(get_db)):

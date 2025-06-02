@@ -24,7 +24,6 @@ Base.metadata.create_all(bind=engine)
 faker = Faker("ru_RU")
 
 def update_user_rating(session: Session, user_uuid: uuid.UUID):
-    """Update user's rating based on their reviews."""
     reviews = session.query(Review).filter(Review.seller_uuid == user_uuid).all()
     if reviews:
         avg_rating = sum(review.rating for review in reviews) / len(reviews)
@@ -48,7 +47,6 @@ def seed_data(session: Session):
     session.commit()
     print("Очистка завершена, создание новых данных...")
 
-    # Users
     admin_user = User(
         uuid=uuid.uuid4(),
         name="Админ",
@@ -72,7 +70,6 @@ def seed_data(session: Session):
         )
     ]
     
-    # Additional users
     for i in range(8):
         regular_users.append(User(
             uuid=uuid.uuid4(),
@@ -88,19 +85,17 @@ def seed_data(session: Session):
     session.add_all(regular_users)
     session.flush()
 
-    # Brands
-    toyota = Brand(name="Toyota", image_url="brand_logos/toyota.png")
-    bmw = Brand(name="BMW", image_url="brand_logos/bmw.png")
-    audi = Brand(name="Audi", image_url="brand_logos/audi.png")
-    volkswagen = Brand(name="Volkswagen", image_url="brand_logos/volkswagen.png")
-    ford = Brand(name="Ford", image_url="brand_logos/ford.png")
-    peugeot = Brand(name="Peugeot", image_url="brand_logos/peugeot.png")
-    mercedes = Brand(name="Mercedes-Benz", image_url="brand_logos/mercedes.png")
+    toyota = Brand(name="Toyota", image_url="/brand_logos/toyota.png")
+    bmw = Brand(name="BMW", image_url="/brand_logos/bmw.png")
+    audi = Brand(name="Audi", image_url="/brand_logos/audi.png")
+    volkswagen = Brand(name="Volkswagen", image_url="/brand_logos/volkswagen.png")
+    ford = Brand(name="Ford", image_url="/brand_logos/ford.png")
+    peugeot = Brand(name="Peugeot", image_url="/brand_logos/peugeot.png")
+    mercedes = Brand(name="Mercedes-Benz", image_url="/brand_logos/mercedes.png")
     brands = [toyota, bmw, audi, volkswagen, ford, peugeot, mercedes]
     session.add_all(brands)
     session.flush()
 
-    # Car Models
     models = [
         CarModel(name="Camry", brand=toyota),
         CarModel(name="Corolla", brand=toyota),
@@ -129,15 +124,16 @@ def seed_data(session: Session):
     session.add_all(models)
     session.flush()
 
-    # Cars + Related
     cars = []
-    for i in range(20):
-        user = random.choice(regular_users)  # Only regular users can have cars
+    for i in range(50):
+        user = random.choice(regular_users)
         model = random.choice(models)
         price = Decimal(str(random.randint(500_000, 10_000_000)))
+        is_sold = random.choice([False, False, False, True])
+
         car = Car(
             uuid=uuid.uuid4(),
-            year=random.randint(2000, 2025),
+            year=random.randint(2005, 2025),
             price=price,
             description=faker.text(max_nb_chars=200),
             user_id=user.id,
@@ -151,7 +147,7 @@ def seed_data(session: Session):
             car_condition=random.choice(list(CarConditionEnum)),
             engine_capacity=round(random.uniform(1.0, 6.0), 1),
             engine_power=random.randint(70, 500),
-            is_sold=random.choice([False, False, True]),
+            is_sold=is_sold,
             mileage=random.randint(0, 400_000),
             color=faker.color_name(),
             listing_date=datetime.now(),
@@ -162,22 +158,26 @@ def seed_data(session: Session):
         session.add(car)
         session.flush()
 
-        # Price History
         session.add(PriceHistory(
             car_id=car.id,
             price=price,
             change_date=datetime.now()
         ))
 
-        # Ad Moderation
+        if is_sold:
+            status = "approved"
+        else:
+            status = random.choice(["approved", "pending", "rejected"])
+
         session.add(AdModeration(
             car_id=car.id,
-            status=random.choice(["approved", "pending", "rejected"]),
-            moderator_comment=faker.sentence() if random.choice([True, False]) else None,
-            moderation_date=datetime.now()
+            status=status,
+            moderator_comment=faker.sentence() if status != "approved" else None,
+            moderation_date=datetime.now(),
+            moderator_id=admin_user.id if status != "pending" else None
         ))
 
-        # Favorite - only regular users can have favorites
+        # Favorites
         if random.choice([True, False]):
             potential_users = [u for u in regular_users if u.id != car.user_id]
             if potential_users:
@@ -186,10 +186,8 @@ def seed_data(session: Session):
                     car_id=car.id
                 ))
 
-    # Create Deals and Reviews - only between regular users
     for car in cars:
         if car.is_sold:
-            # Create a deal with regular users only
             buyer = random.choice([u for u in regular_users if u.id != car.user_id])
             deal = Deal(
                 uuid=uuid.uuid4(),
@@ -201,10 +199,9 @@ def seed_data(session: Session):
             session.add(deal)
             session.flush()
 
-            # Add a review from buyer to seller (only for completed deals between regular users)
             review = Review(
                 uuid=uuid.uuid4(),
-                user_uuid=buyer.uuid,  # reviewer (buyer)
+                user_uuid=buyer.uuid,
                 seller_uuid=car.user.uuid,  # seller
                 deal_uuid=deal.uuid,
                 rating=random.randint(3, 5),
@@ -213,14 +210,11 @@ def seed_data(session: Session):
             )
             session.add(review)
             session.flush()
-            # Update seller's rating after adding a review
             update_user_rating(session, car.user.uuid)
 
-    # Add some messages - only between regular users
     for _ in range(30):
         car = random.choice(cars)
         sender = random.choice(regular_users)
-        # Получатель - либо владелец машины (если отправитель не он), либо случайный другой пользователь
         receiver = car.user if sender != car.user else random.choice([u for u in regular_users if u != sender])
         session.add(Message(
             uuid=uuid.uuid4(),

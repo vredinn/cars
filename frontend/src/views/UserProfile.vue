@@ -22,7 +22,6 @@
               <h1 class="text-2xl font-bold mb-4">{{ user.name }}</h1>
               <p>Email: {{ user.email }}</p>
               <p>Телефон: {{ user.phone }}</p>
-              <p>Рейтинг: {{ user.rating.toFixed(2) }}</p>
               <p>Регистрация: {{ formatDate(user.registration_date) }}</p>
               <div v-if="isOwnProfile" class="mt-4">
                 <router-link :to="`/profile/edit/${user.uuid}`" class="btn btn-primary">
@@ -191,23 +190,22 @@ const hasAnyCars = computed(() => {
 
 const displayedCars = computed(() => {
   if (!isOwnProfile.value && carsTab.value === 'active') {
+    // Для чужого профиля показываем только одобренные объявления, если пользователь не админ
+    if (!authStore.user?.is_admin) {
+      return activeCars.value.filter(car => 
+        car.moderation_status === 'approved' || car.moderation_status === 'Одобрено'
+      )
+    }
     return activeCars.value
   } else if (!isOwnProfile.value && carsTab.value === 'sold') {
     return soldCars.value
   }
 
   if (activeTab.value === 'favorites') {
-    return favorites.value.map(favorite => {
-      const car = favorite.car
-      return {
-        ...car,
-        brand_name: car.brand_name || 'Неизвестно',
-        model_name: car.model_name || 'Неизвестно'
-      }
-    })
+    return favorites.value.map(favorite => favorite.car)
+  } else {
+    return carsTab.value === 'active' ? activeCars.value : soldCars.value
   }
-
-  return carsTab.value === 'active' ? activeCars.value : soldCars.value
 })
 
 const noItemsMessage = computed(() => {

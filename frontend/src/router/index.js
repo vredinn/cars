@@ -56,13 +56,45 @@ const routes = [
     name: 'Chat',
     component: () => import('@/views/Chat.vue'),
     meta: { requiresAuth: true, hideFooter: true }
-
   },
   {
     path: '/auth',
     name: 'Auth',
     component: () => import('@/views/Auth.vue'),
     meta: { hideForAuth: true, hideFooter: true }
+  },
+  {
+    path: '/admin',
+    name: 'Admin',
+    component: () => import('@/views/AdminDashboard.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true },
+    children: [
+      {
+        path: '',
+        name: 'AdminDashboard',
+        component: () => import('@/views/admin/Moderations.vue')
+      },
+      {
+        path: 'moderations',
+        name: 'AdminModerations',
+        component: () => import('@/views/admin/Moderations.vue')
+      },
+      {
+        path: 'users',
+        name: 'AdminUsers',
+        component: () => import('@/views/admin/Users.vue')
+      },
+      {
+        path: 'brands',
+        name: 'AdminBrands',
+        component: () => import('@/views/admin/Brands.vue')
+      },
+      {
+        path: 'models',
+        name: 'AdminModels',
+        component: () => import('@/views/admin/Models.vue')
+      }
+    ]
   }
 ]
 
@@ -87,7 +119,7 @@ router.beforeEach(async (to, from, next) => {
     try {
       await auth.fetchUser()
     } catch (error) {
-      console.error('Failed to fetch user:', error)
+      console.error('Ошибка загрузки пользователя:', error)
       if (to.meta.requiresAuth) {
         next({ name: 'Auth', query: { redirect: to.fullPath } })
         return
@@ -97,6 +129,12 @@ router.beforeEach(async (to, from, next) => {
 
   // Если страница скрыта для авторизованных и пользователь авторизован
   if (to.meta.hideForAuth && auth.isAuthenticated) {
+    next({ name: 'Home' })
+    return
+  }
+
+  // Проверка прав администратора
+  if (to.meta.requiresAdmin && !auth.user?.is_admin) {
     next({ name: 'Home' })
     return
   }

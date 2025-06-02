@@ -8,7 +8,6 @@ from sqlalchemy import (
     Float,
     ForeignKey,
     Numeric,
-    JSON,
     DateTime,
     UniqueConstraint,
     CheckConstraint,
@@ -69,6 +68,11 @@ class BodyTypeEnum(str, enum.Enum):
     fastback = "Фастбэк"
     microcar = "Микрокар"
 
+class AdModerationStatusEnum(str, enum.Enum):
+    pending = "На проверке"
+    approved = "Одобрено"
+    rejected = "Отклонено"
+
 class User(Base):
     __tablename__ = "users"
 
@@ -84,11 +88,14 @@ class User(Base):
     rating = Column(Float, CheckConstraint("rating >= 0 AND rating <= 5"), nullable=False, default=0)
 
     cars = relationship("Car", back_populates="user", cascade="all, delete")
-    favorites = relationship("Favorite", backref="user", cascade="all, delete-orphan")
+    favorites = relationship("Favorite", back_populates="user", cascade="all, delete-orphan")
     sent_messages = relationship("Message", foreign_keys="[Message.sender_uuid]", back_populates="sender", cascade="all, delete-orphan")
     received_messages = relationship("Message", foreign_keys="[Message.receiver_uuid]", back_populates="receiver", cascade="all, delete-orphan")
     reviews_given = relationship("Review", foreign_keys="[Review.user_uuid]", back_populates="reviewer", cascade="all, delete-orphan")
     reviews_received = relationship("Review", foreign_keys="[Review.seller_uuid]", back_populates="seller", cascade="all, delete-orphan")
+    sales = relationship("Deal", foreign_keys="[Deal.seller_id]", back_populates="seller", cascade="all, delete-orphan")
+    purchases = relationship("Deal", foreign_keys="[Deal.buyer_id]", back_populates="buyer", cascade="all, delete-orphan")
+    moderated_ads = relationship("AdModeration", back_populates="moderator", cascade="all, delete-orphan")
 
 class Brand(Base):
     __tablename__ = "brands"
@@ -107,7 +114,7 @@ class CarModel(Base):
     brand_id = Column(Integer, ForeignKey("brands.id", ondelete="CASCADE"), nullable=False, index=True)
 
     brand = relationship("Brand", back_populates="models")
-    cars = relationship("Car", back_populates="model")
+    cars = relationship("Car", back_populates="model", cascade="all, delete-orphan")
 
 class Car(Base):
     __tablename__ = "cars"
@@ -141,9 +148,9 @@ class Car(Base):
 
     images = relationship("CarImage", back_populates="car", cascade="all, delete-orphan")
     price_history = relationship("PriceHistory", back_populates="car", cascade="all, delete-orphan")
-    favorites = relationship("Favorite", backref="car", cascade="all, delete-orphan")
+    favorites = relationship("Favorite", back_populates="car", cascade="all, delete-orphan")
     messages = relationship("Message", back_populates="car", cascade="all, delete-orphan")
-    moderation = relationship("AdModeration", backref="car", uselist=False, cascade="all, delete-orphan")
+    moderation = relationship("AdModeration", back_populates="car", uselist=False, cascade="all, delete-orphan")
     deals = relationship("Deal", back_populates="car", cascade="all, delete-orphan")
 
     @property
@@ -161,6 +168,18 @@ class Car(Base):
     def model_name(self):
         return self.model.name if self.model else None
 
+    @property
+    def moderation_status(self):
+        return self.moderation.status if self.moderation else "pending"
+
+    @property
+    def is_approved(self):
+        return self.moderation_status == "approved"
+
+    @property
+    def moderator_comment(self):
+        return self.moderation.moderator_comment if self.moderation else None
+
 class Favorite(Base):
     __tablename__ = "favorites"
 
@@ -169,6 +188,9 @@ class Favorite(Base):
     car_id = Column(Integer, ForeignKey("cars.id", ondelete="CASCADE"), nullable=False)
 
     __table_args__ = (UniqueConstraint("user_id", "car_id", name="uq_user_car"),)
+
+    user = relationship("User", back_populates="favorites")
+    car = relationship("Car", back_populates="favorites")
 
 class Message(Base):
     __tablename__ = "messages"
@@ -188,13 +210,17 @@ class Message(Base):
     
 
 class AdModeration(Base):
-    __tablename__ = "ad_moderation"
+    __tablename__ = "ad_moderations"
 
     id = Column(Integer, primary_key=True)
-    car_id = Column(Integer, ForeignKey("cars.id", ondelete="CASCADE"), unique=True, nullable=False)
-    status = Column(String, nullable=False)
-    moderator_comment = Column(Text)
-    moderation_date = Column(DateTime, server_default=func.now())
+    car_id = Column(Integer, ForeignKey("cars.id", ondelete="CASCADE"), nullable=False, unique=True)
+    status = Column(Enum(AdModerationStatusEnum, name="moderation_status_enum"), default=AdModerationStatusEnum.pending, nullable=False)
+    moderator_comment = Column(Text, nullable=True)
+    moderation_date = Column(DateTime, server_default=func.now(), nullable=False)
+    moderator_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+
+    car = relationship("Car", back_populates="moderation")
+    moderator = relationship("User", back_populates="moderated_ads")
 
 class Review(Base):
     __tablename__ = "reviews"
@@ -255,8 +281,8 @@ class Deal(Base):
     created_at = Column(DateTime, server_default=func.now(), nullable=False)
 
     car = relationship("Car", back_populates="deals")
-    seller = relationship("User", foreign_keys=[seller_id], backref="sales")
-    buyer = relationship("User", foreign_keys=[buyer_id], backref="purchases")
+    seller = relationship("User", foreign_keys=[seller_id], back_populates="sales")
+    buyer = relationship("User", foreign_keys=[buyer_id], back_populates="purchases")
     review = relationship("Review", back_populates="deal", uselist=False, cascade="all, delete-orphan")
 
     __table_args__ = (

@@ -1,28 +1,31 @@
 from datetime import datetime
 from typing import List, Optional, Literal
-from decimal import Decimal
 from uuid import UUID
-from pydantic import BaseModel, EmailStr, Field
-
-from .car_scheme import Car
+from pydantic import BaseModel, Field
+from .car_scheme import CarCard
 
 # ================ AdModeration ================
-class AdModeration(BaseModel):
+class AdModerationBase(BaseModel):
+    status: Literal["На проверке", "Одобрено", "Отклонено"]
+    moderator_comment: Optional[str] = None
+
+class AdModerationCreate(AdModerationBase):
+    car_id: int
+
+class AdModerationUpdate(AdModerationBase):
+    pass
+
+class AdModeration(AdModerationBase):
     id: int
     car_id: int
-    status: str
-    moderator_comment: Optional[str]
     moderation_date: datetime
-    car: Car
+    moderator_id: Optional[int] = None
 
     class Config:
         from_attributes = True
 
-class AdModerationCreate(BaseModel):
-    car_id: int
-    is_approved: bool
-    moderator_comment: Optional[str] = None
+class AdModerationWithCar(AdModeration):
+    car: CarCard
 
-class AdModerationUpdate(BaseModel):
-    is_approved: Optional[bool] = None
-    moderator_comment: Optional[str] = None
+    class Config:
+        from_attributes = True

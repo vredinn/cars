@@ -11,6 +11,17 @@
           <h3 class="card-title">
             <span :class="{ 'line-through': car.is_sold }">{{ car.brand_name }} {{ car.model_name }} - {{ car.year }} г.</span>
             <span v-if="car.is_sold" class="badge badge-error">Продано</span>
+            <span 
+              v-if="isOwner || user?.is_admin"
+              class="badge"
+              :class="{
+                'badge-warning': car.moderation_status === 'pending' || car.moderation_status === 'На проверке',
+                'badge-success': car.moderation_status === 'approved' || car.moderation_status === 'Одобрено',
+                'badge-error': car.moderation_status === 'rejected' || car.moderation_status === 'Отклонено'
+              }"
+            >
+              {{ getModerationStatusDisplay(car.moderation_status) }}
+            </span>
           </h3>
           <p>
             {{ car.engine_power }} л.с. {{ car.fuel_type }}, {{ car.engine_capacity }} л,
@@ -93,6 +104,22 @@ function formatPrice(price) {
     currency: 'RUB',
     maximumFractionDigits: 0
   }).format(price)
+}
+
+function getModerationStatusDisplay(status) {
+  switch (status) {
+    case 'pending':
+    case 'На проверке':
+      return 'На проверке'
+    case 'approved':
+    case 'Одобрено':
+      return 'Одобрено'
+    case 'rejected':
+    case 'Отклонено':
+      return 'Отклонено'
+    default:
+      return status
+  }
 }
 
 async function checkFavorite() {

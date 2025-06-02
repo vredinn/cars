@@ -90,3 +90,11 @@ class UserLogin(BaseModel):
         if not re.match(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$', v):
             raise ValueError('Пароль должен содержать минимум 8 символов, включая заглавные и строчные буквы, и цифры')
         return v
+
+class UserAdmin(UserWithImage):
+    id: int
+    registration_date: datetime
+    cars_count: int = 0
+
+    class Config:
+        from_attributes = True

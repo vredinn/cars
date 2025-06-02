@@ -30,9 +30,15 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=409, detail="Email already registered")
     return crud.create_user(db, user)
 
-@router.get("/", response_model=List[UserBase])
-def read_users(db: Session = Depends(get_db)):
+@router.get("/", response_model=List[UserAdmin])
+def read_users(db: Session = Depends(get_db), current_user: User = Depends(security.require_user)):
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Только для администраторов")
     return crud.get_users(db)
+
+@router.get("/search", response_model=List[UserAdmin])
+def search_users(q: str, db: Session = Depends(get_db), current_user: User = Depends(security.require_user)):
+    return crud.search_users(db, q)
 
 @router.get("/{user_uuid}", response_model=UserProfile)
 def read_user_by_uuid(user_uuid: UUID, db: Session = Depends(get_db)):
@@ -175,8 +181,9 @@ def update_user(user_id: int, user: UserChangeRights, db: Session = Depends(get_
         raise HTTPException(status_code=404, detail="User not found")
     return updated
 
-@router.delete("/{user_id}")
-def delete_user(user_id: int, db: Session = Depends(get_db)):
+@router.delete("/{user_uuid}")
+def delete_user(user_uuid: UUID, db: Session = Depends(get_db)):
+    user_id = crud.get_user_id_by_uuid(db, user_uuid)
     if not crud.delete_user(db, user_id):
         raise HTTPException(status_code=404, detail="User not found")
     return {"message": "User deleted successfully"}

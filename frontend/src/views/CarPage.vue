@@ -84,6 +84,30 @@
               </div>
             </div>
           </div>
+
+          <!-- Статус модерации -->
+          <div v-if="isOwner || authUser?.is_admin" class="bg-base-200 p-4 rounded-xl mb-4">
+            <div class="flex items-center justify-between">
+              <div class="text-gray-500">Статус модерации</div>
+              <div>
+                <span 
+                  class="px-3 py-1 text-sm rounded-full"
+                  :class="{
+                    'bg-yellow-100 text-yellow-800': car.moderation_status === 'pending' || car.moderation_status === 'На проверке',
+                    'bg-green-100 text-green-800': car.moderation_status === 'approved' || car.moderation_status === 'Одобрено',
+                    'bg-red-100 text-red-800': car.moderation_status === 'rejected' || car.moderation_status === 'Отклонено'
+                  }"
+                >
+                  {{ getModerationStatusDisplay(car.moderation_status) }}
+                </span>
+              </div>
+            </div>
+            <div v-if="car.moderator_comment" class="mt-2">
+              <div class="text-gray-500">Комментарий модератора:</div>
+              <div class="font-bold mt-1">{{ car.moderator_comment }}</div>
+            </div>
+          </div>
+
           <!-- Характеристики -->
           <div class="grid grid-cols-2 gap-4 mb-4">
             <div class="bg-base-200 p-4 rounded-xl">
@@ -203,46 +227,46 @@
             </ul>
           </div>
         </div>
+        <div>
+          <div v-if="isOwner || authUser?.is_admin" class="flex flex-col items-center bg-base-200 rounded-2xl p-4 gap-4">
 
-        <!-- Связь с продавцом -->
-        <div v-if="!isOwner">
-          <p class="text-lg font-bold mb-4">Продавец:</p>
-          <div @click="goToUser(user.uuid)"
-            class="flex flex-col sm:flex-row bg-base-200 rounded-2xl items-center justify-between p-4 cursor-pointer">
-            <div class="flex flex-col text-center sm:text-left sm:flex-row items-center gap-4">
-              <figure class="w-32 sm:w-16 h-32 sm:h-16">
-                <img :src="user.avatar_url || '/uploads/user_example.webp'" 
-                  :alt="user.name" 
-                  class="rounded-2xl w-full h-full object-cover" 
-                />
-              </figure>
-              <div>
-                <h3 class="font-bold">{{ user.name }}</h3>
-                <p>На сайте с {{ formatTraderDate(user.registration_date) }}</p>
-              </div>
-            </div>
-            <div class="grid grid-cols-2 w-full sm:w-auto sm:flex items-center gap-2 mt-4 sm:mt-0">
-              <div class="flex flex-col justify-center items-center bg-base-300 rounded-xl sm:w-16 h-16">
-                <div class="rating rating-sm">
-                  <input type="radio" :name="'rating-' + user.uuid" class="mask mask-star-2 bg-orange-400" checked
-                    disabled />
+            <router-link :to="`/cars/edit/${car.uuid}`" class="btn btn-primary w-full">Редактировать
+              объявление</router-link>
+          </div>
+          <div v-if="!isOwner">
+            <p class="text-lg font-bold mb-4">Продавец:</p>
+            <div @click="goToUser(user.uuid)"
+              class="flex flex-col sm:flex-row bg-base-200 rounded-2xl items-center justify-between p-4 cursor-pointer">
+              <div class="flex flex-col text-center sm:text-left sm:flex-row items-center gap-4">
+                <figure class="w-32 sm:w-16 h-32 sm:h-16">
+                  <img :src="user.avatar_url || '/uploads/user_example.webp'" 
+                    :alt="user.name" 
+                    class="rounded-2xl w-full h-full object-cover" 
+                  />
+                </figure>
+                <div>
+                  <h3 class="font-bold">{{ user.name }}</h3>
+                  <p>На сайте с {{ formatTraderDate(user.registration_date) }}</p>
                 </div>
-                <div class="text-sm">{{ user.rating }}</div>
               </div>
-              <button @click.stop="openChat(car.uuid, user.uuid)"
-                class="btn btn-primary w-full sm:w-16 h-16 rounded-xl flex flex-col justify-center items-center gap-0">
-                <svg class="w-5 h-5 fill-primary-content">
-                  <use href="#icon_chat"></use>
-                </svg>
-                <div class="text-sm">Чат</div>
-              </button>
+              <div class="grid grid-cols-2 w-full sm:w-auto sm:flex items-center gap-2 mt-4 sm:mt-0">
+                <div class="flex flex-col justify-center items-center bg-base-300 rounded-xl sm:w-16 h-16">
+                  <div class="rating rating-sm">
+                    <input type="radio" :name="'rating-' + user.uuid" class="mask mask-star-2 bg-orange-400" checked
+                      disabled />
+                  </div>
+                  <div class="text-sm">{{ user.rating }}</div>
+                </div>
+                <button @click.stop="openChat(car.uuid, user.uuid)"
+                  class="btn btn-primary w-full sm:w-16 h-16 rounded-xl flex flex-col justify-center items-center gap-0">
+                  <svg class="w-5 h-5 fill-primary-content">
+                    <use href="#icon_chat"></use>
+                  </svg>
+                  <div class="text-sm">Чат</div>
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-        <div v-else class="flex flex-col items-center bg-base-200 rounded-2xl p-4 gap-4">
-          <!-- <div class="text-lg font-bold">Вы владелец этого объявления</div> -->
-          <router-link :to="`/cars/edit/${car.uuid}`" class="btn btn-primary w-full">Редактировать
-            объявление</router-link>
         </div>
       </div>
     </div>
@@ -251,7 +275,7 @@
     <dialog id="imageModal" class="modal" :open="isModalOpen" @click.self="closeModal">
       <!-- Модальное окно с адаптивными размерами -->
       <div
-        class="modal-box p-0 relative w-auto max-w-none rounded-none md:rounded-box flex flex-col bg-base-300 backdrop-blur-sm h-[100dvh] md:h-[90vh]">
+        class="modal-box p-0 relative w-auto max-w-none rounded-none flex flex-col bg-base-300 backdrop-blur h-[100dvh] w-[90dvw]">
         <button @click="closeModal" class="absolute top-2 right-2 btn btn-circle btn-sm z-20" aria-label="Закрыть">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -267,7 +291,7 @@
         </div>
 
         <!-- Панель управления с кнопками -->
-        <div class="sticky bottom-0 bg-base-100 bg-opacity-90 p-2 flex justify-center gap-4 z-10">
+        <div class="sticky bottom-0 bg-base-100 p-2 flex justify-center gap-4 z-10">
           <button @click.stop="prevImage" :disabled="currentIndex === 0" class="btn btn-circle">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
               stroke="currentColor">
@@ -704,5 +728,17 @@ function moveTouch(event) {
 function endTouch() {
   isDragging.value = false
   initialDistance.value = null
+}
+
+const getModerationStatusDisplay = (status) => {
+  const statusMap = {
+    'pending': 'На проверке',
+    'approved': 'Одобрено',
+    'rejected': 'Отклонено',
+    'На проверке': 'На проверке',
+    'Одобрено': 'Одобрено',
+    'Отклонено': 'Отклонено'
+  }
+  return statusMap[status] || status
 }
 </script>

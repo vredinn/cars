@@ -10,6 +10,7 @@ from .user_scheme import *
 from .car_image_scheme import *
 from .price_history_scheme import *
 from .review_schema import *
+
 # ================ Car ================
 class CarBase(BaseModel):
     year: int = Field(..., ge=1900, le=datetime.now().year + 1)
@@ -103,6 +104,9 @@ class Car(CarBase):
     user_uuid: UUID
     is_sold: bool
     listing_date: datetime
+    moderation_status: str
+    is_approved: bool
+    moderator_comment: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -114,11 +118,14 @@ class CarDetailed(Car):
     user: User
     price_history: List[PriceHistoryBase]
 
-class CarCard(Car):
+    class Config:
+        from_attributes = True
 
+class CarCard(Car):
     preview_image_url: Optional[str]  # первое изображение машины
     brand_name: str
     model_name: str
+    user: UserMinimal
 
     class Config:
         from_attributes = True
@@ -126,3 +133,5 @@ class CarCard(Car):
 class UserProfile(User):
     cars: List[CarCard]
     reviews_received: List[Review]
+
+CarCard.model_rebuild()  # Обновляем модель после определения всех зависимостей

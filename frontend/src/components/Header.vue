@@ -14,6 +14,11 @@
             @click="closeMobileMenu">Главная</router-link></li>
         <li><router-link to="/catalog" class="btn btn-ghost" active-class="btn btn-outline"
             @click="closeMobileMenu">Поиск</router-link></li>
+        <li v-if="user?.is_admin">
+          <router-link to="/admin" class="btn btn-ghost" active-class="btn btn-outline" @click="closeMobileMenu">
+            Админ-панель
+          </router-link>
+        </li>
       </ul>
     </div>
 
@@ -30,6 +35,11 @@
       <ul class="menu menu-horizontal space-x-2">
         <li><router-link to="/" class="btn btn-ghost" active-class="btn btn-outline">Главная</router-link></li>
         <li><router-link to="/catalog" class="btn btn-ghost" active-class="btn btn-outline">Поиск</router-link></li>
+        <li v-if="user?.is_admin">
+          <router-link to="/admin" class="btn btn-ghost" active-class="btn btn-outline">
+            Админ-панель
+          </router-link>
+        </li>
       </ul>
     </nav>
 

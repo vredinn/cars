@@ -7,6 +7,12 @@ import models as m
 from schemas import CarModelCreate
 
 # ================ CarModel CRUD ================
+def get_models(db: Session, search: Optional[str] = None):
+    q = db.query(m.CarModel)
+    if search:
+        q = q.filter(m.CarModel.name.ilike(f"%{search}%"))
+    return q.all()
+
 def get_model(db: Session, model_id: int):
     return db.query(m.CarModel).filter(m.CarModel.id == model_id).first()
 

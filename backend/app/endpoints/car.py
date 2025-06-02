@@ -28,6 +28,7 @@ def get_popular_cars(db: Session = Depends(get_db)):
 @router.get("/", response_model=Page[CarCard])
 def get_all_cars(
     db: Session = Depends(get_db),
+    current_user: Optional[User] = Depends(security.require_user),
     brand_id: Optional[int] = None,
     model_id: Optional[int] = None,
     min_price: Optional[float] = None,
@@ -60,30 +61,96 @@ def get_all_cars(
     page: int = Query(1, ge=1, description="Номер страницы (начиная с 1)"),    
     size: int = Query(10, include_in_schema=False, ge=1, le=100),
 ):
-    params = Params(page=page, size=10)
-    filters = build_filters(
-        brand_id, model_id, min_price, max_price, min_year, max_year,
-        min_mileage, max_mileage, min_engine_capacity, max_engine_capacity,
-        min_engine_power, max_engine_power, min_latitude, max_latitude,
-        min_longitude, max_longitude,center_latitude, center_longitude,
-        radius_km, color, drive_type, transmission,
-        fuel_type, steering_side, car_condition, is_sold, body_type
+    # Если пользователь не админ, показываем только одобренные объявления
+    if not (current_user and current_user.is_admin):
+        return crud.get_cars_paginated(
+            db,
+            params=Params(page=page, size=size),
+            brand_id=brand_id,
+            model_id=model_id,
+            min_price=min_price,
+            max_price=max_price,
+            min_year=min_year,
+            max_year=max_year,
+            min_mileage=min_mileage,
+            max_mileage=max_mileage,
+            min_engine_capacity=min_engine_capacity,
+            max_engine_capacity=max_engine_capacity,
+            min_engine_power=min_engine_power,
+            max_engine_power=max_engine_power,
+            min_latitude=min_latitude,
+            max_latitude=max_latitude,
+            min_longitude=min_longitude,
+            max_longitude=max_longitude,
+            center_latitude=center_latitude,
+            center_longitude=center_longitude,
+            radius_km=radius_km,
+            color=color,
+            drive_type=drive_type,
+            transmission=transmission,
+            fuel_type=fuel_type,
+            steering_side=steering_side,
+            car_condition=car_condition,
+            is_sold=is_sold,
+            body_type=body_type,
+            sort_by=sort_by,
+            sort_order=sort_order,
+            show_only_approved=True
+        )
+
+    return crud.get_cars_paginated(
+        db,
+        params=Params(page=page, size=size),
+        brand_id=brand_id,
+        model_id=model_id,
+        min_price=min_price,
+        max_price=max_price,
+        min_year=min_year,
+        max_year=max_year,
+        min_mileage=min_mileage,
+        max_mileage=max_mileage,
+        min_engine_capacity=min_engine_capacity,
+        max_engine_capacity=max_engine_capacity,
+        min_engine_power=min_engine_power,
+        max_engine_power=max_engine_power,
+        min_latitude=min_latitude,
+        max_latitude=max_latitude,
+        min_longitude=min_longitude,
+        max_longitude=max_longitude,
+        center_latitude=center_latitude,
+        center_longitude=center_longitude,
+        radius_km=radius_km,
+        color=color,
+        drive_type=drive_type,
+        transmission=transmission,
+        fuel_type=fuel_type,
+        steering_side=steering_side,
+        car_condition=car_condition,
+        is_sold=is_sold,
+        body_type=body_type,
+        sort_by=sort_by,
+        sort_order=sort_order,
+        show_only_approved=False
     )
 
-    # Удаляем фильтры со значением None
-    filters = {k: v for k, v in filters.items() if v is not None}
-
-    try:
-        return crud.get_all_cars_paginated(db, filters, sort_by, sort_order, params=params)
-    except SQLAlchemyError as e:
-        raise HTTPException(status_code=500, detail="Database error: " + str(e))
-
-
 @router.get("/user_cars/{user_uuid}", response_model=Page[CarCard])
-def get_user_cars(user_uuid: UUID, db: Session = Depends(get_db), page: int = Query(1, ge=1), size: int = Query(10, ge=1)):
-    params = Params(page=page, size=10) 
-    return crud.get_user_cars_paginated(db, user_uuid, params=params)
-
+def get_user_cars(
+    user_uuid: UUID,
+    db: Session = Depends(get_db),
+    current_user: Optional[User] = Depends(security.require_user),
+    page: int = Query(1, ge=1),
+    size: int = Query(10, ge=1)
+):
+    # Если это не профиль текущего пользователя и пользователь не админ,
+    # показываем только одобренные объявления
+    show_only_approved = not (
+        current_user and (
+            current_user.uuid == user_uuid or
+            current_user.is_admin
+        )
+    )
+    params = Params(page=page, size=size)
+    return crud.get_user_cars_paginated(db, user_uuid, params=params, show_only_approved=show_only_approved)
 
 def build_filters(
         brand_id, model_id, min_price, max_price, min_year, max_year,

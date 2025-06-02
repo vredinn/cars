@@ -420,7 +420,7 @@ async function loadCarData(carUUID) {
     // Проверяем, является ли пользователь владельцем
     if (authStore.user && authStore.user.uuid) {
       const ownRes = await api.get(`/cars/check_ownership/${carUUID}/${authStore.user.uuid}`)
-      if (!ownRes.data) {
+      if (!ownRes.data && !authStore.user.is_admin) {
         errorMessage.value = 'У вас нет прав для редактирования этого объявления'
         router.push(`/car/${carUUID}`)
       }

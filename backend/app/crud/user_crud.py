@@ -7,6 +7,7 @@ from fastapi_pagination import Params
 from sqlalchemy import asc, desc
 from pathlib import Path
 from typing import Optional
+from sqlalchemy.sql import or_
 
 import models as m
 from schemas import (
@@ -36,7 +37,10 @@ def get_user_by_email(db: Session, email: str):
     return db.query(m.User).filter(m.User.email == email).first()
 
 def get_users(db: Session):
-    return db.query(m.User).all()
+    users = db.query(m.User).all()
+    for user in users:
+        user.cars_count = len(user.cars)
+    return users
 
 def get_popular_users(db: Session):
     return db.query(m.User).filter(m.User.is_admin == False).order_by(desc(m.User.rating)).limit(4).all()
@@ -119,4 +123,15 @@ def authenticate_user(db: Session, email: EmailStr, password: str):
     if user and pwd_context.verify(password + settings.SALT, user.password):
         return user
     return None
+
+def search_users(db: Session, query: str):
+    users = db.query(m.User).filter(
+        or_(
+            m.User.name.ilike(f"%{query}%"),
+            m.User.email.ilike(f"%{query}%")
+        )
+    ).all()
+    for user in users:
+        user.cars_count = len(user.cars)
+    return users
 
