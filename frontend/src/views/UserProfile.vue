@@ -191,12 +191,7 @@ const hasAnyCars = computed(() => {
 const displayedCars = computed(() => {
   if (!isOwnProfile.value && carsTab.value === 'active') {
     // Для чужого профиля показываем только одобренные объявления, если пользователь не админ
-    if (!authStore.user?.is_admin) {
-      return activeCars.value.filter(car => 
-        car.moderation_status === 'approved' || car.moderation_status === 'Одобрено'
-      )
-    }
-    return activeCars.value
+      return activeCars.value
   } else if (!isOwnProfile.value && carsTab.value === 'sold') {
     return soldCars.value
   }

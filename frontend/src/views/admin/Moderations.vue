@@ -92,9 +92,9 @@
     </div>
 
     <!-- Диалог отклонения -->
-    <div v-if="showRejectForm" class="fixed inset-0 flex items-center justify-center backdrop-blur-sm">
-      <div class="bg-base-300 rounded-box p-6 w-full max-w-lg">
-        <h3 class="text-lg font-bold mb-4">Отклонить объявление</h3>
+    <dialog id="reject-modal" class="modal modal-bottom sm:modal-middle">
+      <div class="modal-box">
+        <h3 class="font-bold text-lg mb-4">Отклонить объявление</h3>
         <div class="mb-4">
           <label class="label text-sm font-medium mb-2">
             Причина отклонения
@@ -106,22 +106,17 @@
             placeholder="Укажите причину отклонения..."
           ></textarea>
         </div>
-        <div class="flex justify-end space-x-3">
-          <button
-            @click="closeRejectDialog"
-            class="btn btn-primary"
-          >
-            Отмена
-          </button>
-          <button
-            @click="confirmReject"
-            class="btn btn-error"
-          >
-            Отклонить
-          </button>
+        <div class="modal-action">
+          <form method="dialog" class="flex gap-2">
+            <button class="btn" @click="closeRejectModal">Отмена</button>
+            <button class="btn btn-error" @click="confirmReject">Отклонить</button>
+          </form>
         </div>
       </div>
-    </div>
+      <form method="dialog" class="modal-backdrop">
+        <button>закрыть</button>
+      </form>
+    </dialog>
   </div>
   <!-- Add toast container -->
   <div class="toast toast-end">
@@ -136,7 +131,6 @@ import { ref, onMounted } from 'vue'
 import api from '@/api'
 
 const moderations = ref([])
-const showRejectForm = ref(false)
 const rejectReason = ref('')
 const selectedItem = ref(null)
 
@@ -191,11 +185,13 @@ const showRejectDialog = (item) => {
   }
   selectedItem.value = item
   rejectReason.value = ''
-  showRejectForm.value = true
+  const modal = document.getElementById('reject-modal')
+  modal?.showModal()
 }
 
-const closeRejectDialog = () => {
-  showRejectForm.value = false
+const closeRejectModal = () => {
+  const modal = document.getElementById('reject-modal')
+  modal?.close()
   selectedItem.value = null
   rejectReason.value = ''
 }

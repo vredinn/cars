@@ -73,6 +73,22 @@
         </form>
       </div>
     </dialog>
+    <!-- Модальное окно подтверждения удаления -->
+    <dialog id="delete-brand-modal" class="modal modal-bottom sm:modal-middle">
+      <div class="modal-box">
+        <h3 class="font-bold text-lg text-error mb-4">Удаление марки</h3>
+        <p>Вы уверены, что хотите удалить эту марку? Это действие нельзя отменить.</p>
+        <div class="modal-action">
+          <form method="dialog" class="flex gap-2">
+            <button class="btn" @click="closeDeleteModal">Отмена</button>
+            <button class="btn btn-error" @click="confirmDeleteBrand">Удалить</button>
+          </form>
+        </div>
+      </div>
+      <form method="dialog" class="modal-backdrop">
+        <button>закрыть</button>
+      </form>
+    </dialog>
   </div>
 </template>
 
@@ -86,6 +102,7 @@ const editMode = ref(false)
 const form = ref({ id: null, name: '', image_url: '' })
 let file = null
 const previewImage = ref(null)
+const brandToDelete = ref(null)
 
 const fetchBrands = async () => {
   const { data } = await api.get('/brands/')
@@ -145,24 +162,42 @@ const startEdit = (brand) => {
   showAddModal.value = true
   editMode.value = true
 }
-
-const deleteBrand = async (id) => {
-  const brand = brands.value.find(b => b.id === id)
-  if (confirm('Удалить марку?')) {
-    if (brand.image_url) {
-      await api.delete(brand.image_url) // путь должен вести к DELETE API, удаляющему фото
-    }
-    await api.delete(`/api/brands/${id}`)
-    fetchBrands()
-  }
-}
-
 const closeModal = () => {
   showAddModal.value = false
   editMode.value = false
   form.value = { id: null, name: '', image_url: '' }
   previewImage.value = null
   file = null
+}
+
+const deleteBrand = (id) => {
+  brandToDelete.value = id
+  const modal = document.getElementById('delete-brand-modal')
+  modal?.showModal()
+}
+
+const closeDeleteModal = () => {
+  brandToDelete.value = null
+  const modal = document.getElementById('delete-brand-modal')
+  modal?.close()
+}
+
+const confirmDeleteBrand = async () => {
+  if (!brandToDelete.value) return
+  
+  try {
+    const brand = brands.value.find(b => b.id === brandToDelete.value)
+    if (brand.image_url) {      
+    const filename = brand.image_url.split('/').pop()
+      await api.delete(`/brands/image/${filename}`)
+    }
+    await api.delete(`/brands/${brandToDelete.value}`)
+    fetchBrands()
+  } catch (error) {
+    console.error('Ошибка удаления марки:', error)
+  } finally {
+    closeDeleteModal()
+  }
 }
 
 onMounted(fetchBrands)

@@ -79,34 +79,23 @@
           </tr>
         </tbody>
       </table>
-    </div
+    </div>
 
-    <!-- Диалог удаления пользователя -->
-    <div v-if="showDeleteForm" class="fixed inset-0 flex items-center justify-center backdrop-blur-sm">
-      <div class="bg-base-300 rounded-box p-6 w-full max-w-lg">
-        <h3 class="text-lg font-bold mb-4">Удалить пользователя</h3>
-        <div class="mb-4">
-          <p>
-            Вы действительно хотите удалить пользователя {{ selectedUser?.name }}?
-            Это действие нельзя отменить.
-          </p>
-        </div>
-        <div class="flex justify-end space-x-3">
-          <button
-            @click="closeDeleteDialog"
-            class="btn btn-primary"
-          >
-            Отмена
-          </button>
-          <button
-            @click="confirmDelete"
-            class="btn btn-error"
-          >
-            Удалить
-          </button>
+    <dialog id="delete-user-modal" class="modal modal-bottom sm:modal-middle">
+      <div class="modal-box">
+        <h3 class="font-bold text-lg text-error mb-4">Удаление пользователя</h3>
+        <p>Вы уверены, что хотите удалить пользователя {{ selectedUser?.name }}? Это действие нельзя отменить.</p>
+        <div class="modal-action">
+          <form method="dialog" class="flex gap-2">
+            <button class="btn" @click="closeDeleteModal">Отмена</button>
+            <button class="btn btn-error" @click="confirmDelete">Удалить</button>
+          </form>
         </div>
       </div>
-    </div>
+      <form method="dialog" class="modal-backdrop">
+        <button>закрыть</button>
+      </form>
+    </dialog>
 
     <!-- Toast container -->
     <div class="toast toast-end">
@@ -186,13 +175,16 @@ const editUser = (uuid) => {
 
 const showDeleteDialog = (user) => {
   selectedUser.value = user
-  showDeleteForm.value = true
+  const modal = document.getElementById('delete-user-modal')
+  modal?.showModal()
 }
 
-const closeDeleteDialog = () => {
-  showDeleteForm.value = false
+const closeDeleteModal = () => {
+  const modal = document.getElementById('delete-user-modal')
+  modal?.close()
   selectedUser.value = null
 }
+
 
 const confirmDelete = async () => {
   if (!selectedUser.value?.uuid) {

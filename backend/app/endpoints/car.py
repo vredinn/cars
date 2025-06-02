@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+import json
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 from fastapi_pagination import Page, Params, paginate
@@ -26,9 +27,9 @@ def get_popular_cars(db: Session = Depends(get_db)):
     return crud.get_most_popular_cars(db)
 
 @router.get("/", response_model=Page[CarCard])
-def get_all_cars(
+async def get_all_cars(    
+    request: Request,
     db: Session = Depends(get_db),
-    current_user: Optional[User] = Depends(security.require_user),
     brand_id: Optional[int] = None,
     model_id: Optional[int] = None,
     min_price: Optional[float] = None,
@@ -60,10 +61,17 @@ def get_all_cars(
     sort_order: Optional[str] = "desc",    
     page: int = Query(1, ge=1, description="Номер страницы (начиная с 1)"),    
     size: int = Query(10, include_in_schema=False, ge=1, le=100),
+
 ):
-    # Если пользователь не админ, показываем только одобренные объявления
-    if not (current_user and current_user.is_admin):
-        return crud.get_cars_paginated(
+    req_token = await security.get_access_token(request)
+    if not req_token:
+        current_user = None
+    else:
+        token = security.auth.verify_token(req_token, verify_csrf=False)
+        current_user = security.require_user(token=token, db=db)
+    
+    show_only_approved = not (current_user and current_user.is_admin)
+    return crud.get_cars_paginated(
             db,
             params=Params(page=page, size=size),
             brand_id=brand_id,
@@ -95,60 +103,27 @@ def get_all_cars(
             body_type=body_type,
             sort_by=sort_by,
             sort_order=sort_order,
-            show_only_approved=True
+            show_only_approved=show_only_approved
         )
 
-    return crud.get_cars_paginated(
-        db,
-        params=Params(page=page, size=size),
-        brand_id=brand_id,
-        model_id=model_id,
-        min_price=min_price,
-        max_price=max_price,
-        min_year=min_year,
-        max_year=max_year,
-        min_mileage=min_mileage,
-        max_mileage=max_mileage,
-        min_engine_capacity=min_engine_capacity,
-        max_engine_capacity=max_engine_capacity,
-        min_engine_power=min_engine_power,
-        max_engine_power=max_engine_power,
-        min_latitude=min_latitude,
-        max_latitude=max_latitude,
-        min_longitude=min_longitude,
-        max_longitude=max_longitude,
-        center_latitude=center_latitude,
-        center_longitude=center_longitude,
-        radius_km=radius_km,
-        color=color,
-        drive_type=drive_type,
-        transmission=transmission,
-        fuel_type=fuel_type,
-        steering_side=steering_side,
-        car_condition=car_condition,
-        is_sold=is_sold,
-        body_type=body_type,
-        sort_by=sort_by,
-        sort_order=sort_order,
-        show_only_approved=False
-    )
-
 @router.get("/user_cars/{user_uuid}", response_model=Page[CarCard])
-def get_user_cars(
+async def get_user_cars(
+    request: Request,
     user_uuid: UUID,
     db: Session = Depends(get_db),
-    current_user: Optional[User] = Depends(security.require_user),
     page: int = Query(1, ge=1),
     size: int = Query(10, ge=1)
 ):
-    # Если это не профиль текущего пользователя и пользователь не админ,
-    # показываем только одобренные объявления
-    show_only_approved = not (
-        current_user and (
-            current_user.uuid == user_uuid or
-            current_user.is_admin
-        )
-    )
+    
+    req_token = await security.get_access_token(request)
+    if not req_token:
+        current_user = None
+    else:
+        token = security.auth.verify_token(req_token, verify_csrf=False)
+        current_user = security.require_user(token=token, db=db)
+
+    show_only_approved = not (current_user and (str(current_user.uuid) == str(user_uuid) or current_user.is_admin))
+
     params = Params(page=page, size=size)
     return crud.get_user_cars_paginated(db, user_uuid, params=params, show_only_approved=show_only_approved)
 

@@ -67,6 +67,23 @@
         </form>
       </div>
     </dialog>
+
+    <!-- Модальное окно подтверждения удаления -->
+    <dialog id="delete-model-modal" class="modal modal-bottom sm:modal-middle">
+      <div class="modal-box">
+        <h3 class="font-bold text-lg text-error mb-4">Удаление модели</h3>
+        <p>Вы уверены, что хотите удалить эту модель? Это действие нельзя отменить.</p>
+        <div class="modal-action">
+          <form method="dialog" class="flex gap-2">
+            <button class="btn" @click="closeDeleteModal">Отмена</button>
+            <button class="btn btn-error" @click="confirmDeleteModel">Удалить</button>
+          </form>
+        </div>
+      </div>
+      <form method="dialog" class="modal-backdrop">
+        <button>закрыть</button>
+      </form>
+    </dialog>
   </div>
 </template>
 
@@ -81,6 +98,7 @@ const showAddModal = ref(false)
 const editMode = ref(false)
 const form = ref({ id: null, name: '', brand_id: '' })
 const searchQuery = ref('')
+const modelToDelete = ref(null)
 
 const fetchModels = async (search = '') => {
   try {
@@ -109,7 +127,7 @@ const saveModel = async () => {
     if (editMode.value) {
       await api.put(`/models/${form.value.id}`, form.value)
     } else {
-      await api.post('/models', form.value)
+      await api.post('/models/', form.value)
     }
     closeModal()
     await fetchModels(searchQuery.value)
@@ -124,17 +142,6 @@ const startEdit = (model) => {
   editMode.value = true
 }
 
-const deleteModel = async (id) => {
-  if (confirm('Удалить модель?')) {
-    try {
-      await api.delete(`/models/${id}`)
-      await fetchModels(searchQuery.value)
-    } catch (error) {
-      console.error('Failed to delete model:', error)
-    }
-  }
-}
-
 const closeModal = () => {
   showAddModal.value = false
   editMode.value = false
@@ -144,6 +151,31 @@ const closeModal = () => {
 const getBrandName = (id) => {
   const brand = brands.value.find(b => b.id === id)
   return brand?.name || '—'
+}
+
+const deleteModel = (id) => {
+  modelToDelete.value = id
+  const modal = document.getElementById('delete-model-modal')
+  modal?.showModal()
+}
+
+const closeDeleteModal = () => {
+  modelToDelete.value = null
+  const modal = document.getElementById('delete-model-modal')
+  modal?.close()
+}
+
+const confirmDeleteModel = async () => {
+  if (!modelToDelete.value) return
+  
+  try {
+    await api.delete(`/models/${modelToDelete.value}`)
+    await fetchModels(searchQuery.value)
+  } catch (error) {
+    console.error('Ошибка удаления модели:', error)
+  } finally {
+    closeDeleteModal()
+  }
 }
 
 onMounted(() => {
