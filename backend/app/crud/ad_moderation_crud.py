@@ -88,13 +88,3 @@ def delete_ad_moderation(db: Session, moderation_id: int):
     db.delete(obj)
     db.commit()
     return True
-
-def get_moderation_stats(db: Session):
-    """Get statistics about moderation status"""
-    stats = {
-        "total": db.query(m.AdModeration).count(),
-        "pending": db.query(m.AdModeration).filter(m.AdModeration.status == m.AdModerationStatusEnum.pending).count(),
-        "approved": db.query(m.AdModeration).filter(m.AdModeration.status == m.AdModerationStatusEnum.approved).count(),
-        "rejected": db.query(m.AdModeration).filter(m.AdModeration.status == m.AdModerationStatusEnum.rejected).count(),
-    }
-    return stats

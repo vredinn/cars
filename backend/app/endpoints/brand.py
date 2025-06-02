@@ -5,6 +5,7 @@ from PIL import Image
 from pathlib import Path
 import io
 from uuid import uuid4
+from security import require_admin
 from database import get_db
 from schemas import Brand, BrandCreate
 import crud
@@ -32,12 +33,12 @@ def get_brand(brand_id: int, db: Session = Depends(get_db)):
     return brand
 
 
-@router.post("/", response_model=Brand)
+@router.post("/", response_model=Brand, dependencies=[Depends(require_admin)])
 def create_brand(brand: BrandCreate, db: Session = Depends(get_db)):
     return crud.create_brand(db, brand)
 
 
-@router.post("/upload", response_model=str)
+@router.post("/upload", response_model=str, dependencies=[Depends(require_admin)])
 async def upload_brand_logo(file: UploadFile = File(...)):
     if file.content_type not in ALLOWED_IMAGE_TYPES:
         raise HTTPException(status_code=400, detail="Допустимы только JPEG и PNG")
@@ -78,7 +79,7 @@ async def upload_brand_logo(file: UploadFile = File(...)):
         )
 
 
-@router.delete("/image/{filename}")
+@router.delete("/image/{filename}", dependencies=[Depends(require_admin)])
 def delete_brand_image(filename: str):
     try:
         filepath = BRANDS_DIR / Path(filename).name
@@ -91,7 +92,7 @@ def delete_brand_image(filename: str):
         raise HTTPException(status_code=400, detail=f"Ошибка удаления изображения: {e}")
 
 
-@router.put("/{brand_id}", response_model=Brand)
+@router.put("/{brand_id}", response_model=Brand, dependencies=[Depends(require_admin)])
 def update_brand(brand_id: int, brand: BrandCreate, db: Session = Depends(get_db)):
 
     updated = crud.update_brand(db, brand_id, brand)
@@ -100,7 +101,7 @@ def update_brand(brand_id: int, brand: BrandCreate, db: Session = Depends(get_db
     return updated
 
 
-@router.delete("/{brand_id}")
+@router.delete("/{brand_id}", dependencies=[Depends(require_admin)])
 def delete_brand(brand_id: int, db: Session = Depends(get_db)):
     if not crud.delete_brand(db, brand_id):
         raise HTTPException(status_code=404, detail="Brand not found")

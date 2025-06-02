@@ -12,7 +12,7 @@
         <div class="stats rounded-none">
           <div class="stat p-0">
             <div class="stat-title">Средний рейтинг</div>
-            <div class="stat-value text-primary">{{ averageRating.toFixed(1) }}</div>
+            <div class="stat-value text-primary">{{ averageRating.toFixed(2) }}</div>
             <div class="stat-desc">На основе {{ totalReviews }} отзывов</div>
           </div>
         </div>

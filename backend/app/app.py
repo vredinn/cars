@@ -8,6 +8,7 @@ from endpoints import (
     user, moderation, auth, brand, car, review, message, favorite, car_image, enum, car_model, deal
 )
 
+
 def create_app():
     app = FastAPI(title="Car Ads API")
 

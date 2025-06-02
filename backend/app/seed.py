@@ -29,7 +29,7 @@ def update_user_rating(session: Session, user_uuid: uuid.UUID):
         avg_rating = sum(review.rating for review in reviews) / len(reviews)
         user = session.query(User).filter(User.uuid == user_uuid).first()
         if user:
-            user.rating = round(avg_rating, 1)
+            user.rating = round(avg_rating, 2)
 
 def seed_data(session: Session):
     print("Очистка таблиц...")

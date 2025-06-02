@@ -16,7 +16,7 @@ from security import require_user, require_admin
 
 router = APIRouter(prefix="/moderation", tags=["Moderation"])
 
-@router.get("/pending", response_model=List[AdModerationWithCar])
+@router.get("/pending", response_model=List[AdModerationWithCar], dependencies=[Depends(require_admin)])
 def get_pending_moderations(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=100),
@@ -26,7 +26,7 @@ def get_pending_moderations(
     """Получить список объявлений на модерации (только для админов)"""
     return ad_moderation_crud.get_pending_moderations(db, skip=skip, limit=limit)
 
-@router.get("/user/{user_id}", response_model=List[AdModerationWithCar])
+@router.get("/user/{user_id}", response_model=List[AdModerationWithCar], dependencies=[Depends(require_admin)])
 def get_user_moderations(
     user_id: int,
     skip: int = Query(0, ge=0),
@@ -40,15 +40,7 @@ def get_user_moderations(
         raise HTTPException(status_code=403, detail="Недостаточно прав")
     return ad_moderation_crud.get_user_moderations(db, user_id=user_id, skip=skip, limit=limit)
 
-@router.get("/stats")
-def get_moderation_stats(
-    current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db)
-):
-    """Получить статистику по модерациям (только для админов)"""
-    return ad_moderation_crud.get_moderation_stats(db)
-
-@router.get("/{car_id}", response_model=AdModerationWithCar)
+@router.get("/{car_id}", response_model=AdModerationWithCar, dependencies=[Depends(require_admin)])
 def get_ad_moderation(
     car_id: int,
     current_user: User = Depends(require_user),
@@ -65,7 +57,7 @@ def get_ad_moderation(
     
     return moderation
 
-@router.put("/{car_id}", response_model=AdModeration)
+@router.put("/{car_id}", response_model=AdModeration, dependencies=[Depends(require_admin)])
 def update_ad_moderation(
     car_id: int,
     moderation: AdModerationUpdate,

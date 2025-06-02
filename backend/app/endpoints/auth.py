@@ -65,8 +65,3 @@ def get_me(
         raise HTTPException(status_code=404, detail="User not found")
     return user
 
-@router.get("/admin", dependencies=[Depends(security.require_admin)])
-def get_admin(
-):
-    return {"message": "Ох ох админ зашел"}
-

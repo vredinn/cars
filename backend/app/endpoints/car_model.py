@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
 
+from security import require_admin
 from database import get_db
 from schemas import CarModel, CarModelCreate
 import crud
@@ -23,18 +24,18 @@ def get_model(model_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Model not found")
     return model
 
-@router.post("/", response_model=CarModel)
+@router.post("/", response_model=CarModel, dependencies=[Depends(require_admin)])
 def create_model(model: CarModelCreate, db: Session = Depends(get_db)):
     return crud.create_model(db, model)
 
-@router.put("/{model_id}", response_model=CarModel)
+@router.put("/{model_id}", response_model=CarModel, dependencies=[Depends(require_admin)])
 def update_model(model_id: int, model: CarModelCreate, db: Session = Depends(get_db)):
     updated = crud.update_model(db, model_id, model)
     if not updated:
         raise HTTPException(status_code=404, detail="Model not found")
     return updated
 
-@router.delete("/{model_id}")
+@router.delete("/{model_id}", dependencies=[Depends(require_admin)])
 def delete_model(model_id: int, db: Session = Depends(get_db)):
     if not crud.delete_model(db, model_id):
         raise HTTPException(status_code=404, detail="Model not found")
