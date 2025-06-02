@@ -143,6 +143,7 @@ def get_most_popular_cars(db: Session, limit: int = 10):
     query = (
         db.query(m.Car)
         .join(subquery, m.Car.id == subquery.c.car_id)
+        .filter(m.Car.is_sold == False)
         .order_by(subquery.c.fav_count.desc())
         .limit(limit)
     )

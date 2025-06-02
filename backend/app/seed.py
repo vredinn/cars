@@ -49,18 +49,18 @@ def seed_data(session: Session):
     print("Очистка завершена, создание новых данных...")
 
     # Users
-    users = [
-        User(
-            uuid=uuid.uuid4(),
-            name="Админ",
-            email="admin@example.com",
-            phone="+79990001122",
-            password=pwd_context.hash("Password123" + settings.SALT),
-            is_admin=True,
-            rating=0,
-            registration_date=datetime.now(),
-            avatar_url="/uploads/admin_avatar.webp"
-        ),
+    admin_user = User(
+        uuid=uuid.uuid4(),
+        name="Админ",
+        email="admin@example.com",
+        phone="+79990001122",
+        password=pwd_context.hash("Password123" + settings.SALT),
+        is_admin=True,
+        rating=0,
+        registration_date=datetime.now()
+    )
+    
+    regular_users = [
         User(
             uuid=uuid.uuid4(),
             name="Обычный",
@@ -68,13 +68,13 @@ def seed_data(session: Session):
             phone="+79998887766",
             password=pwd_context.hash("Password123" + settings.SALT),
             rating=0,
-            registration_date=datetime.now(),
-            avatar_url="/uploads/user_example.webp"
+            registration_date=datetime.now()
         )
     ]
+    
     # Additional users
     for i in range(8):
-        users.append(User(
+        regular_users.append(User(
             uuid=uuid.uuid4(),
             name=faker.name(),
             email=faker.unique.email(),
@@ -83,7 +83,9 @@ def seed_data(session: Session):
             rating=0,
             registration_date=datetime.now(),
         ))
-    session.add_all(users)
+    
+    session.add(admin_user)
+    session.add_all(regular_users)
     session.flush()
 
     # Brands
@@ -130,7 +132,7 @@ def seed_data(session: Session):
     # Cars + Related
     cars = []
     for i in range(20):
-        user = random.choice(users)
+        user = random.choice(regular_users)  # Only regular users can have cars
         model = random.choice(models)
         price = Decimal(str(random.randint(500_000, 10_000_000)))
         car = Car(
@@ -175,20 +177,20 @@ def seed_data(session: Session):
             moderation_date=datetime.now()
         ))
 
-        # Favorite
+        # Favorite - only regular users can have favorites
         if random.choice([True, False]):
-            potential_users = [u for u in users if u.id != car.user_id]
+            potential_users = [u for u in regular_users if u.id != car.user_id]
             if potential_users:
                 session.add(Favorite(
                     user_id=random.choice(potential_users).id,
                     car_id=car.id
                 ))
 
-    # Create Deals and Reviews
+    # Create Deals and Reviews - only between regular users
     for car in cars:
         if car.is_sold:
-            # Create a deal
-            buyer = random.choice([u for u in users if u.id != car.user_id])
+            # Create a deal with regular users only
+            buyer = random.choice([u for u in regular_users if u.id != car.user_id])
             deal = Deal(
                 uuid=uuid.uuid4(),
                 car_id=car.id,
@@ -199,8 +201,7 @@ def seed_data(session: Session):
             session.add(deal)
             session.flush()
 
-            # Add a review from buyer to seller (only for completed deals)
-
+            # Add a review from buyer to seller (only for completed deals between regular users)
             review = Review(
                 uuid=uuid.uuid4(),
                 user_uuid=buyer.uuid,  # reviewer (buyer)
@@ -215,12 +216,12 @@ def seed_data(session: Session):
             # Update seller's rating after adding a review
             update_user_rating(session, car.user.uuid)
 
-    # Add some messages
+    # Add some messages - only between regular users
     for _ in range(30):
         car = random.choice(cars)
-        sender = random.choice(users)
+        sender = random.choice(regular_users)
         # Получатель - либо владелец машины (если отправитель не он), либо случайный другой пользователь
-        receiver = car.user if sender != car.user else random.choice([u for u in users if u != sender])
+        receiver = car.user if sender != car.user else random.choice([u for u in regular_users if u != sender])
         session.add(Message(
             uuid=uuid.uuid4(),
             car_uuid=car.uuid,

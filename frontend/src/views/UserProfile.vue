@@ -81,7 +81,36 @@
         Мои объявления
       </a>
     </div>
-    <h3 v-else class="text-xl font-bold mb-4">Объявления пользователя</h3>
+
+    <!-- Кнопка создания объявления в разделе "Мои объявления" -->
+    <div v-if="isOwnProfile && activeTab === 'ads'" class="flex justify-center">
+      <router-link to="/create_car" class="btn btn-primary">
+        Создать объявление
+      </router-link>
+    </div>
+
+    <!-- Вкладки для объявлений (как для своих, так и для чужих профилей) -->
+    <div v-if="!isOwnProfile || (isOwnProfile && activeTab === 'ads')" class="mb-4">
+      <h3 v-if="!isOwnProfile" class="text-xl font-bold">Объявления пользователя</h3>
+      <div v-if="hasAnyCars" class="tabs tabs-border justify-center">
+        <a 
+          v-if="hasActiveCars"
+          class="tab" 
+          :class="{ 'tab-active': carsTab === 'active' }"
+          @click="setCarsTab('active')"
+        >
+          Активные
+        </a>
+        <a 
+          v-if="hasSoldCars"
+          class="tab" 
+          :class="{ 'tab-active': carsTab === 'sold' }"
+          @click="setCarsTab('sold')"
+        >
+          Проданные
+        </a>
+      </div>
+    </div>
 
     <div v-if="isCarsLoading || isFavoritesLoading" class="flex justify-center my-8">
       <span class="loading loading-spinner loading-lg"></span>
@@ -89,22 +118,10 @@
 
     <div v-else>
       <div v-if="displayedCars.length > 0" class="grid grid-cols-1 gap-4">
-        <!-- Кнопка создания объявления в разделе "Мои объявления" -->
-        <div v-if="isOwnProfile && activeTab === 'ads'" class="flex justify-center">
-          <router-link to="/create_car" class="btn btn-primary">
-            Создать объявление
-          </router-link>
-        </div>
         <CarCard v-for="car in displayedCars" :key="car.uuid" :car="car" />
       </div>
       <div v-else class="text-center py-8">
         <p class="text-lg">{{ noItemsMessage }}</p>
-        <!-- Кнопка создания объявления, если нет объявлений -->
-        <div v-if="isOwnProfile && activeTab === 'ads'" class="mt-4">
-          <router-link to="/create_car" class="btn btn-primary">
-            Создать объявление
-          </router-link>
-        </div>
       </div>
 
       <Pagination
@@ -151,15 +168,34 @@ const favoritesPage = ref(1)
 const favoritesTotalPages = ref(1)
 
 const activeTab = ref('favorites')
+const carsTab = ref('active')
+const activeCars = ref([])
+const soldCars = ref([])
 
 // Вычисляемые свойства
 const isOwnProfile = computed(() => {
   return authStore.user && user.value && authStore.user.uuid === user.value.uuid
 })
 
+const hasActiveCars = computed(() => {
+  return activeCars.value.length > 0
+})
+
+const hasSoldCars = computed(() => {
+  return soldCars.value.length > 0
+})
+
+const hasAnyCars = computed(() => {
+  return hasActiveCars.value || hasSoldCars.value
+})
+
 const displayedCars = computed(() => {
-  if (!isOwnProfile.value) return cars.value
-  // Extract car objects from favorites and ensure they have brand and model names
+  if (!isOwnProfile.value && carsTab.value === 'active') {
+    return activeCars.value
+  } else if (!isOwnProfile.value && carsTab.value === 'sold') {
+    return soldCars.value
+  }
+
   if (activeTab.value === 'favorites') {
     return favorites.value.map(favorite => {
       const car = favorite.car
@@ -170,16 +206,22 @@ const displayedCars = computed(() => {
       }
     })
   }
-  return cars.value
+
+  return carsTab.value === 'active' ? activeCars.value : soldCars.value
 })
 
 const noItemsMessage = computed(() => {
   if (!isOwnProfile.value) {
-    return 'Пользователь пока не опубликовал ни одного объявления.'
+    return carsTab.value === 'active'
+      ? 'У пользователя нет активных объявлений.'
+      : 'У пользователя нет проданных объявлений.'
   }
-  return activeTab.value === 'favorites' 
-    ? 'В избранном пока нет объявлений.' 
-    : 'У вас пока нет опубликованных объявлений.'
+  if (activeTab.value === 'favorites') {
+    return 'В избранном пока нет объявлений.'
+  }
+  return carsTab.value === 'active'
+    ? 'У вас пока нет активных объявлений.'
+    : 'У вас пока нет проданных объявлений.'
 })
 
 // Вычисляемые свойства для пагинации
@@ -261,7 +303,17 @@ async function fetchCars(page = 1) {
   try {
     const uuid = route.params.uuid
     const { data } = await api.get(`/cars/user_cars/${uuid}?page=${page}`)
-    cars.value = data.items
+    // Разделяем объявления на активные и проданные
+    activeCars.value = data.items.filter(car => !car.is_sold)
+    soldCars.value = data.items.filter(car => car.is_sold)
+    
+    // Если текущая вкладка пуста и есть объявления в другой вкладке, переключаемся
+    if (carsTab.value === 'active' && !hasActiveCars.value && hasSoldCars.value) {
+      carsTab.value = 'sold'
+    } else if (carsTab.value === 'sold' && !hasSoldCars.value && hasActiveCars.value) {
+      carsTab.value = 'active'
+    }
+    
     carsTotalPages.value = data.pages
     carsPage.value = data.page
   } catch (error) {
@@ -315,6 +367,14 @@ function changePage(page) {
 async function changeReviewsPage(page) {
   if (page < 1 || page > reviewsTotalPages.value || page === reviewsPage.value) return
   await fetchReviews(page)
+}
+
+// Функция для переключения вкладок объявлений
+function setCarsTab(tab) {
+  carsTab.value = tab
+  // При смене вкладки загружаем данные с первой страницы
+  carsPage.value = 1
+  fetchCars(1)
 }
 
 // Загрузка данных при монтировании

@@ -35,8 +35,8 @@ async def create_car_image(
     user: User = Depends(security.require_user),
     db: Session = Depends(get_db)
 ):
-    if (not crud.check_ownership(db, car_uuid, user.uuid) or user.is_admin):
-        return HTTPException(status_code=403, detail="Нет прав на добавление изображения")
+    if not (crud.check_ownership(db, car_uuid, user.uuid) or user.is_admin):
+        raise HTTPException(status_code=403, detail="Нет прав на добавление изображения")
     
     car_id = crud.get_car_id_by_uuid(db, car_uuid)
     car = db.query(m.Car).filter(m.Car.id == car_id).first()

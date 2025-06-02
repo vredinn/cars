@@ -3,9 +3,9 @@
     <div class="flex-grow container mx-auto px-4 py-8">
       <!-- Основное содержимое страницы -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div class="bg-base-200 rounded-xl text-center mb-4 py-4 flex justify-around flex-wrap  md:hidden">
-          <h1 class="text-3xl font-bold mb-0">{{ car.brand_name }} {{ car.model_name }}</h1>
-          <div class="font-bold text-3xl">{{ formatPrice(car.price) }}</div>
+        <div class="bg-base-200 rounded-xl text-center py-4 flex justify-around flex-wrap md:hidden" :class="{ 'border-dashed border-2 border-error': car.is_sold }">
+          <h1 class="text-3xl font-bold mb-0" :class="{ 'line-through': car.is_sold }">{{ car.brand_name }} {{ car.model_name }}</h1>
+          <div class="font-bold text-3xl" :class="{ 'line-through': car.is_sold }">{{ formatPrice(car.price) }}</div>
           <div v-if="isOwner" class="badge badge-lg h-10 badge-dash">
             Ваше объявление
           </div>
@@ -24,13 +24,15 @@
                 <svg class="w-4 h-4 fill-secondary-content">
                   <use href="#icon_favorite" />
                 </svg>
-                <template class="hidden md:block">Уже в избранном</template>
+                <template class="hidden md:block">В избранном</template>
               </button>
             </div>
           </div>
         </div>
         <!-- Галерея изображений -->
         <div>
+          
+          <div v-if="car.is_sold" class="badge badge-error w-full mb-2">Продано</div>
           <!-- Основное изображение -->
           <div class="w-full rounded-xl overflow-hidden">
             <img :src="currentImage || '/uploads/no_car_image.png'"
@@ -55,9 +57,9 @@
 
         <!-- Информация об автомобиле -->
         <div class="row-span-3">
-          <div class="bg-base-200 rounded-xl text-center mb-4 py-4 hidden md:flex justify-around flex-wrap">
-            <h1 class="text-3xl font-bold mb-0">{{ car.brand_name }} {{ car.model_name }}</h1>
-            <div class="font-bold text-3xl">{{ formatPrice(car.price) }}</div>
+          <div class="bg-base-200 rounded-xl text-center mb-4 py-4 hidden md:flex justify-around flex-wrap" :class="{ 'border-dashed border-2 border-error': car.is_sold }">
+            <h1 class="text-3xl font-bold mb-0" :class="{ 'line-through': car.is_sold }">{{ car.brand_name }} {{ car.model_name }}</h1>
+            <div class="font-bold text-3xl" :class="{ 'line-through': car.is_sold }">{{ formatPrice(car.price) }}</div>
             <div v-if="isOwner" class="badge badge-lg h-10 badge-dash">
               Ваше объявление
             </div>
@@ -77,7 +79,7 @@
                   <svg class="w-4 h-4 fill-secondary-content">
                     <use href="#icon_favorite" />
                   </svg>
-                  <template class="hidden md:block">Уже в избранном</template>
+                  <template class="hidden md:block">В избранном</template>
                 </button>
               </div>
             </div>
@@ -328,7 +330,8 @@ const car = reactive({
   drive_type: '',
   fuel_type: '',
   description: '',
-  images: []
+  images: [],
+  is_sold: false
 })
 
 const user = reactive({

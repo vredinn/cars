@@ -1,5 +1,5 @@
 <template>
-  <div @click="goToCar(car.uuid)" class="card bg-base-300 cursor-pointer">
+  <div @click="goToCar(car.uuid)" class="card bg-base-300 cursor-pointer" :class="{ 'border-dashed border-2 border-error': car.is_sold }">
     <div class="card-body p-4">
       <div class="flex flex-col lg:flex-row gap-4">
         <div class="w-full lg:w-1/4">
@@ -8,13 +8,16 @@
         </div>
 
         <div class="w-full lg:w-3/4">
-          <h3 class="card-title">{{ car.brand_name }} {{ car.model_name }} - {{ car.year }} г.</h3>
+          <h3 class="card-title">
+            <span :class="{ 'line-through': car.is_sold }">{{ car.brand_name }} {{ car.model_name }} - {{ car.year }} г.</span>
+            <span v-if="car.is_sold" class="badge badge-error">Продано</span>
+          </h3>
           <p>
             {{ car.engine_power }} л.с. {{ car.fuel_type }}, {{ car.engine_capacity }} л,
             {{ car.steering_side }} руль, {{ car.drive_type }} привод
           </p>
           <div class="mt-2">
-            <span class="text-xl font-bold">{{ formatPrice(car.price) }}</span>
+            <span class="text-xl font-bold" :class="{ 'line-through': car.is_sold }">{{ formatPrice(car.price) }}</span>
           </div>
 
           <div class="flex flex-wrap gap-2 mt-2">
@@ -46,7 +49,7 @@
                   <svg class="w-4 h-4 fill-secondary-content">
                     <use href="#icon_favorite" />
                   </svg>
-                  <template class="hidden md:block">Уже в избранном</template>
+                  <template class="hidden md:block">В избранном</template>
                 </button>
               </div>
             </div>

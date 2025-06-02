@@ -492,35 +492,42 @@ function onAddressSelected({ latitude, longitude }) {
 function parseQueryParams() {
   const query = route.query
   currentPage.value = query.page ? parseInt(query.page) : 1
+  
+  // Сбрасываем все фильтры
   Object.keys(activeFilters).forEach(key => {
-    if (query[key] !== undefined) {
-      if (query[key] === 'null') {
-        activeFilters[key] = null
-        tempFilters[key] = null
-      } else if (typeof activeFilters[key] === 'boolean') {
-        activeFilters[key] = query[key] === 'true'
-        tempFilters[key] = query[key] === 'true'
-      } else if (!isNaN(query[key])) {
+    activeFilters[key] = null
+    tempFilters[key] = null
+  })
+
+  // Применяем значения из URL
+  Object.keys(query).forEach(key => {
+    if (key in activeFilters) {
+      if (!isNaN(query[key])) {
         activeFilters[key] = parseFloat(query[key])
         tempFilters[key] = parseFloat(query[key])
       } else {
         activeFilters[key] = query[key]
         tempFilters[key] = query[key]
       }
-    } else {
-      activeFilters[key] = null
-      tempFilters[key] = null
     }
   })
 }
 
+function updateRoute() {
+  const query = buildQueryParams(activeFilters)
+  router.push({ query }).catch(() => {})
+}
+
 function buildQueryParams(filters) {
   const params = { ...filters }
+  
+  // Удаляем пустые значения
   Object.keys(params).forEach(key => {
     if (params[key] === null || params[key] === undefined || params[key] === '') {
       delete params[key]
     }
   })
+  
   if (currentPage.value > 1) {
     params.page = currentPage.value
   }
@@ -572,11 +579,6 @@ function changePage(page) {
   if (page < 1 || page > totalPages.value || page === currentPage.value) return
   currentPage.value = page
   updateRoute()
-}
-
-function updateRoute() {
-  const query = buildQueryParams(activeFilters)
-  router.push({ query }).catch(() => {})
 }
 
 watch(() => tempFilters.sort_by, (newVal) => {

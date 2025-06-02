@@ -41,12 +41,20 @@
 
               <!-- Информация о машине и пользователе -->
               <div class="flex-1 min-w-0">
-                <p class="font-semibold truncate" :title="car.brand_name + ' ' + car.model_name">
+                <router-link 
+                  :to="{ name: 'car', params: { uuid: car.uuid }}" 
+                  class="font-semibold truncate hover:text-primary block" 
+                  :title="car.brand_name + ' ' + car.model_name"
+                >
                   {{ car.brand_name }} {{ car.model_name }}
-                </p>
-                <p class="text-sm truncate" :title="otherUser.name">
+                </router-link>
+                <router-link 
+                  :to="{ name: 'UserProfile', params: { uuid: otherUser.uuid }}" 
+                  class="text-sm truncate hover:text-primary block" 
+                  :title="otherUser.name"
+                >
                   {{ otherUser.name }}
-                </p>
+                </router-link>
               </div>
             </div>
 
@@ -65,7 +73,7 @@
               </div>
 
               <!-- Кнопка оставить отзыв для покупателя -->
-              <div class="flex gap-2" v-if="car?.is_sold && !isSeller && !hasReview">
+              <div class="flex gap-2" v-if="car?.is_sold && !isSeller && !hasReview && deal?.buyer_uuid === authUser.uuid">
                 <button 
                   class="btn btn-primary btn-sm"
                   @click="showReviewDialog = true"
@@ -366,17 +374,24 @@ async function loadChatData(carUuid, otherUserUuid) {
         const dealResponse = await api.get(`/deals/car/${carUuid}`);
         deal.value = dealResponse.data;
         if (deal.value) {
-          try {
-            const reviewResponse = await api.get(`/reviews/deal/${deal.value.uuid}`);
-            review.value = reviewResponse.data;
-            hasReview.value = true;
-          } catch (error) {
-            if (error.response?.status === 404) {
-              hasReview.value = false;
-              review.value = null;
-            } else {
-              console.error('Ошибка загрузки информации об отзыве:', error);
+          // Проверяем, является ли текущий пользователь покупателем
+          if (deal.value.buyer_uuid === authUser.value.uuid) {
+            try {
+              const reviewResponse = await api.get(`/reviews/deal/${deal.value.uuid}`);
+              review.value = reviewResponse.data;
+              hasReview.value = true;
+            } catch (error) {
+              if (error.response?.status === 404) {
+                hasReview.value = false;
+                review.value = null;
+              } else {
+                console.error('Ошибка загрузки информации об отзыве:', error);
+              }
             }
+          } else {
+            // Если пользователь не покупатель, нам не нужно проверять отзыв
+            hasReview.value = false;
+            review.value = null;
           }
         }
       } catch (error) {

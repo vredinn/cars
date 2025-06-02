@@ -52,7 +52,7 @@
                   required
                   minlength="2"
                   maxlength="50"
-                  pattern="[A-Za-zА-Яа-яЁё\-]+"
+                  pattern="[A-Za-zА-Яа-яЁё\- ]+"
                   placeholder="Ваше имя"
                 />
               </label>

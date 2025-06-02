@@ -53,7 +53,7 @@ def get_all_cars(
     fuel_type: Optional[str] = None,
     steering_side: Optional[str] = None,
     car_condition: Optional[str] = None,
-    is_sold: Optional[bool] = None,
+    is_sold: Optional[bool] = False,
     body_type: Optional[str] = None,
     sort_by: Optional[str] = None,
     sort_order: Optional[str] = "desc",    
@@ -96,9 +96,13 @@ def build_filters(
     filters = {
         "brand_id": brand_id,
         "model_id": model_id,
-        "is_sold": is_sold,
         "body_type": body_type,
     }
+
+    # Если is_sold=false, показываем только непроданные
+    # Если is_sold=true, не добавляем фильтр (показываем все)
+    if is_sold is False:
+        filters["is_sold"] = False
 
     # Добавляем фильтры с диапазонами
     add_range_filter(filters, "price", min_price, max_price)
