@@ -217,7 +217,7 @@ def update_car(car_uuid: UUID, car: CarUpdate, user: User = Depends(security.req
 
 @router.delete("/{car_uuid}")
 def delete_car(car_uuid: UUID, user: User = Depends(security.require_user), db: Session = Depends(get_db)):
-    if (not crud.check_ownership(db, car_uuid, user.uuid) or user.is_admin):
+    if (not (crud.check_ownership(db, car_uuid, user.uuid) or user.is_admin)):
         return HTTPException(status_code=403, detail="Нет прав на удаление")
     car_id = crud.get_car_id_by_uuid(db, car_uuid)
     if not crud.delete_car(db, car_id):
