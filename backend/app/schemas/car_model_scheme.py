@@ -1,7 +1,5 @@
-from typing import List, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
-# ================ Model ================
 class CarModel(BaseModel):
     id: int
     name: str

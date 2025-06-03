@@ -1,13 +1,10 @@
 from sqlalchemy.orm import Session, selectinload
-from uuid import uuid4
-from sqlalchemy import asc, desc, or_
 from datetime import datetime
 
 import models as m
 from schemas import (
     AdModerationCreate, AdModerationUpdate
 )
-# ================ AdModeration CRUD ================
 def get_ad_moderation(db: Session, car_id: int):
     return (
         db.query(m.AdModeration)

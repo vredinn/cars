@@ -1,12 +1,8 @@
-from sqlalchemy.orm import Session, selectinload
-from sqlalchemy import asc, desc
-
+from sqlalchemy.orm import Session
 import models as m
 from schemas import (
     BrandCreate
 )
-
-# ================ Brand CRUD ================
 def get_brands(db: Session):
     return db.query(m.Brand).all()
 

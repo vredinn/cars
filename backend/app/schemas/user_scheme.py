@@ -6,7 +6,6 @@ import re
 
 from .review_schema import Review
 
-# ================ User Schemas ================
 class UserBase(BaseModel):
     uuid: UUID
     name: str

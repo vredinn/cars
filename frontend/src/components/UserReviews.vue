@@ -7,7 +7,6 @@
     </div>
 
     <div v-else>
-      <!-- Общий рейтинг -->
       <div class="flex items-center gap-4 mb-4 bg-base-100 rounded-box w-min p-4">
         <div class="stats rounded-none">
           <div class="stat p-0">
@@ -30,14 +29,12 @@
         </div>
       </div>
 
-      <!-- Коллапс для отзывов -->
       <div class="collapse collapse-arrow">
         <input type="checkbox" /> 
         <div class="collapse-title text-xl font-medium">
           Показать все отзывы ({{ totalReviews }})
         </div>
         <div class="collapse-content px-0">
-          <!-- Список отзывов -->
           <div v-if="reviews.length > 0" class="space-y-4">
             <div v-for="review in reviews" :key="review.id" class="card bg-base-100">
               <div class="card-body p-4">
@@ -71,7 +68,6 @@
             </div>
           </div>
 
-          <!-- Если нет отзывов -->
           <div v-else class="text-center py-8 text-gray-500">
             У этого продавца пока нет отзывов
           </div>
@@ -93,12 +89,10 @@ const props = defineProps({
   isLoading: {
     type: Boolean,
     required: true
-  },
-  totalReviews: {
-    type: Number,
-    required: true
   }
 });
+
+const totalReviews = computed(() => props.reviews?.length || 0);
 
 const averageRating = computed(() => {
   if (!props.reviews || props.reviews.length === 0) return 0;

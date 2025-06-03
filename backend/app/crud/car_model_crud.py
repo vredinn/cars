@@ -1,12 +1,9 @@
 from typing import Optional
-from sqlalchemy.orm import Session, selectinload
-from fastapi_pagination.ext.sqlalchemy import paginate
-from sqlalchemy import asc, desc
+from sqlalchemy.orm import Session
 
 import models as m
 from schemas import CarModelCreate
 
-# ================ CarModel CRUD ================
 def get_models(db: Session, search: Optional[str] = None):
     q = db.query(m.CarModel)
     if search:

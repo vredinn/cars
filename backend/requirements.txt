@@ -8,8 +8,11 @@ python-dotenv
 alembic
 passlib
 bcrypt
-authx
+PyJWT==2.7.0
 python-jose[cryptography]
 faker
 fastapi_pagination
 pillow
+python-multipart
+
+

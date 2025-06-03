@@ -1,7 +1,6 @@
 <template>
   <div class="min-h-screen flex flex-col">
     <div class="flex-grow container mx-auto px-4 py-8">
-      <!-- Основное содержимое страницы -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div class="bg-base-200 rounded-xl text-center py-4 flex justify-around flex-wrap md:hidden" :class="{ 'border-dashed border-2 border-error': car.is_sold }">
           <h1 class="text-3xl font-bold mb-0" :class="{ 'line-through': car.is_sold }">{{ car.brand_name }} {{ car.model_name }}</h1>
@@ -29,11 +28,9 @@
             </div>
           </div>
         </div>
-        <!-- Галерея изображений -->
         <div>
           
           <div v-if="car.is_sold" class="badge badge-error w-full mb-2">Продано</div>
-          <!-- Основное изображение -->
           <div class="w-full rounded-xl overflow-hidden">
             <img :src="currentImage || '/uploads/no_car_image.png'"
               class="w-full h-96 object-contain cursor-pointer bg-black rounded" 
@@ -42,7 +39,6 @@
             >
           </div>
 
-          <!-- Превью изображений -->
           <div class="flex overflow-x-auto py-2 gap-2">
             <div v-for="(img, index) in car.images" :key="index" class="flex-none w-24 h-20">
               <img :src="img.image_url"
@@ -55,7 +51,6 @@
           </div>
         </div>
 
-        <!-- Информация об автомобиле -->
         <div class="row-span-3">
           <div class="bg-base-200 rounded-xl text-center mb-4 py-4 hidden md:flex justify-around flex-wrap" :class="{ 'border-dashed border-2 border-error': car.is_sold }">
             <h1 class="text-3xl font-bold mb-0" :class="{ 'line-through': car.is_sold }">{{ car.brand_name }} {{ car.model_name }}</h1>
@@ -85,7 +80,6 @@
             </div>
           </div>
 
-          <!-- Статус модерации -->
           <div v-if="isOwner || authUser?.is_admin" class="bg-base-200 p-4 rounded-xl mb-4">
             <div class="flex items-center justify-between">
               <div class="text-gray-500">Статус модерации</div>
@@ -108,7 +102,6 @@
             </div>
           </div>
 
-          <!-- Характеристики -->
           <div class="grid grid-cols-2 gap-4 mb-4">
             <div class="bg-base-200 p-4 rounded-xl">
               <div class="text-gray-500">Год</div>
@@ -174,14 +167,12 @@
               </Suspense>
             </div>
           </div>
-          <!-- Описание -->
           <div class="prose bg-base-200 p-4 rounded-xl mt-4">
             <div class="text-gray-500">Описание</div>
             <div class="font-bold">{{ car.description }}</div>
           </div>
         </div>
 
-        <!-- История цен -->
         <div v-if="car.price_history && car.price_history.length > 1" class="bg-base-200 p-4 rounded-xl">
           <div class="text-gray-500 mb-2">История изменения цены</div>
           <div class="overflow-x-auto" style="direction: rtl">
@@ -193,10 +184,10 @@
                 ]" />
                 <div class="timeline-middle">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" 
-                       :class="[
-                         'h-5 w-5',
-                         index === currentPriceIndex ? 'text-primary' : 'text-base-300'
-                       ]">
+                    :class="[
+                      'h-5 w-5',
+                      index === currentPriceIndex ? 'text-primary' : 'text-base-300'
+                  ]">
                     <path
                       fill-rule="evenodd"
                       d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
@@ -271,18 +262,15 @@
       </div>
     </div>
 
-    <!-- Модальное окно для полноразмерного просмотра -->
     <dialog id="imageModal" class="modal" :open="isModalOpen" @click.self="closeModal">
-      <!-- Модальное окно с адаптивными размерами -->
       <div
         class="modal-box p-0 relative w-auto max-w-none rounded-none flex flex-col bg-base-300 backdrop-blur h-[100dvh] w-[90dvw]">
-        <button @click="closeModal" class="absolute top-2 right-2 btn btn-circle btn-sm z-20" aria-label="Закрыть">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <button @click="closeModal" class="absolute top-2 right-2 btn btn-circle btn-primary btn-sm z-20" aria-label="Закрыть">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
 
-        <!-- Контейнер изображения с возможностью прокрутки -->
         <div class="flex-1 overflow-hidden flex justify-center items-center relative">
           <img :src="modalImage" class="max-w-full max-h-full object-contain select-none" :style="{
             transform: `scale(${zoomLevel}) translate(${offsetX}px, ${offsetY}px)`
@@ -290,7 +278,6 @@
             @touchend="endTouch" @mousedown="handleMouseDown" @mousemove="handleMouseMove" @mouseup="handleMouseUp" />
         </div>
 
-        <!-- Панель управления с кнопками -->
         <div class="sticky bottom-0 bg-base-100 p-2 flex justify-center gap-4 z-10">
           <button @click.stop="prevImage" :disabled="currentIndex === 0" class="btn btn-circle">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
@@ -322,7 +309,6 @@
         </div>
       </div>
 
-      <!-- Фон модального окна -->
       <form method="dialog" class="modal-backdrop">
         <button @click="closeModal">close</button>
       </form>
@@ -405,9 +391,7 @@ const currentPriceIndex = computed(() => {
 })
 
 const timelineMarginRight = computed(() => {
-  // Примерная ширина одного элемента таймлайна (можно настроить по необходимости)
   const itemWidth = 200
-  // Количество элементов, которые нужно показать без скролла (в данном случае последний элемент)
   const visibleItems = 1
   return itemWidth * visibleItems
 })
@@ -421,7 +405,6 @@ async function loadCarData(carUUID) {
       Object.assign(user, data.user)
       user.rating = parseFloat(user.rating).toFixed(2)
     }
-    // Если нет изображений, добавляем превью
     if (data.images && data.images.length === 0 && data.preview_image_url) {
       car.images = [{ image_url: data.preview_image_url }]
     }
@@ -480,7 +463,6 @@ onMounted(async () => {
   }
   await checkFavorite()
   
-  // Scroll to the current price after the component is mounted
   nextTick(() => {
     const container = document.querySelector('.overflow-x-auto')
     if (container) {
@@ -668,24 +650,6 @@ function adjustOffsetAfterZoom(prevZoom) {
   offsetX.value *= ratio
   offsetY.value *= ratio
   applyMovementConstraints()
-}
-
-function handleZoom(event) {
-  event.preventDefault()
-  const delta = event.deltaY > 0 ? -0.1 : 0.1
-  const prevZoom = zoomLevel.value
-  zoomLevel.value = Math.min(Math.max(0.2, zoomLevel.value + delta), 3)
-
-  if (zoomLevel.value !== prevZoom) {
-    const rect = event.target.getBoundingClientRect()
-    const x = event.clientX - rect.left
-    const y = event.clientY - rect.top
-
-    offsetX.value += (x - rect.width / 2) * (zoomLevel.value / prevZoom - 1)
-    offsetY.value += (y - rect.height / 2) * (zoomLevel.value / prevZoom - 1)
-
-    applyMovementConstraints()
-  }
 }
 
 function startTouch(event) {

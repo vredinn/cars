@@ -104,8 +104,6 @@
                   <div class="collapse-title font-medium">Местоположение</div>
                   <div class="collapse-content grid gap-4">
                     
-                    
-                    <!-- Радиус -->
                     <div> 
                       <label class="label mb-1">
                         <span class="label-text">Населенный пункт</span>
@@ -493,13 +491,11 @@ function parseQueryParams() {
   const query = route.query
   currentPage.value = query.page ? parseInt(query.page) : 1
   
-  // Сбрасываем все фильтры
   Object.keys(activeFilters).forEach(key => {
     activeFilters[key] = null
     tempFilters[key] = null
   })
 
-  // Применяем значения из URL
   Object.keys(query).forEach(key => {
     if (key in activeFilters) {
       if (!isNaN(query[key])) {
@@ -521,7 +517,6 @@ function updateRoute() {
 function buildQueryParams(filters) {
   const params = { ...filters }
   
-  // Удаляем пустые значения
   Object.keys(params).forEach(key => {
     if (params[key] === null || params[key] === undefined || params[key] === '') {
       delete params[key]

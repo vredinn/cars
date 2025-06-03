@@ -1,10 +1,8 @@
 from datetime import datetime
-from typing import List, Optional, Literal
-from uuid import UUID
+from typing import Optional, Literal
 from pydantic import BaseModel, Field
 from .car_scheme import CarCard
 
-# ================ AdModeration ================
 class AdModerationBase(BaseModel):
     status: Literal["На проверке", "Одобрено", "Отклонено"]
     moderator_comment: Optional[str] = None

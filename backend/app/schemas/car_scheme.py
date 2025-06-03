@@ -1,8 +1,8 @@
 from datetime import datetime
-from typing import List, Optional, Literal
+from typing import List, Optional
 from decimal import Decimal
 from uuid import UUID
-from pydantic import BaseModel, EmailStr, Field, field_validator
+from pydantic import BaseModel, Field, field_validator
 from .enum_scheme import *
 from .car_model_scheme import *
 from .brand_scheme import *
@@ -11,7 +11,6 @@ from .car_image_scheme import *
 from .price_history_scheme import *
 from .review_schema import *
 
-# ================ Car ================
 class CarBase(BaseModel):
     year: int = Field(..., ge=1900, le=datetime.now().year + 1)
     price: Decimal = Field(..., max_digits=12, decimal_places=2, gt=0)
@@ -122,7 +121,7 @@ class CarDetailed(Car):
         from_attributes = True
 
 class CarCard(Car):
-    preview_image_url: Optional[str]  # первое изображение машины
+    preview_image_url: Optional[str]
     brand_name: str
     model_name: str
     user: UserMinimal
@@ -134,4 +133,4 @@ class UserProfile(User):
     cars: List[CarCard]
     reviews_received: List[Review]
 
-CarCard.model_rebuild()  # Обновляем модель после определения всех зависимостей
+CarCard.model_rebuild()

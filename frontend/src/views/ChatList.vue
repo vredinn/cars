@@ -1,5 +1,4 @@
 <template>
-    <!-- Основной контейнер с фиксированной высотой -->
     <div class="container mx-auto pt-0 flex">
         <div class="flex w-full h-full">
             <div class="p-4 flex flex-col h-full min-h-0 w-full">
@@ -13,7 +12,6 @@
                 <div v-else-if="chats.length === 0" class="alert alert-info justify-center">
                     У вас пока нет чатов
                 </div>
-                <!-- Список чатов -->
                 <div v-else class="flex-1 overflow-y-auto space-y-2">
                     <router-link v-for="chat in chats" :key="chat.uuid"
                         :to="{ name: 'Chat', params: { carUuid: chat.car_uuid, otherUserUuid: chat.other_user_uuid } }"
@@ -36,7 +34,6 @@
                                 </div>
                             </div>
 
-                            <!-- ВАЖНО: min-w-0 чтобы text truncation работал -->
                             <div class="flex-1 w-full min-w-0">
                                 <div class="flex flex-col">
                                     <p class="font-bold truncate mb-0"
@@ -84,7 +81,6 @@ const chats = ref([]);
 const errorMessage = ref('');
 const isLoading = ref(false);
 
-// Загрузка списка чатов
 async function loadChats() {
     if (!userUuid.value) {
         router.push('/login');
@@ -94,7 +90,6 @@ async function loadChats() {
     try {
         const response = await api.get(`/messages/user/${userUuid.value}`);
         chats.value = await Promise.all(response.data.map(async (chat) => {
-            // Запрашиваем данные автомобиля
             let carData = { brand_name: 'Неизвестно', model_name: '', image_url: null };
             try {
                 const carResponse = await api.get(`/cars/${chat.car_uuid}`);
@@ -103,7 +98,6 @@ async function loadChats() {
             } catch (error) {
                 console.error(`Ошибка загрузки автомобиля ${chat.car_uuid}:`, error);
             }
-            // Запрашиваем данные собеседника
             const otherUserUuid = chat.sender_uuid === userUuid.value ? chat.receiver_uuid : chat.sender_uuid;
             chat.sender_name = chat.sender_uuid === userUuid.value ? 'Вы' : chat.sender.name;
             let userData = { name: 'Неизвестно', avatar_url: null };
@@ -127,7 +121,6 @@ async function loadChats() {
                 sender_name: chat.sender_name,
             };
         }));
-        // Сортируем чаты по времени последнего сообщения (от новых к старым)
         chats.value.sort((a, b) => new Date(b.sent_at) - new Date(a.sent_at));
     } catch (error) {
         console.error('Ошибка загрузки чатов:', error);

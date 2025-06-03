@@ -1,6 +1,5 @@
 <template>
   <header class="container mx-auto navbar w-full px-4 py-0">
-    <!-- Мобильное меню -->
     <div class="dropdown" ref="mobileMenuRef">
       <input type="checkbox" v-model="isMobileMenuOpen" class="hidden" />
       <label tabindex="0" class="btn btn-ghost mr-2 lg:hidden" @click="toggleMobileMenu">
@@ -22,7 +21,6 @@
       </ul>
     </div>
 
-    <!-- Логотип -->
     <router-link to="/" class="flex-1">
       <div class="h-8">
         <img src="/src/assets/logo_White.svg" alt="Logo" class="h-full dark:block hidden" />
@@ -30,7 +28,6 @@
       </div>
     </router-link>
 
-    <!-- Основное меню -->
     <nav class="flex-none hidden lg:flex">
       <ul class="menu menu-horizontal space-x-2">
         <li><router-link to="/" class="btn btn-ghost" active-class="btn btn-outline">Главная</router-link></li>
@@ -43,7 +40,6 @@
       </ul>
     </nav>
 
-    <!-- Аутентификация / Меню -->
     <div class="flex space-x-2">
       <template v-if="!isAuthenticated">
         <LoginForm />
@@ -51,8 +47,6 @@
 
       <template v-else>
         <router-link to="/chats" class="btn btn-primary hidden md:inline-flex">Сообщения</router-link>
-
-        <!-- Профиль -->
         <div class="dropdown dropdown-end" ref="profileMenuRef">
           <input type="checkbox" v-model="isProfileMenuOpen" class="hidden" />
           <label tabindex="0" class="btn btn-ghost btn-circle avatar" @click="toggleProfileMenu">
@@ -81,7 +75,6 @@
             <li><label for="logout-modal" class="btn btn-soft btn-error" @click="closeProfileMenu">Выйти</label></li>
           </ul>
 
-          <!-- Модалка подтверждения -->
           <input type="checkbox" id="logout-modal" class="modal-toggle" v-model="showLogoutModal" />
           <div class="modal modal-bottom sm:modal-middle">
             <div class="modal-box">
@@ -117,7 +110,6 @@ const authStore = useAuthStore()
 const user = computed(() => authStore.user)
 const isAuthenticated = computed(() => authStore.isAuthenticated)
 
-// Закрываем меню при изменении маршрута
 watch(() => route.fullPath, () => {
   isMobileMenuOpen.value = false
   isProfileMenuOpen.value = false
@@ -145,7 +137,6 @@ function closeProfileMenu() {
   isProfileMenuOpen.value = false
 }
 
-// Закрытие меню при клике вне его области
 function handleClickOutside(event) {
   if (mobileMenuRef.value && !mobileMenuRef.value.contains(event.target)) {
     isMobileMenuOpen.value = false

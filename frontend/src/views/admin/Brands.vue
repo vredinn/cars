@@ -1,4 +1,3 @@
-/// Brands.vue
 <template>
   <div>
     <div class="flex justify-between items-center mb-4">
@@ -30,7 +29,6 @@
       </table>
     </div>
 
-    <!-- Modal -->
     <dialog class="modal" :class="{ 'modal-open': showAddModal }">
       <div class="modal-box">
         <h3 class="font-bold text-lg">{{ editMode ? 'Редактировать марку' : 'Добавить марку' }}</h3>
@@ -73,7 +71,6 @@
         </form>
       </div>
     </dialog>
-    <!-- Модальное окно подтверждения удаления -->
     <dialog id="delete-brand-modal" class="modal modal-bottom sm:modal-middle">
       <div class="modal-box">
         <h3 class="font-bold text-lg text-error mb-4">Удаление марки</h3>
@@ -93,10 +90,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import api from '@/api' // предполагается, что api.js настроен для работы с вашим бэкендом
+import { ref, onMounted, computed } from 'vue'
+import api from '@/api'
+import { useFiltersStore } from '@/stores/filters'
 
-const brands = ref([])
+const filtersStore = useFiltersStore()
+const brands = computed(() => filtersStore.brands)
 const showAddModal = ref(false)
 const editMode = ref(false)
 const form = ref({ id: null, name: '', image_url: '' })
@@ -105,8 +104,7 @@ const previewImage = ref(null)
 const brandToDelete = ref(null)
 
 const fetchBrands = async () => {
-  const { data } = await api.get('/brands/')
-  brands.value = data
+  await filtersStore.loadAll()
 }
 
 const handleFile = (event) => {
@@ -138,22 +136,26 @@ const uploadImage = async () => {
 }
 
 const saveBrand = async () => {
-  if (editMode.value && (form.value.image_url)) {
-    const filename = form.value.image_url.split('/').pop()
-    await api.delete(`/brands/image/${filename}`)// путь должен вести к DELETE API, удаляющему старую фотку
-  }
-  if (file) {
-    form.value.image_url = await uploadImage()
-  }
+  try {
+    if (editMode.value && (form.value.image_url)) {
+      const filename = form.value.image_url.split('/').pop()
+      await api.delete(`/brands/image/${filename}`)
+    }
+    if (file) {
+      form.value.image_url = await uploadImage()
+    }
 
-  if (editMode.value) {
-    await api.put(`/brands/${form.value.id}`, form.value)
-  } else {
-    await api.post('/brands/', form.value)
-  }
+    if (editMode.value) {
+      await api.put(`/brands/${form.value.id}`, form.value)
+    } else {
+      await api.post('/brands/', form.value)
+    }
 
-  closeModal()
-  fetchBrands()
+    closeModal()
+    await filtersStore.loadAll() 
+  } catch (error) {
+    console.error('Error saving brand:', error)
+  }
 }
 
 const startEdit = (brand) => {
@@ -188,11 +190,11 @@ const confirmDeleteBrand = async () => {
   try {
     const brand = brands.value.find(b => b.id === brandToDelete.value)
     if (brand.image_url) {      
-    const filename = brand.image_url.split('/').pop()
+      const filename = brand.image_url.split('/').pop()
       await api.delete(`/brands/image/${filename}`)
     }
     await api.delete(`/brands/${brandToDelete.value}`)
-    fetchBrands()
+    await filtersStore.loadAll()
   } catch (error) {
     console.error('Ошибка удаления марки:', error)
   } finally {

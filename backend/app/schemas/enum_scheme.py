@@ -1,6 +1,5 @@
 from typing import Literal
 
-# ================ Enums ================
 DriveTypeEnum = Literal["Передний", "Задний", "Полный", "4x4"]
 TransmissionEnum = Literal["Механика", "Автомат", "Вариатор", "Робот"]
 FuelTypeEnum = Literal["Бензин", "Дизель", "Электро", "Гибрид"]

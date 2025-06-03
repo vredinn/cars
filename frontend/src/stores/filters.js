@@ -1,10 +1,10 @@
-// stores/filters.js
+
 import { defineStore } from 'pinia'
 import { ref, reactive } from 'vue'
 import api from '@/api'
 
 export const useFiltersStore = defineStore('filters', () => {
-    // Справочные данные
+
     const brands = ref([])
     const models = ref([])
     const carConditions = ref([])
@@ -14,7 +14,6 @@ export const useFiltersStore = defineStore('filters', () => {
     const fuelTypes = ref([])
     const driveTypes = ref([])
 
-    // Флаги загрузки (по желанию)
     const loading = ref(false)
     const error = ref(null)
 

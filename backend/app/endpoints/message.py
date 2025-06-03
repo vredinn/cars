@@ -12,44 +12,24 @@ from security import require_user
 
 router = APIRouter(prefix="/messages", tags=["Сообщения"])
 
-# Хранилище активных WebSocket-соединений
 connected_clients = {}
 
-@router.get("/user/{user_uuid}", response_model=List[Message])
+@router.get("/user/{user_uuid}", response_model=List[Message], description="Получить список чатов пользователя")
 def get_user_chats(user_uuid: UUID, db: Session = Depends(get_db), current_user: m.User = Depends(require_user)):
-    """
-    Получение списка чатов пользователя.
-    """
     if current_user.uuid != user_uuid:
         raise HTTPException(status_code=403, detail="Нет прав для просмотра чужих чатов")
     return crud.get_user_chats(db, user_uuid)
 
-@router.get("/chat/{car_uuid}/{other_user_uuid}", response_model=List[Message])
+@router.get("/chat/{car_uuid}/{other_user_uuid}", response_model=List[Message], description="Получить сообщения в чате между двумя пользователями по UUID автомобиля")
 def get_chat_messages(car_uuid: UUID, other_user_uuid: UUID, db: Session = Depends(get_db), current_user: m.User = Depends(require_user)):
-    """
-    Получение сообщений в чате для автомобиля и собеседника.
-    """
     return crud.get_chat_messages(db, current_user.uuid, car_uuid, other_user_uuid)
 
-@router.post("/", response_model=Message)
+@router.post("/", response_model=Message, description="Создать новое сообщение в чате")
 def create_message(message: MessageCreate, db: Session = Depends(get_db), current_user: m.User = Depends(require_user)):
-    """
-    Создание нового сообщения.
-    """
     return crud.create_message(db, message, current_user.uuid)
-
-@router.delete("/{message_uuid}", response_model=bool)
-def delete_message(message_uuid: UUID, db: Session = Depends(get_db), current_user: m.User = Depends(require_user)):
-    """
-    Удаление сообщения.
-    """
-    return crud.delete_message(db, message_uuid, current_user.uuid)
 
 @router.websocket("/ws/{user_uuid}/{car_uuid}/{other_user_uuid}")
 async def websocket_endpoint(websocket: WebSocket, user_uuid: UUID, car_uuid: UUID, other_user_uuid: UUID):
-    """
-    WebSocket для чата в реальном времени.
-    """
     db = next(get_db())
 
     await websocket.accept()
@@ -89,7 +69,6 @@ async def websocket_endpoint(websocket: WebSocket, user_uuid: UUID, car_uuid: UU
                     }
                 }
                 
-                # Отправляем сообщение обоим
                 if chat_key in connected_clients:
                     await connected_clients[chat_key].send_json(response)
                 reverse_chat_key = f"{other_user_uuid}_{car_uuid}_{user_uuid}"

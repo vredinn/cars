@@ -5,28 +5,21 @@ from typing import List
 from uuid import UUID
 
 import models as m
-from schemas.message_scheme import MessageCreate, Message
+from schemas.message_scheme import MessageCreate
 
 def create_message(db: Session, msg: MessageCreate, sender_uuid: UUID) -> m.Message:
-    """
-    Создание нового сообщения.
-    Проверяет существование автомобиля и получателя.
-    """
-    # Проверяем, существует ли автомобиль
+
     car = db.query(m.Car).filter(m.Car.uuid == msg.car_uuid).first()
     if not car:
         raise HTTPException(status_code=404, detail="Автомобиль не найден")
     
-    # Проверяем, существует ли получатель
     receiver = db.query(m.User).filter(m.User.uuid == msg.receiver_uuid).first()
     if not receiver:
         raise HTTPException(status_code=404, detail="Получатель не найден")
     
-    # Проверяем, что отправитель не отправляет сообщение сам себе
     if sender_uuid == msg.receiver_uuid:
         raise HTTPException(status_code=400, detail="Нельзя отправить сообщение самому себе")
     
-    # Создаем сообщение
     db_message = m.Message(
         car_uuid=msg.car_uuid,
         sender_uuid=sender_uuid,
@@ -37,7 +30,6 @@ def create_message(db: Session, msg: MessageCreate, sender_uuid: UUID) -> m.Mess
     db.commit()
     db.refresh(db_message)
     
-    # Загружаем связанные данные
     db_message = (
         db.query(m.Message)
         .options(
@@ -50,9 +42,7 @@ def create_message(db: Session, msg: MessageCreate, sender_uuid: UUID) -> m.Mess
     return db_message
 
 def get_user_chats(db: Session, user_uuid: UUID) -> List[m.Message]:
-    """
-    Получение списка чатов пользователя (уникальные комбинации car_uuid и собеседника).
-    """
+
     messages = (
         db.query(m.Message)
         .options(
@@ -65,7 +55,6 @@ def get_user_chats(db: Session, user_uuid: UUID) -> List[m.Message]:
         .all()
     )
     
-    # Группируем по car_uuid и собеседнику
     unique_chats = {}
     for msg in messages:
         other_user_uuid = msg.sender_uuid if msg.sender_uuid != user_uuid else msg.receiver_uuid
@@ -76,9 +65,6 @@ def get_user_chats(db: Session, user_uuid: UUID) -> List[m.Message]:
     return list(unique_chats.values())
 
 def get_chat_messages(db: Session, user_uuid: UUID, car_uuid: UUID, other_user_uuid: UUID) -> List[m.Message]:
-    """
-    Получение всех сообщений в чате для конкретного автомобиля и собеседника.
-    """
     messages = (
         db.query(m.Message)
         .options(
@@ -105,19 +91,3 @@ def get_chat_messages(db: Session, user_uuid: UUID, car_uuid: UUID, other_user_u
             raise HTTPException(status_code=404, detail="Пользователь не найден")
     
     return messages
-
-def delete_message(db: Session, message_uuid: UUID, user_uuid: UUID) -> bool:
-    """
-    Удаление сообщения. Только отправитель может удалить.
-    """
-    message = (
-        db.query(m.Message)
-        .filter(m.Message.uuid == message_uuid, m.Message.sender_uuid == user_uuid)
-        .first()
-    )
-    if not message:
-        raise HTTPException(status_code=404, detail="Сообщение не найдено или нет прав")
-    
-    db.delete(message)
-    db.commit()
-    return True

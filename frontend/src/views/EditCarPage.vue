@@ -1,6 +1,5 @@
 <template>
   <div class="container mx-auto p-4">
-    <!-- Индикатор загрузки -->
     <div v-if="isLoadingFilters" class="flex justify-center items-center h-64">
       <div class="loading loading-spinner loading-lg"></div>
     </div>
@@ -241,7 +240,6 @@
           </div>
         </div>
 
-        <!-- Кнопки -->
         <div class="pt-4">
           <div v-if="errorMessage" role="alert" class="alert alert-error alert-soft">
             <span>{{ errorMessage }}</span>
@@ -259,7 +257,6 @@
       </form>
     </div>
 
-    <!-- Модальное окно подтверждения сохранения -->
     <dialog id="save-modal" class="modal modal-bottom sm:modal-middle">
       <div class="modal-box">
         <h3 class="font-bold text-lg mb-4">Сохранение изменений</h3>
@@ -276,7 +273,6 @@
       </form>
     </dialog>
 
-    <!-- Модальное окно подтверждения удаления -->
     <dialog id="delete-modal" class="modal modal-bottom sm:modal-middle">
       <div class="modal-box">
         <h3 class="font-bold text-lg text-error mb-4">Удаление объявления</h3>
@@ -335,9 +331,9 @@ const form = reactive({
   longitude: null
 })
 
-const files = ref([]) // Новые файлы для загрузки
-const previews = ref([]) // Превью изображений (существующие + новые)
-const existingImages = ref([]) // Существующие изображения с сервера
+const files = ref([]) 
+const previews = ref([]) 
+const existingImages = ref([]) 
 
 const brands = computed(() => filtersStore.brands)
 const models = computed(() => filtersStore.models)
@@ -374,8 +370,7 @@ const isFormValid = computed(() => {
 
 async function loadFilters() {
   try {
-    // Предполагается, что filtersStore имеет метод для загрузки всех фильтров
-    await filtersStore.loadAll() // Замените на реальный метод, если он отличается
+    await filtersStore.loadAll()
     isLoadingFilters.value = false
   } catch (error) {
     console.error('Ошибка загрузки фильтров:', error)
@@ -417,7 +412,6 @@ async function loadCarData(carUUID) {
       }))
       previews.value = data.images.map(img => img.image_url)
     }
-    // Проверяем, является ли пользователь владельцем
     if (authStore.user && authStore.user.uuid) {
       const ownRes = await api.get(`/cars/check_ownership/${carUUID}/${authStore.user.uuid}`)
       if (!ownRes.data && !authStore.user.is_admin) {
@@ -516,7 +510,6 @@ async function handleSubmit() {
     const payload = { ...form }
     await api.put(`/cars/${carUUID}`, payload)
 
-    // Удаление удаленных изображений
     const existingImageIds = existingImages.value.map(img => img.id)
     const originalImageIds = (await api.get(`/cars/${carUUID}`)).data.images.map(img => img.id)
     const imagesToDelete = originalImageIds.filter(id => !existingImageIds.includes(id))
@@ -524,7 +517,6 @@ async function handleSubmit() {
       await api.delete(`/car-images/${imageId}`)
     }
 
-    // Загрузка новых изображений
     for (const file of files.value) {
       const formData = new FormData()
       formData.append('file', file)

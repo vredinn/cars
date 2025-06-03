@@ -1,12 +1,8 @@
-from datetime import datetime
-from typing import List, Optional, Literal
-from decimal import Decimal
 from uuid import UUID
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel
 
 from .car_scheme import CarCard
 
-# ================ Favorite ================
 class Favorite(BaseModel):
     id: int
     user_id: int

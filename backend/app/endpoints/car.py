@@ -1,8 +1,6 @@
-import json
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.orm import Session
-from sqlalchemy.exc import SQLAlchemyError
-from fastapi_pagination import Page, Params, paginate
+from fastapi_pagination import Page, Params
 from typing import Dict, List, Optional
 from uuid import UUID
 from database import get_db
@@ -11,22 +9,30 @@ import crud
 import security
 from enum import Enum
 
-# Модели Enum
 from models import DriveTypeEnum, TransmissionEnum, FuelTypeEnum, SteeringSideEnum, CarConditionEnum, BodyTypeEnum
 
-router = APIRouter(prefix="/cars", tags=["Cars"])
+router = APIRouter(prefix="/cars", tags=["Автомобили"])
 
 def get_enum_value(enum_class: Enum, value: str) -> Enum:
     try:
         return enum_class(value)
     except ValueError:
         raise HTTPException(status_code=400, detail=f"Неверное значение для {enum_class.__name__}: {value}")
+    
 
-@router.get("/popular", response_model=List[CarCard])
+def add_range_filter(filters, field, min_value, max_value):
+    if min_value is not None or max_value is not None:
+        filters[field] = (min_value, max_value)
+
+def add_exact_filter(filters, field, value):
+    if value is not None:
+        filters[field] = value
+
+@router.get("/popular", response_model=List[CarCard], description="Получить список популярных автомобилей")
 def get_popular_cars(db: Session = Depends(get_db)):
     return crud.get_most_popular_cars(db)
 
-@router.get("/", response_model=Page[CarCard])
+@router.get("/", response_model=Page[CarCard], description="Получить список автомобилей")
 async def get_all_cars(    
     request: Request,
     db: Session = Depends(get_db),
@@ -60,16 +66,12 @@ async def get_all_cars(
     sort_by: Optional[str] = None,
     sort_order: Optional[str] = "desc",    
     page: int = Query(1, ge=1, description="Номер страницы (начиная с 1)"),    
-    size: int = Query(10, include_in_schema=False, ge=1, le=100),
-
+    size: int = Query(10, include_in_schema=False, ge=1, le=100)
 ):
-    req_token = await security.get_access_token(request)
-    if not req_token:
+    try:
+        current_user = await security.get_current_user_from_token(request, db)
+    except HTTPException:
         current_user = None
-    else:
-        token = security.auth.verify_token(req_token, verify_csrf=False)
-        current_user = security.require_user(token=token, db=db)
-    
     show_only_approved = not (current_user and current_user.is_admin)
     return crud.get_cars_paginated(
             db,
@@ -106,7 +108,7 @@ async def get_all_cars(
             show_only_approved=show_only_approved
         )
 
-@router.get("/user_cars/{user_uuid}", response_model=Page[CarCard])
+@router.get("/user_cars/{user_uuid}", response_model=Page[CarCard], description="Получить список машин пользователя по UUID пользователя")
 async def get_user_cars(
     request: Request,
     user_uuid: UUID,
@@ -114,13 +116,10 @@ async def get_user_cars(
     page: int = Query(1, ge=1),
     size: int = Query(10, ge=1)
 ):
-    
-    req_token = await security.get_access_token(request)
-    if not req_token:
+    try:
+        current_user = await security.optional_user(request, db)
+    except HTTPException:
         current_user = None
-    else:
-        token = security.auth.verify_token(req_token, verify_csrf=False)
-        current_user = security.require_user(token=token, db=db)
 
     show_only_approved = not (current_user and (str(current_user.uuid) == str(user_uuid) or current_user.is_admin))
 
@@ -141,12 +140,9 @@ def build_filters(
         "body_type": body_type,
     }
 
-    # Если is_sold=false, показываем только непроданные
-    # Если is_sold=true, не добавляем фильтр (показываем все)
     if is_sold is False:
         filters["is_sold"] = False
 
-    # Добавляем фильтры с диапазонами
     add_range_filter(filters, "price", min_price, max_price)
     add_range_filter(filters, "year", min_year, max_year)
     add_range_filter(filters, "mileage", min_mileage, max_mileage)
@@ -155,7 +151,6 @@ def build_filters(
     add_range_filter(filters, "latitude", min_latitude, max_latitude)
     add_range_filter(filters, "longitude", min_longitude, max_longitude)
 
-    # Добавляем точные фильтры с Enum-переводом
     if drive_type:
         filters["drive_type"] = get_enum_value(DriveTypeEnum, drive_type)
     if transmission:
@@ -172,54 +167,46 @@ def build_filters(
         filters["center_longitude"] = center_longitude
         filters["radius_km"] = radius_km
 
-    # Добавляем точные фильтры для строковых значений
     add_exact_filter(filters, "color", color)
 
     return filters
 
-def add_range_filter(filters, field, min_value, max_value):
-    if min_value is not None or max_value is not None:
-        filters[field] = (min_value, max_value)
 
-def add_exact_filter(filters, field, value):
-    if value is not None:
-        filters[field] = value
-
-@router.get("/id_{car_id}", response_model=CarDetailed)
+@router.get("/id_{car_id}", response_model=CarDetailed, description="Получить информацию о машине по ID")
 def get_car_by_id(car_id: int, db: Session = Depends(get_db)):
     car = crud.get_car(db, car_id)
     if not car:
-        raise HTTPException(status_code=404, detail="Car not found")
+        raise HTTPException(status_code=404, detail="Машина не найдена")
     return car
 
-@router.get("/{car_uuid}", response_model=CarDetailed)
+@router.get("/{car_uuid}", response_model=CarDetailed, description="Получить информацию о машине по UUID")
 def get_car_by_uuid(car_uuid: UUID, db: Session = Depends(get_db)):
     car = crud.get_car_by_uuid(db, car_uuid)
     if not car:
-        raise HTTPException(status_code=404, detail="Car not found")
+        raise HTTPException(status_code=404, detail="Машина не найдена")
     return car
 
-@router.get("/check_ownership/{car_uuid}/{user_uuid}", response_model=bool)
+@router.get("/check_ownership/{car_uuid}/{user_uuid}", response_model=bool, description="Проверить владение машиной по UUID машины и UUID пользователя")
 def check_ownership(car_uuid: UUID, user_uuid: UUID, db: Session = Depends(get_db)):
     return crud.check_ownership(db, car_uuid, user_uuid)
 
-@router.post("/", response_model=Car)
+@router.post("/", response_model=Car, description="Создать новую машину")
 def create_car(car: CarCreate, db: Session = Depends(get_db), user: User = Depends(security.require_user)):
     user_id = user.id
     return crud.create_car(db, car, user_id)
 
-@router.put("/{car_uuid}", response_model=Car)
+@router.put("/{car_uuid}", response_model=Car, description="Обновить информацию о машине по UUID")
 def update_car(car_uuid: UUID, car: CarUpdate, user: User = Depends(security.require_user), db: Session = Depends(get_db)):
     if not (crud.check_ownership(db, car_uuid, user.uuid) or user.is_admin):
         raise HTTPException(status_code=403, detail="Нет прав на Изменение")
     car_id = crud.get_car_id_by_uuid(db, car_uuid)
     return crud.update_car(db, car_id, car)
 
-@router.delete("/{car_uuid}")
+@router.delete("/{car_uuid}", description="Удалить машину по UUID")
 def delete_car(car_uuid: UUID, user: User = Depends(security.require_user), db: Session = Depends(get_db)):
     if not (crud.check_ownership(db, car_uuid, user.uuid) or user.is_admin):
         return HTTPException(status_code=403, detail="Нет прав на удаление")
     car_id = crud.get_car_id_by_uuid(db, car_uuid)
     if not crud.delete_car(db, car_id):
-        raise HTTPException(status_code=404, detail="Car not found")
-    return {"message": "Car deleted successfully"}
+        raise HTTPException(status_code=404, detail="Машина не найдена")
+    return {"message": "Машина успешно удалена"}

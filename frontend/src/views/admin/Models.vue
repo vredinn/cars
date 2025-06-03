@@ -37,8 +37,6 @@
         </tbody>
       </table>
     </div>
-
-    <!-- Modal -->
     <dialog class="modal z-4" :class="{ 'modal-open': showAddModal }">
       <div class="modal-box">
         <h3 class="font-bold text-lg">{{ editMode ? 'Редактировать модель' : 'Добавить модель' }}</h3>
@@ -68,7 +66,6 @@
       </div>
     </dialog>
 
-    <!-- Модальное окно подтверждения удаления -->
     <dialog id="delete-model-modal" class="modal modal-bottom sm:modal-middle">
       <div class="modal-box">
         <h3 class="font-bold text-lg text-error mb-4">Удаление модели</h3>
@@ -88,12 +85,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import api from '@/api'
 import SearchableSelect from '@/components/SearchableSelect.vue'
+import { useFiltersStore } from '@/stores/filters'
 
-const models = ref([])
-const brands = ref([])
+const filtersStore = useFiltersStore()
+const models = computed(() => filtersStore.models)
+const brands = computed(() => filtersStore.brands)
 const showAddModal = ref(false)
 const editMode = ref(false)
 const form = ref({ id: null, name: '', brand_id: '' })
@@ -102,20 +101,14 @@ const modelToDelete = ref(null)
 
 const fetchModels = async (search = '') => {
   try {
-    const params = {}
-    if (search) {
-      params.search = search
-    }
-    const { data } = await api.get('/models/', { params })
-    models.value = data
+    await filtersStore.loadAll()
   } catch (error) {
     console.error('Failed to fetch models:', error)
   }
 }
 
 const fetchBrands = async () => {
-  const { data } = await api.get('/brands/')
-  brands.value = data
+  await filtersStore.loadAll()
 }
 
 const handleSearch = async () => {
@@ -130,7 +123,7 @@ const saveModel = async () => {
       await api.post('/models/', form.value)
     }
     closeModal()
-    await fetchModels(searchQuery.value)
+    await filtersStore.loadAll() 
   } catch (error) {
     console.error('Failed to save model:', error)
   }
@@ -170,7 +163,7 @@ const confirmDeleteModel = async () => {
   
   try {
     await api.delete(`/models/${modelToDelete.value}`)
-    await fetchModels(searchQuery.value)
+    await filtersStore.loadAll() 
   } catch (error) {
     console.error('Ошибка удаления модели:', error)
   } finally {
@@ -178,8 +171,7 @@ const confirmDeleteModel = async () => {
   }
 }
 
-onMounted(() => {
-  fetchBrands()
-  fetchModels()
+onMounted(async () => {
+  await filtersStore.loadAll()
 })
 </script>

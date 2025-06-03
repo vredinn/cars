@@ -2,7 +2,6 @@ from uuid import UUID, uuid4
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 from PIL import Image
-from PIL import ImageOps
 from pathlib import Path
 from database import get_db
 from schemas import CarImage, CarImageCreate, User
@@ -13,7 +12,7 @@ import io
 
 
 ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png"]
-MAX_IMAGE_SIZE = 20 * 1024 * 1024  # 20MB
+MAX_IMAGE_SIZE = 20 * 1024 * 1024
 UPLOAD_DIR = Path("uploads/car_images")
 CAR_IMAGE_WIDTH = 416 * 3
 CAR_IMAGE_HEIGHT = 215 * 3
@@ -21,14 +20,14 @@ CAR_IMAGE_HEIGHT = 215 * 3
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 
-router = APIRouter(prefix="/car-images", tags=["Car Images"])
+router = APIRouter(prefix="/car-images", tags=["Изображения автомобилей"])
 
 
-@router.get("/car/{car_uuid}", response_model=list[CarImage])
+@router.get("/car/{car_uuid}", response_model=list[CarImage], description="Получить изображения машины по UUID")
 def get_images_by_car(car_uuid: UUID, db: Session = Depends(get_db)):
     return crud.get_car_images(db, car_uuid)
 
-@router.post("/", response_model=CarImageCreate)
+@router.post("/", response_model=CarImageCreate, description="Добавить изображение машины")
 async def create_car_image(
     car_uuid: UUID,
     file: UploadFile = File(...),
@@ -41,9 +40,8 @@ async def create_car_image(
     car_id = crud.get_car_id_by_uuid(db, car_uuid)
     car = db.query(m.Car).filter(m.Car.id == car_id).first()
     if not car:
-        raise HTTPException(status_code=404, detail="Car not found")
+        raise HTTPException(status_code=404, detail="Машина не найдена")
 
-    # 2. Проверяем тип и размер
     if file.content_type not in ALLOWED_IMAGE_TYPES:
         raise HTTPException(status_code=400, detail="Допустимы только JPEG и PNG")
 
@@ -54,9 +52,7 @@ async def create_car_image(
 
     try:
         image = Image.open(file.file).convert("RGB")
-        # image = ImageOps.fit(image, (CAR_IMAGE_WIDTH, CAR_IMAGE_HEIGHT), Image.LANCZOS, centering=(0.5, 0.5))
 
-        # 3. Путь: uploads/car_images/<uuid>/xxx.webp
         car_dir = UPLOAD_DIR / str(car.uuid)
         car_dir.mkdir(parents=True, exist_ok=True)
 
@@ -71,10 +67,10 @@ async def create_car_image(
     new_image = crud.add_car_image(db, CarImageCreate(car_id=car_id, image_url=image_url))
     return new_image
 
-@router.delete("/{image_id}")
+@router.delete("/{image_id}", description="Удалить изображение машины по ID")
 def delete_car_image(image_id: int, db: Session = Depends(get_db), user: User = Depends(security.require_user)):
     if (not crud.is_car_image_owner(db, image_id, user.id or user.is_admin)):
         raise HTTPException(status_code=403, detail="Вы не являетесь владельцем изображения")
     if not crud.delete_car_image(db, image_id):
-        raise HTTPException(status_code=404, detail="Car image not found")
-    return {"message": "Car image deleted successfully"}
+        raise HTTPException(status_code=404, detail="Изображение не найдено")
+    return {"message": "Изображение успешно удалено"}

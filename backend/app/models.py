@@ -16,11 +16,9 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import relationship
 from database import Base
-from datetime import datetime
 import uuid
 import enum
 
-# Enum-классы
 class DriveTypeEnum(str, enum.Enum):
     fwd = "Передний"
     rwd = "Задний"
@@ -227,8 +225,8 @@ class Review(Base):
 
     id = Column(Integer, primary_key=True)
     uuid = Column(UUID(as_uuid=True), unique=True, nullable=False, index=True, default=uuid.uuid4)
-    user_uuid = Column(UUID(as_uuid=True), ForeignKey("users.uuid", ondelete="CASCADE"), nullable=False)  # Кто оставил отзыв
-    seller_uuid = Column(UUID(as_uuid=True), ForeignKey("users.uuid", ondelete="CASCADE"), nullable=False)  # О ком отзыв
+    user_uuid = Column(UUID(as_uuid=True), ForeignKey("users.uuid", ondelete="CASCADE"), nullable=False) 
+    seller_uuid = Column(UUID(as_uuid=True), ForeignKey("users.uuid", ondelete="CASCADE"), nullable=False)
     deal_uuid = Column(UUID(as_uuid=True), ForeignKey("deals.uuid", ondelete="CASCADE"), nullable=False)
     review_text = Column(Text, nullable=False)
     rating = Column(Float, CheckConstraint("rating >= 1 AND rating <= 5"), nullable=False)
@@ -239,7 +237,6 @@ class Review(Base):
     seller = relationship("User", foreign_keys=[seller_uuid], back_populates="reviews_received")
 
     __table_args__ = (
-        # Один отзыв на сделку
         UniqueConstraint("deal_uuid", name="uq_deal_uuid_review"),
     )
 
@@ -286,7 +283,6 @@ class Deal(Base):
     review = relationship("Review", back_populates="deal", uselist=False, cascade="all, delete-orphan")
 
     __table_args__ = (
-        # Проверка что продавец и покупатель разные пользователи
         CheckConstraint("seller_id != buyer_id", name="check_different_users"),
     )
 

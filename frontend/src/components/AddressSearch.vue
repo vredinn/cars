@@ -15,8 +15,6 @@
           required
         />
       </label>
-
-      <!-- Выпадающий список -->
       <div
         v-if="open"
         class="absolute left-0 right-0 z-20"
@@ -43,8 +41,6 @@
           </li>
         </ul>
       </div>
-
-      <!-- Сообщение об ошибке -->
       <div 
         v-if="showError" 
         class="validator-hint text-xs text-error mt-1"
@@ -96,13 +92,11 @@ const showError = computed(() => {
   return hasError.value && !open.value && isDirty.value
 })
 
-// Debounce search
 let searchTimeout: ReturnType<typeof setTimeout> | null = null
 
 function handleInput() {
-  // При любом изменении текста сбрасываем валидацию и координаты
   isValidSelection.value = false
-  isDirty.value = false // Сбрасываем dirty state при вводе
+  isDirty.value = false
   emit('update:modelValue', false)
   emit('selected', { latitude: null, longitude: null })
 
@@ -126,7 +120,7 @@ function handleBlur() {
   setTimeout(() => {
     open.value = false
     if (search.value && !isValidSelection.value) {
-      isDirty.value = true // Устанавливаем dirty state только при потере фокуса
+      isDirty.value = true
       search.value = ''
       emit('update:modelValue', false)
       emit('selected', { latitude: null, longitude: null })

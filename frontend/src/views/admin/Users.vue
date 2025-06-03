@@ -97,7 +97,6 @@
       </form>
     </dialog>
 
-    <!-- Toast container -->
     <div class="toast toast-end">
       <div v-if="showToast" :class="['alert', toastType]">
         <span>{{ toastMessage }}</span>
@@ -114,15 +113,12 @@ import api from '@/api'
 const router = useRouter()
 const users = ref([])
 const searchQuery = ref('')
-const showDeleteForm = ref(false)
 const selectedUser = ref(null)
 
-// Toast state
 const showToast = ref(false)
 const toastMessage = ref('')
 const toastType = ref('alert-info')
 
-// Toast function
 const showNotification = (message, type = 'info') => {
   toastMessage.value = message
   toastType.value = `alert-${type}`
@@ -194,7 +190,7 @@ const confirmDelete = async () => {
 
   try {
     await api.delete(`/users/${selectedUser.value.uuid}`)
-    await fetchUsers() // Обновляем список после удаления
+    await fetchUsers()
     showNotification('Пользователь успешно удален', 'success')
     closeDeleteDialog()
   } catch (error) {

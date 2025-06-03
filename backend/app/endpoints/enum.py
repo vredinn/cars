@@ -6,30 +6,30 @@ from schemas import (
 
 router = APIRouter(prefix="/enums", tags=["Enums"])
 
-@router.get("/body-types", response_model=list[str])
+@router.get("/body-types", response_model=list[str], description="Получить список типов кузовов")
 def get_body_types():
     return list(BodyTypeEnum.__args__)
 
-@router.get("/car-conditions", response_model=list[str])
+@router.get("/car-conditions", response_model=list[str], description="Получить список состояний автомобилей")
 def get_car_conditions():
     return list(CarConditionEnum.__args__)
 
-@router.get("/drive-types", response_model=list[str])
+@router.get("/drive-types", response_model=list[str], description="Получить список типов привода")
 def get_drive_types():
     return list(DriveTypeEnum.__args__)
 
-@router.get("/transmissions", response_model=list[str])
+@router.get("/transmissions", response_model=list[str], description="Получить список типов трансмиссий")
 def get_transmissions():
     return list(TransmissionEnum.__args__)
 
-@router.get("/fuel-types", response_model=list[str])
+@router.get("/fuel-types", response_model=list[str], description="Получить список типов топлива")
 def get_fuel_types():
     return list(FuelTypeEnum.__args__)
 
-@router.get("/steering-sides", response_model=list[str])
+@router.get("/steering-sides", response_model=list[str], description="Получить список сторон руля")
 def get_steering_sides():
     return list(SteeringSideEnum.__args__)
 
-@router.get("/deal-statuses", response_model=list[str])
+@router.get("/deal-statuses", response_model=list[str], description="Получить список статусов сделок")
 def get_deal_statuses():
     return list(DealStatusEnum.__args__)

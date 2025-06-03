@@ -1,6 +1,5 @@
 from pydantic import BaseModel, UUID4
 from datetime import datetime
-from typing import Optional
 
 class DealBase(BaseModel):
     pass

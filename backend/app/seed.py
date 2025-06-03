@@ -177,7 +177,6 @@ def seed_data(session: Session):
             moderator_id=admin_user.id if status != "pending" else None
         ))
 
-        # Favorites
         if random.choice([True, False]):
             potential_users = [u for u in regular_users if u.id != car.user_id]
             if potential_users:
@@ -202,7 +201,7 @@ def seed_data(session: Session):
             review = Review(
                 uuid=uuid.uuid4(),
                 user_uuid=buyer.uuid,
-                seller_uuid=car.user.uuid,  # seller
+                seller_uuid=car.user.uuid,
                 deal_uuid=deal.uuid,
                 rating=random.randint(3, 5),
                 review_text=faker.paragraph(nb_sentences=2),

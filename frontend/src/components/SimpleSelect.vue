@@ -14,7 +14,6 @@
     >
       <span>{{ selectedLabel || placeholder }}</span>
     </button>
-      <!-- Стрелочка вниз -->
       <svg
         class="w-5 h-5 ml-2 text-gray-500 pointer-events-none"
         xmlns="http://www.w3.org/2000/svg"

@@ -1,12 +1,10 @@
 <template>
   <section class="hero min-h-screen relative flex flex-col">
-    <!-- Фоновое изображение -->
     <div
       class="hero-bg absolute inset-0 bg-cover bg-center"
       :style="{ backgroundImage: 'url(/src/assets/i.webp)' }"
     ></div>
 
-    <!-- Основной контент -->
     <div
       class="container mx-auto hero-content w-full flex-1 flex flex-col items-center justify-center text-center"
     >
@@ -18,7 +16,6 @@
         <h2 class="text-5xl font-bold text-white">Найдите свой идеальный автомобиль</h2>
       </div>
 
-      <!-- Поисковая форма -->
       <div class="container mx-auto">
         <div class="w-full rounded-[20px] lg:rounded-full p-1 bg-base-100">
           <div class="flex flex-col md:flex-row gap-3">
@@ -30,7 +27,6 @@
               <div class="skeleton h-12 w-[100px]"></div>
             </template>
 
-            <!-- Actual filters -->
             <template v-else>
               <SearchableSelect
                 class="flex-1"
@@ -110,20 +106,17 @@ const filters = reactive({
   max_price: null,
 })
 
-// Фильтрация моделей по выбранной марке
 const filteredModels = computed(() => {
   if (!filters.brand_id) return []
   return models.value.filter(model => model.brand_id === filters.brand_id)
 })
 
-// Если бренд сброшен, сбрасываем модель
 watch(() => filters.brand_id, (newVal) => {
   if (!newVal) {
     filters.model_id = null
   }
 })
 
-// Формируем параметры запроса без null и пустых значений
 const buildQueryParams = (filters) => {
   const params = { ...filters }
   Object.keys(params).forEach(key => {
@@ -134,7 +127,6 @@ const buildQueryParams = (filters) => {
   return params
 }
 
-// Поиск — переход на /catalog с параметрами
 const searchCars = () => {
   const query = buildQueryParams(filters)
   router.push({ path: '/catalog', query }).catch(() => {})

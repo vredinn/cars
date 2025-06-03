@@ -78,12 +78,11 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import api from '@/api'
 
-// Получаем пропсы
 const props = defineProps({
   car: Object
 })
 
-const car = props.car // добавляем эту строку, чтобы обращаться к car напрямую
+const car = props.car 
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -93,7 +92,6 @@ const user = computed(() => authStore.user)
 const isFavorite = ref(false)
 const isOwner = ref(false)
 
-// Методы
 function goToCar(uuid) {
   router.push(`/car/${uuid}`)
 }

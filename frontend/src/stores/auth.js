@@ -9,7 +9,6 @@ export const useAuthStore = defineStore('auth', () => {
     const isAuthenticated = computed(() => !!user.value)
 
     async function fetchUser() {
-        // Check if we have an access token before attempting to fetch user
         const hasAccessToken = !!getCookie('csrf_access_token')
         if (!hasAccessToken) {
             user.value = null
@@ -31,7 +30,6 @@ export const useAuthStore = defineStore('auth', () => {
     async function refreshSession() {
         try {
             await refreshAuthToken()
-            // После обновления токена можно обновить user или состояние сессии:
             await fetchUser()
         } catch (e) {
             console.warn('Auto-refresh failed', e)
@@ -59,7 +57,6 @@ export const useAuthStore = defineStore('auth', () => {
         } finally {
             stopAutoRefresh()
             user.value = null
-            // Можно сделать редирект или перезагрузку, как хотите:
             window.location.reload()
         }
     }

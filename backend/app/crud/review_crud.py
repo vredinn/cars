@@ -1,5 +1,4 @@
-from sqlalchemy.orm import Session, selectinload
-from uuid import uuid4
+from sqlalchemy.orm import Session
 from fastapi_pagination.ext.sqlalchemy import paginate
 from fastapi_pagination import Params
 from sqlalchemy import func
@@ -9,12 +8,14 @@ from uuid import UUID
 import models as m
 from schemas import ReviewCreate, ReviewUpdate
 
-
-# ================ Review CRUD ================
-def get_reviews_by_user(db: Session, user_uuid: UUID, params: Params):
-    """Get reviews given by a user"""
-    q = db.query(m.Review).filter(m.Review.user_uuid == user_uuid)
-    return paginate(q, params)
+def get_reviews_by_seller(db: Session, seller_uuid: UUID):
+    return (
+        db.query(m.Review, m.User)
+        .join(m.User, m.User.uuid == m.Review.user_uuid)
+        .filter(m.Review.seller_uuid == seller_uuid)
+        .order_by(m.Review.review_date.desc())
+        .all()
+    )
 
 def _recalculate_seller_rating(db: Session, seller_uuid: UUID):
     """Helper function to recalculate seller's rating"""
@@ -25,21 +26,17 @@ def _recalculate_seller_rating(db: Session, seller_uuid: UUID):
         db.commit()
 
 def create_review(db: Session, review_create: ReviewCreate, user_uuid: UUID) -> Optional[m.Review]:
-    # Получаем сделку
     deal = db.query(m.Deal).filter(m.Deal.uuid == review_create.deal_uuid).first()
     if not deal:
         return None
     
-    # Проверяем, что пользователь является покупателем
     if deal.buyer_uuid != user_uuid:
         return None
 
-    # Проверяем, нет ли уже отзыва
     existing_review = db.query(m.Review).filter(m.Review.deal_uuid == deal.uuid).first()
     if existing_review:
         return None
 
-    # Создаем отзыв
     db_review = m.Review(
         user_uuid=user_uuid,
         seller_uuid=deal.seller_uuid,
@@ -52,7 +49,6 @@ def create_review(db: Session, review_create: ReviewCreate, user_uuid: UUID) -> 
     db.commit()
     db.refresh(db_review)
     
-    # Пересчитываем рейтинг продавца
     _recalculate_seller_rating(db, deal.seller_uuid)
     
     return db_review
@@ -69,7 +65,6 @@ def update_review(db: Session, review_uuid: UUID, data: ReviewUpdate):
     db.commit()
     db.refresh(obj)
     
-    # Пересчитываем рейтинг продавца после обновления
     _recalculate_seller_rating(db, seller_uuid)
     
     return obj
@@ -84,7 +79,6 @@ def delete_review(db: Session, review_uuid: UUID):
     db.delete(obj)
     db.commit()
     
-    # Пересчитываем рейтинг продавца после удаления
     _recalculate_seller_rating(db, seller_uuid)
     
     return True

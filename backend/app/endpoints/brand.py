@@ -11,34 +11,33 @@ from schemas import Brand, BrandCreate
 import crud
 
 ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png"]
-MAX_IMAGE_SIZE = 20 * 1024 * 1024  # 20MB
+MAX_IMAGE_SIZE = 20 * 1024 * 1024
 
-# ✅ относительный путь
 BRANDS_DIR = Path("brand_logos")
 BRANDS_DIR.mkdir(parents=True, exist_ok=True)
 
-router = APIRouter(prefix="/brands", tags=["Brands"])
+router = APIRouter(prefix="/brands", tags=["Бренды (марки) автомобилей"])
 
 
-@router.get("/", response_model=List[Brand])
+@router.get("/", response_model=List[Brand], description="Получить список всех брендов")
 def get_brands(db: Session = Depends(get_db)):
     return crud.get_brands(db)
 
 
-@router.get("/{brand_id}", response_model=Brand)
+@router.get("/{brand_id}", response_model=Brand, description="Получить информацию о бренде по ID")
 def get_brand(brand_id: int, db: Session = Depends(get_db)):
     brand = crud.get_brand(db, brand_id)
     if not brand:
-        raise HTTPException(status_code=404, detail="Brand not found")
+        raise HTTPException(status_code=404, detail="Бренд не найден")
     return brand
 
 
-@router.post("/", response_model=Brand, dependencies=[Depends(require_admin)])
+@router.post("/", response_model=Brand, dependencies=[Depends(require_admin)], description="Создать новый бренд (только для администраторов)")
 def create_brand(brand: BrandCreate, db: Session = Depends(get_db)):
     return crud.create_brand(db, brand)
 
 
-@router.post("/upload", response_model=str, dependencies=[Depends(require_admin)])
+@router.post("/upload", response_model=str, dependencies=[Depends(require_admin)], description="Загрузить изображение бренда (только для администраторов)")
 async def upload_brand_logo(file: UploadFile = File(...)):
     if file.content_type not in ALLOWED_IMAGE_TYPES:
         raise HTTPException(status_code=400, detail="Допустимы только JPEG и PNG")
@@ -51,25 +50,21 @@ async def upload_brand_logo(file: UploadFile = File(...)):
     try:
         image = Image.open(file.file).convert("RGBA")
         
-        # Определяем минимальную сторону изображения
         width, height = image.size
         min_side = min(width, height)
         
-        # Координаты для кропа (центрированный квадрат)
         left = (width - min_side) // 2
         top = (height - min_side) // 2
         right = (width + min_side) // 2
         bottom = (height + min_side) // 2
         
-        # Выполняем кроп
         image = image.crop((left, top, right, bottom))
         
-        # Ресайз до нужного размера (если требуется)
         image = image.resize((512, 512), Image.LANCZOS)
         
         filename = f"{uuid4().hex}.png"
         save_path = BRANDS_DIR / filename
-        image.save(save_path, "PNG", quality=95)  # Увеличил качество
+        image.save(save_path, "PNG", quality=95)
         
         return f"/brand_logos/{filename}"
     except Exception as e:
@@ -79,7 +74,7 @@ async def upload_brand_logo(file: UploadFile = File(...)):
         )
 
 
-@router.delete("/image/{filename}", dependencies=[Depends(require_admin)])
+@router.delete("/image/{filename}", dependencies=[Depends(require_admin)], description="Удалить изображение бренда по имени файла (только для администраторов)")
 def delete_brand_image(filename: str):
     try:
         filepath = BRANDS_DIR / Path(filename).name
@@ -92,17 +87,17 @@ def delete_brand_image(filename: str):
         raise HTTPException(status_code=400, detail=f"Ошибка удаления изображения: {e}")
 
 
-@router.put("/{brand_id}", response_model=Brand, dependencies=[Depends(require_admin)])
+@router.put("/{brand_id}", response_model=Brand, dependencies=[Depends(require_admin)], description="Обновить информацию о бренде по ID (только для администраторов)")
 def update_brand(brand_id: int, brand: BrandCreate, db: Session = Depends(get_db)):
 
     updated = crud.update_brand(db, brand_id, brand)
     if not updated:
-        raise HTTPException(status_code=404, detail="Brand not found")
+        raise HTTPException(status_code=404, detail="Бренд не найден")
     return updated
 
 
-@router.delete("/{brand_id}", dependencies=[Depends(require_admin)])
+@router.delete("/{brand_id}", dependencies=[Depends(require_admin)], description="Удалить бренд по ID (только для администраторов)")
 def delete_brand(brand_id: int, db: Session = Depends(get_db)):
     if not crud.delete_brand(db, brand_id):
-        raise HTTPException(status_code=404, detail="Brand not found")
-    return {"message": "Brand deleted successfully"}
+        raise HTTPException(status_code=404, detail="Бренд не найден")
+    return {"message": "Бренд успешно удален"}

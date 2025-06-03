@@ -2,9 +2,8 @@ import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
 import { createPinia } from 'pinia'
-import './style.css' // Подключение глобальных стилей
+import './style.css'
 
-// Suppress Suspense warning
 const originalWarn = console.warn
 console.warn = (...args) => {
     if (args[0] && args[0].includes && args[0].includes('<Suspense> is an experimental feature')) return

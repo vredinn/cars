@@ -7,11 +7,9 @@
       <h1 class="text-2xl font-bold mb-6">Редактирование профиля</h1>
 
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <!-- Основная информация -->
         <div class="space-y-4">
           <h2 class="text-xl font-semibold mb-4">Основная информация</h2>
           
-          <!-- Аватар -->
           <div 
             class="bg-base-200 border-2 border-dashed rounded-box p-4 text-center transition"
             @dragover.prevent
@@ -42,7 +40,6 @@
           </div>
 
           <form @submit.prevent="openSaveModal" class="space-y-4">
-            <!-- Имя -->
             <div>
               <label class="label">Имя</label>
               <label class="input validator w-full">
@@ -59,7 +56,6 @@
               <div class="validator-hint hidden mt-0">Имя может содержать только буквы и дефис</div>
             </div>
 
-            <!-- Email -->
             <div>
               <label class="label">Email</label>
               <label class="input validator w-full">
@@ -74,7 +70,6 @@
               <div class="validator-hint hidden mt-0">Введите корректный email адрес</div>
             </div>
 
-            <!-- Телефон -->
             <div>
               <label class="label">Телефон</label>
               <label class="input validator w-full">
@@ -99,7 +94,6 @@
             </button>
           </form>
 
-          <!-- Модальное окно подтверждения сохранения -->
           <dialog id="save-modal" class="modal modal-bottom sm:modal-middle">
             <div class="modal-box">
               <h3 class="font-bold text-lg">Сохранение изменений</h3>
@@ -115,11 +109,9 @@
           </dialog>
         </div>
 
-        <!-- Смена пароля -->
         <div class="space-y-4">
           <h2 class="text-xl font-semibold mb-4">Смена пароля</h2>
           <form @submit.prevent="updatePassword" class="space-y-4">
-            <!-- Текущий пароль -->
             <div>
               <label class="label">Текущий пароль</label>
               <label class="input validator w-full">
@@ -133,7 +125,6 @@
               </label>
             </div>
 
-            <!-- Новый пароль -->
             <div>
               <label class="label">Новый пароль</label>
               <label class="input validator w-full">
@@ -160,7 +151,6 @@
               </div>
             </div>
 
-            <!-- Подтверждение нового пароля -->
             <div>
               <label class="label">Подтверждение нового пароля</label>
               <label class="input validator w-full">
@@ -224,11 +214,9 @@ const passwordForm = reactive({
   confirmPassword: ''
 })
 
-// Загрузка данных пользователя
 async function loadUserData() {
   try {
     const uuid = route.params.uuid
-    // Проверяем права доступа
     if (authStore.user.uuid !== uuid && !authStore.user.is_admin) {
       router.push('/')
       return
@@ -247,7 +235,6 @@ async function loadUserData() {
   }
 }
 
-// Обработка загрузки аватара
 function handleFile(event) {
   const file = event.target.files[0]
   if (!file) return
@@ -296,7 +283,6 @@ async function confirmSave() {
   await updateProfile()
 }
 
-// Обновление профиля
 async function updateProfile() {
   loading.value = true
   errorMessage.value = ''
@@ -305,19 +291,16 @@ async function updateProfile() {
     const uuid = route.params.uuid
     await api.put(`/users/${uuid}`, form)
 
-    // Если есть новый аватар, загружаем его
     if (avatarFile.value) {
       const formData = new FormData()
       formData.append('file', avatarFile.value)
       await api.post(`/users/${uuid}/avatar`, formData)
     }
     
-    // Если аватар был удален, отправляем запрос на удаление
     if (isAvatarDeleted.value) {
       await api.delete(`/users/${uuid}/avatar`)
     }
 
-    // Обновляем данные в store если это текущий пользователь
     if (authStore.user.uuid === uuid) {
       await authStore.fetchUser()
     }
@@ -331,7 +314,6 @@ async function updateProfile() {
   }
 }
 
-// Обновление пароля
 async function updatePassword() {
   if (passwordForm.newPassword !== passwordForm.confirmPassword) {
     passwordErrorMessage.value = 'Пароли не совпадают'
@@ -348,12 +330,10 @@ async function updatePassword() {
       new_password: passwordForm.newPassword
     })
 
-    // Очищаем форму и скрываем подсказки валидации
     passwordForm.currentPassword = ''
     passwordForm.newPassword = ''
     passwordForm.confirmPassword = ''
     
-    // Скрываем все подсказки валидации
     document.querySelectorAll('.validator-hint').forEach(el => {
       el.classList.add('hidden')
     })

@@ -1,13 +1,8 @@
-from sqlalchemy.orm import Session, selectinload, joinedload
-from uuid import uuid4, UUID
+from sqlalchemy.orm import Session, joinedload
 from fastapi_pagination.ext.sqlalchemy import paginate
 from fastapi_pagination import  Params
 
 import models as m
-from schemas import (
-    FavoriteCreate
-)
-# ================ Favorite CRUD ================
 def create_favorite(db: Session, user_id : int, car_id: int):
     obj = m.Favorite(car_id = car_id, user_id = user_id)
     db.add(obj)

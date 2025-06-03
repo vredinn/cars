@@ -127,16 +127,13 @@ const decrease = () => {
 }
 
 const onBlur = () => {
-  // Если поле пустое и не обязательное, оставляем пустым
   if (localValue.value === '' && !props.required) {
     emit('update:modelValue', null)
     return
   }
   
-  // Конвертируем в число
   let value = parseFloat(localValue.value)
   
-  // Если значение невалидное и поле обязательное, устанавливаем минимальное или 0
   if (isNaN(value)) {
     if (props.required) {
       value = props.min > 0 ? props.min : 0
@@ -146,7 +143,6 @@ const onBlur = () => {
     }
   }
   
-  // Проверяем границы только если значение не null
   if (value !== null) {
     if (value < props.min) value = props.min
     if (value > props.max) value = props.max

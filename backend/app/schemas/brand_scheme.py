@@ -1,7 +1,6 @@
-from typing import List, Optional
-from pydantic import BaseModel, Field
+from typing import Optional
+from pydantic import BaseModel
 
-# ================ Brand ================
 class Brand(BaseModel):
     id: int
     name: str

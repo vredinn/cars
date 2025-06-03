@@ -11,13 +11,12 @@ const api = axios.create({
     withCredentials: true,
 })
 
-const REFRESH_INTERVAL = 14 * 60 * 1000 // 14 минут
+const REFRESH_INTERVAL = 14 * 60 * 1000
 let lastRefresh = 0
 let refreshingPromise = null
 
 async function maybeRefreshToken() {
     const csrfToken = getCookie('csrf_refresh_token')
-    // Don't attempt refresh if we don't have a refresh token
     if (!csrfToken) {
         return Promise.resolve()
     }
@@ -34,7 +33,6 @@ async function maybeRefreshToken() {
                     lastRefresh = Date.now()
                 })
                 .catch(err => {
-                    // Only log warning if we actually had a token
                     if (getCookie('csrf_refresh_token')) {
                         console.warn('[Auth] Token refresh failed', err)
                     }
@@ -72,7 +70,6 @@ api.interceptors.request.use(
             try {
                 await maybeRefreshToken()
             } catch {
-                // игнорируем ошибку, чтобы запрос всё равно пошёл
             }
         }
 

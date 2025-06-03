@@ -4,15 +4,13 @@ from sqlalchemy.orm import Session, selectinload
 from uuid import UUID, uuid4
 from fastapi_pagination.ext.sqlalchemy import paginate
 from fastapi_pagination import Params
-from sqlalchemy import and_, asc, desc, func, literal_column, or_
-from pathlib import Path
+from sqlalchemy import and_, asc, desc, func, or_
 
 import models as m
 from schemas import (
-    CarCreate, CarUpdate, AdModerationCreate
+    CarCreate, CarUpdate
 )
 
-# ================ Car CRUD ================
 def get_car_id_by_uuid(db: Session, car_uuid: UUID):
     return db.query(m.Car).filter(m.Car.uuid == car_uuid).first().id
 
@@ -66,8 +64,6 @@ def get_all_cars_paginated(
         selectinload(m.Car.model)
     )
 
-    # Фильтр по модерации: показываем только одобренные объявления
-    # или все объявления владельца, если указан user_id
     if user_id:
         q = q.filter(
             or_(
@@ -138,13 +134,11 @@ def get_user_cars_paginated(
 
 
 def create_car(db: Session, car: CarCreate, user_id: int):
-    # Создаем объявление
     obj = m.Car(**car.dict(), uuid=uuid4(), user_id=user_id)
     db.add(obj)
     db.commit()
     db.refresh(obj)
 
-    # Создаем запись о модерации
     moderation = m.AdModeration(
         car_id=obj.id,
         status=m.AdModerationStatusEnum.pending
@@ -164,7 +158,6 @@ def update_car(db: Session, car_id: int, car: CarUpdate):
     for key, value in car.model_dump(exclude_unset=True).items():
         setattr(obj, key, value)
 
-    # При обновлении объявления сбрасываем статус модерации на "На проверке"
     moderation = db.query(m.AdModeration).filter(m.AdModeration.car_id == car_id).first()
     if moderation:
         moderation.status = m.AdModerationStatusEnum.pending
@@ -175,7 +168,6 @@ def update_car(db: Session, car_id: int, car: CarUpdate):
     db.commit()
     db.refresh(obj)
 
-    # Если цена изменилась — добавляем запись в PriceHistory
     if 'price' in car.model_dump(exclude_unset=True) and obj.price != old_price:
         price_history = m.PriceHistory(
             car_id=obj.id,
@@ -211,7 +203,6 @@ def get_most_popular_cars(db: Session, limit: int = 10, user_id: Optional[int] =
         .filter(m.Car.is_sold == False)
     )
 
-    # Фильтр по модерации
     if user_id:
         q = q.filter(
             or_(
@@ -267,7 +258,6 @@ def get_cars_paginated(
         selectinload(m.Car.price_history)
     )
 
-    # Применяем фильтры
     if brand_id:
         query = query.filter(m.Car.brand_id == brand_id)
     if model_id:
@@ -317,10 +307,8 @@ def get_cars_paginated(
     if body_type:
         query = query.filter(m.Car.body_type == body_type)
 
-    # Фильтр по радиусу
     if center_latitude and center_longitude and radius_km:
-        # Используем формулу гаверсинусов для расчета расстояния
-        earth_radius = 6371  # радиус Земли в километрах
+        earth_radius = 6371
         query = query.filter(
             func.acos(
                 func.sin(func.radians(center_latitude)) * func.sin(func.radians(m.Car.latitude)) +
@@ -329,11 +317,9 @@ def get_cars_paginated(
             ) * earth_radius <= radius_km
         )
 
-    # Фильтр по статусу модерации
     if show_only_approved:
         query = query.join(m.AdModeration).filter(m.AdModeration.status == "Одобрено")
 
-    # Сортировка
     if sort_by:
         if sort_by == "price":
             order_func = desc if sort_order == "desc" else asc
@@ -348,7 +334,6 @@ def get_cars_paginated(
             order_func = desc if sort_order == "desc" else asc
             query = query.order_by(order_func(m.Car.listing_date))
     else:
-        # По умолчанию сортируем по дате добавления
         query = query.order_by(desc(m.Car.listing_date))
 
     return paginate(query, params)

@@ -91,7 +91,6 @@
       </table>
     </div>
 
-    <!-- Диалог отклонения -->
     <dialog id="reject-modal" class="modal modal-bottom sm:modal-middle">
       <div class="modal-box">
         <h3 class="font-bold text-lg mb-4">Отклонить объявление</h3>
@@ -118,7 +117,6 @@
       </form>
     </dialog>
   </div>
-  <!-- Add toast container -->
   <div class="toast toast-end">
     <div v-if="showToast" :class="['alert', toastType]">
       <span>{{ toastMessage }}</span>
@@ -134,12 +132,10 @@ const moderations = ref([])
 const rejectReason = ref('')
 const selectedItem = ref(null)
 
-// Toast state
 const showToast = ref(false)
 const toastMessage = ref('')
 const toastType = ref('alert-info')
 
-// Toast function
 const showNotification = (message, type = 'info') => {
   toastMessage.value = message
   toastType.value = `alert-${type}`
@@ -154,7 +150,7 @@ const fetchModerations = async () => {
     const response = await api.get('/moderation/pending')
     moderations.value = response.data
   } catch (error) {
-    console.error('Failed to fetch moderations:', error)
+    console.error('Не удалось загрузить список модераций:', error)
     showNotification('Не удалось загрузить список модераций', 'error')
   }
 }
@@ -173,7 +169,7 @@ const updateStatus = async (carId, status) => {
       'success'
     )
   } catch (error) {
-    console.error('Failed to update status:', error)
+    console.error('Не удалось обновить статус:', error)
     showNotification('Не удалось обновить статус', 'error')
   }
 }

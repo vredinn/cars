@@ -15,7 +15,6 @@
         :disabled="disabled"
         @click.stop
       />
-      <!-- Стрелочка вниз -->
       <svg
         class="w-5 h-5 ml-2 text-gray-500 pointer-events-none"
         xmlns="http://www.w3.org/2000/svg"
@@ -53,7 +52,6 @@
 <script setup>
 import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 
-// Принимаем пропсы
 const props = defineProps({
   options: {
     type: Array,
@@ -81,7 +79,6 @@ const props = defineProps({
   },
 })
 
-// Объявляем эмит
 const emit = defineEmits(['update:modelValue'])
 
 const root = ref(null)
@@ -89,17 +86,14 @@ const open = ref(false)
 const searchQuery = ref('')
 const dropdownPos = ref({ top: 0, left: 0, width: 0 })
 
-// Получить лейбл опции
 function optionLabel(option) {
   return typeof option === 'object' ? option[props.labelKey] : option
 }
 
-// Получить ключ опции
 function optionKey(option) {
   return typeof option === 'object' ? option[props.valueKey] : option
 }
 
-// Фильтруем опции по поиску
 const filteredOptions = computed(() =>
   props.options.filter(opt =>
     optionLabel(opt).toLowerCase().includes(searchQuery.value.toLowerCase())
@@ -129,14 +123,12 @@ function onScrollResize() {
   }
 }
 
-// Выбор опции
 function selectOption(option) {
   emit('update:modelValue', optionKey(option))
   searchQuery.value = optionLabel(option)
   open.value = false
 }
 
-// Валидация ввода
 function validateInput() {
   const matched = props.options.find(
     o => optionLabel(o).toLowerCase() === searchQuery.value.toLowerCase()
@@ -146,14 +138,12 @@ function validateInput() {
   } else if (matched) {
     emit('update:modelValue', optionKey(matched))
   } else {
-    // Невалидный ввод — очищаем
     emit('update:modelValue', null)
     searchQuery.value = ''
   }
   setTimeout(() => (open.value = false), 200)
 }
 
-// Обработка клика вне компонента
 function onClickOutside(e) {
   if (root.value && !root.value.contains(e.target)) {
     validateInput()
@@ -168,7 +158,6 @@ const dropdownStyle = computed(() => ({
   zIndex: 50,
 }))
 
-// Следим за изменением modelValue, чтобы обновить searchQuery
 watch(
   () => props.modelValue,
   (newVal) => {
@@ -178,7 +167,6 @@ watch(
   { immediate: true }
 )
 
-// Слушатели для кликов вне компонента
 onMounted(() => {
   window.addEventListener('resize', onScrollResize)
   window.addEventListener('scroll', onScrollResize, true)

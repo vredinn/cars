@@ -1,18 +1,14 @@
 <template>
-  <!-- Основной контейнер с фиксированной высотой -->
   <div class="container mx-auto pt-0 h-[calc(100dvh-64px)] max-h-[calc(100dvh-64px)] flex">
     <div class="flex w-full h-full">
       <div class="flex flex-col h-full min-h-0 w-full">
-        <!-- Заглушка, если данные чата загружаются или ошибка -->
         <div v-if="!car || !otherUser" class="flex-1 flex items-center justify-center min-h-0">
           <div class="text-center">
             <span class="loading loading-spinner loading-lg"></span>
             <p class="text-gray-500 mt-4">{{ errorMessage || 'Загрузка чата...' }}</p>
           </div>
         </div>
-        <!-- Окно чата, если данные загружены -->
         <div v-else class="flex flex-col h-full min-h-0">
-          <!-- Информация об автомобиле и собеседнике -->
           <div class="flex flex-col gap-2 p-1 px-4 bg-base-300 rounded-t-box">
             <!-- Верхняя строка с кнопкой назад и аватарами -->
             <div class="flex items-center gap-2">
@@ -39,7 +35,6 @@
                 </div>
               </div>
 
-              <!-- Информация о машине и пользователе -->
               <div class="flex-1 min-w-0">
                 <router-link 
                   :to="{ name: 'car', params: { uuid: car.uuid }}" 
@@ -58,9 +53,7 @@
               </div>
             </div>
 
-            <!-- Нижняя строка с кнопками и статусами -->
             <div class="flex flex-wrap items-center gap-2 pb-1">
-              <!-- Кнопки для сделки -->
               <div class="flex gap-2" v-if="car && isSeller">
                 <button 
                   v-if="!car.is_sold"
@@ -72,7 +65,6 @@
                 </button>
               </div>
 
-              <!-- Кнопка оставить отзыв для покупателя -->
               <div class="flex gap-2" v-if="car?.is_sold && !isSeller && !hasReview && deal?.buyer_uuid === authUser.uuid">
                 <button 
                   class="btn btn-primary btn-sm"
@@ -82,7 +74,6 @@
                 </button>
               </div>
 
-              <!-- Статус продажи и отзыва -->
               <div class="flex items-center gap-2">
                 <div v-if="car?.is_sold" class="badge badge-info">
                   Продано
@@ -98,13 +89,9 @@
             </div>
           </div>
 
-          <!-- Отображение отзыва, если он есть -->
-          
-
           <div v-if="errorMessage" class="alert alert-error mx-4 mb-4">
             {{ errorMessage }}
           </div>
-          <!-- Контейнер сообщений -->
           <div ref="messagesContainer" class="flex-1 overflow-y-auto px-4 pb-2 min-h-0 flex flex-col-reverse border-x-2 border-base-300">
             <div class="chat"
               :class="{ 'chat-start': message.sender_uuid !== userUuid, 'chat-end': message.sender_uuid === userUuid }"
@@ -115,7 +102,6 @@
               </div>
             </div>
           </div>
-          <!-- Поле ввода -->
           <div class="form-control px-4 py-2 border-x-2 border-base-300">
             <div class="input-group flex gap-2">
               <input v-model="newMessage" type="text" placeholder="Напишите сообщение..."
@@ -128,7 +114,6 @@
     </div>
   </div>
 
-  <!-- Модальное окно подтверждения -->
   <dialog :class="{ 'modal': true, 'modal-open': showConfirmDialog }">
     <div class="modal-box">
       <h3 class="font-bold text-lg">Подтверждение продажи</h3>
@@ -153,12 +138,11 @@
     </form>
   </dialog>
 
-  <!-- Модальное окно отзыва -->
   <dialog :class="{ 'modal': true, 'modal-open': showReviewDialog }">
     <div class="modal-box">
-      <h3 class="font-bold text-lg">Оставить отзыв о продавце</h3>
+      <h3 class="font-bold text-lg">Отзыв</h3>
       <form @submit.prevent="submitReview" class="py-4">
-        <div class="form-control">
+        <div class="form-control flex gap-4 mb-4">
           <label class="label">
             <span class="label-text">Оценка</span>
           </label>
@@ -170,13 +154,13 @@
             <input type="radio" v-model="reviewRating" name="rating" class="mask mask-star-2 bg-orange-400" :value="5" />
           </div>
         </div>
-        <div class="form-control">
+        <div class="form-control flex gap-4">
           <label class="label">
             <span class="label-text">Текст отзыва</span>
           </label>
           <textarea 
             v-model="reviewText" 
-            class="textarea textarea-bordered h-24" 
+            class="textarea textarea-bordered h-24 w-full" 
             placeholder="Опишите ваш опыт работы с продавцом"
           ></textarea>
         </div>
@@ -197,12 +181,11 @@
     </form>
   </dialog>
 
-  <!-- Модальное окно редактирования отзыва -->
   <dialog :class="{ 'modal': true, 'modal-open': showEditReviewDialog }">
     <div class="modal-box">
       <h3 class="font-bold text-lg">Редактирование отзыва</h3>
       <form @submit.prevent="updateReview" class="py-4">
-        <div class="form-control">
+        <div class="form-control flex gap-4 mb-4">
           <label class="label">
             <span class="label-text">Оценка</span>
           </label>
@@ -218,7 +201,7 @@
             </template>
           </div>
         </div>
-        <div class="form-control">
+        <div class="form-control flex gap-4">
           <label class="label">
             <span class="label-text">Текст отзыва</span>
           </label>
@@ -245,7 +228,6 @@
     </form>
   </dialog>
 
-  <!-- Модальное окно просмотра отзыва -->
   <dialog :class="{ 'modal': true, 'modal-open': showViewReviewDialog }">
     <div class="modal-box">
       <h3 class="font-bold text-lg mb-4">Отзыв о продавце</h3>
@@ -319,12 +301,7 @@ const car = ref(null);
 const otherUser = ref(null);
 const messagesContainer = ref(null);
 
-// Состояния для сделок
-const activeDeal = ref(null);
 const isCreatingDeal = ref(false);
-const isRespondingToDeal = ref(false);
-const isCompletingDeal = ref(false);
-const isCancellingDeal = ref(false);
 const showReviewDialog = ref(false);
 const isSubmittingReview = ref(false);
 const reviewText = ref('');
@@ -333,27 +310,13 @@ const hasReview = ref(false);
 const deal = ref(null);
 const review = ref(null);
 
-// Вычисляемые свойства для сделок
-const isInitiator = computed(() => {
-  if (!activeDeal.value) return false;
-  return activeDeal.value.initiator_uuid === userUuid.value;
-});
-
-const canCreateDeal = computed(() => {
-  if (!activeDeal.value) return true;
-  return ['Отклонена', 'Отменена'].includes(activeDeal.value.status);
-});
-
-// Computed property for reversed messages
 const reversedMessages = computed(() => [...messages.value].reverse());
 
-// Вычисляемые свойства
 const isSeller = computed(() => {
   if (!car.value || !authStore.user) return false;
   return car.value.user_id === authStore.user.id;
 });
 
-// Загрузка данных для активного чата
 async function loadChatData(carUuid, otherUserUuid) {
   if (!isValidUUID(carUuid) || !isValidUUID(otherUserUuid)) {
     errorMessage.value = 'Некорректные параметры чата';
@@ -368,13 +331,11 @@ async function loadChatData(carUuid, otherUserUuid) {
     car.value.image_url = carResponse.data.images?.length > 0 ? carResponse.data.images[0].image_url : null;
     otherUser.value = userResponse.data;
 
-    // Если машина продана, проверяем наличие отзыва
     if (car.value.is_sold) {
       try {
         const dealResponse = await api.get(`/deals/car/${carUuid}`);
         deal.value = dealResponse.data;
         if (deal.value) {
-          // Проверяем, является ли текущий пользователь покупателем
           if (deal.value.buyer_uuid === authUser.value.uuid) {
             try {
               const reviewResponse = await api.get(`/reviews/deal/${deal.value.uuid}`);
@@ -389,7 +350,6 @@ async function loadChatData(carUuid, otherUserUuid) {
               }
             }
           } else {
-            // Если пользователь не покупатель, нам не нужно проверять отзыв
             hasReview.value = false;
             review.value = null;
           }
@@ -406,7 +366,6 @@ async function loadChatData(carUuid, otherUserUuid) {
   }
 }
 
-// Загрузка сообщений
 async function loadMessages(carUuid, otherUserUuid) {
   if (!isValidUUID(carUuid) || !isValidUUID(otherUserUuid)) {
     errorMessage.value = 'Некорректные параметры чата';
@@ -415,7 +374,6 @@ async function loadMessages(carUuid, otherUserUuid) {
   try {
     const response = await api.get(`/messages/chat/${carUuid}/${otherUserUuid}`);
     messages.value = response.data;
-    // Scroll to bottom after messages are loaded
     nextTick(() => {
       scrollToBottom();
     });
@@ -425,7 +383,6 @@ async function loadMessages(carUuid, otherUserUuid) {
   }
 }
 
-// Подключение WebSocket
 async function connectWebSocket(carUuid, otherUserUuid) {
   if (!isValidUUID(carUuid) || !isValidUUID(otherUserUuid)) {
     errorMessage.value = 'Некорректные параметры чата';
@@ -436,7 +393,6 @@ async function connectWebSocket(carUuid, otherUserUuid) {
     websocket.value = null;
   }
   
-  // Use the API path for WebSocket connection
   const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
   const wsUrl = `${wsProtocol}//${window.location.host}/api/messages/ws/${userUuid.value}/${carUuid}/${otherUserUuid}`;
   
@@ -456,7 +412,6 @@ async function connectWebSocket(carUuid, otherUserUuid) {
     if (event.code === 1008) {
       errorMessage.value = 'Ошибка авторизации';
     }
-    // Попытка переподключения через 1 секунду
     setTimeout(() => {
       if (route.params.carUuid && route.params.otherUserUuid) {
         connectWebSocket(route.params.carUuid, route.params.otherUserUuid);
@@ -465,7 +420,6 @@ async function connectWebSocket(carUuid, otherUserUuid) {
   };
 }
 
-// Отправка сообщения
 async function sendMessage() {
   if (!newMessage.value.trim()) return;
   if (!websocket.value || websocket.value.readyState !== WebSocket.OPEN) {
@@ -477,7 +431,6 @@ async function sendMessage() {
   newMessage.value = '';
 }
 
-// Прокрутка к последнему сообщению
 function scrollToBottom() {
   if (messagesContainer.value) {
     messagesContainer.value.scrollTop = 0;
@@ -489,7 +442,6 @@ function isValidUUID(str) {
   return typeof str === 'string' && uuidRegex.test(str);
 }
 
-// Инициализация компонента
 onMounted(async () => {
 
   const { carUuid, otherUserUuid } = route.params;
@@ -502,115 +454,7 @@ onMounted(async () => {
   }
 });
 
-async function loadActiveDeal() {
-  try {
-    const { carUuid, otherUserUuid } = route.params;
-    const response = await api.get(`/deals/active/${carUuid}/${otherUserUuid}`);
-    activeDeal.value = response.data;
-  } catch (error) {
-    console.error('Ошибка загрузки активной сделки:', error);
-    // Если сделки нет или она не активна, это нормально
-    if (error.response?.status === 404) {
-      activeDeal.value = null;
-    } else {
-      errorMessage.value = 'Ошибка загрузки информации о сделке';
-    }
-  }
-}
-
-async function createDeal() {
-  if (isCreatingDeal.value) return;
-  isCreatingDeal.value = true;
-  try {
-    const { carUuid, otherUserUuid } = route.params;
-    const response = await api.post('/deals/create', {
-      car_uuid: carUuid,
-      other_user_uuid: otherUserUuid
-    });
-    activeDeal.value = response.data;
-    // Отправляем системное сообщение о создании сделки
-    const messageData = { 
-      message_text: 'Создана новая сделка. Ожидается подтверждение.',
-      is_system: true 
-    };
-    websocket.value.send(JSON.stringify(messageData));
-  } catch (error) {
-    console.error('Ошибка создания сделки:', error);
-    errorMessage.value = error.response?.data?.detail || 'Не удалось создать сделку';
-  } finally {
-    isCreatingDeal.value = false;
-  }
-}
-
-async function respondToDeal(accept) {
-  if (isRespondingToDeal.value || !activeDeal.value) return;
-  isRespondingToDeal.value = true;
-  try {
-    const response = await api.post(`/deals/${activeDeal.value.uuid}/${accept ? 'accept' : 'reject'}`);
-    activeDeal.value = response.data;
-    // Отправляем системное сообщение о решении
-    const messageData = { 
-      message_text: `Сделка ${accept ? 'принята' : 'отклонена'}.`,
-      is_system: true 
-    };
-    websocket.value.send(JSON.stringify(messageData));
-  } catch (error) {
-    console.error('Ошибка ответа на сделку:', error);
-    errorMessage.value = error.response?.data?.detail || 'Не удалось обработать ответ на сделку';
-  } finally {
-    isRespondingToDeal.value = false;
-  }
-}
-
-async function completeDeal() {
-  if (isCompletingDeal.value || !activeDeal.value) return;
-  isCompletingDeal.value = true;
-  try {
-    const response = await api.post(`/deals/${activeDeal.value.uuid}/complete`);
-    activeDeal.value = response.data;
-    // Отправляем системное сообщение о завершении сделки
-    const messageData = { 
-      message_text: 'Сделка успешно завершена.',
-      is_system: true 
-    };
-    websocket.value.send(JSON.stringify(messageData));
-  } catch (error) {
-    console.error('Ошибка завершения сделки:', error);
-    errorMessage.value = error.response?.data?.detail || 'Не удалось завершить сделку';
-  } finally {
-    isCompletingDeal.value = false;
-  }
-}
-
-async function cancelDeal() {
-  if (isCancellingDeal.value || !car.value) return;
-  isCancellingDeal.value = true;
-  try {
-    await api.post(`/deals/${car.value.uuid}/cancel`);
-    
-    // Обновляем статус машины
-    car.value.is_sold = false;
-    
-    // Отправляем системное сообщение об отмене
-    if (websocket.value?.readyState === WebSocket.OPEN) {
-      const messageData = { 
-        message_text: 'Продажа отменена.',
-        is_system: true 
-      };
-      websocket.value.send(JSON.stringify(messageData));
-    }
-    
-    showCancelDialog.value = false;
-  } catch (error) {
-    console.error('Ошибка отмены продажи:', error);
-    errorMessage.value = error.response?.data?.detail || 'Не удалось отменить продажу';
-  } finally {
-    isCancellingDeal.value = false;
-  }
-}
-
 const showConfirmDialog = ref(false);
-const showCancelDialog = ref(false);
 
 async function confirmDeal() {
   if (isCreatingDeal.value || !car.value || !otherUser.value) return;
@@ -621,10 +465,8 @@ async function confirmDeal() {
       buyer_uuid: otherUser.value.uuid
     });
     
-    // Обновляем статус машины
     car.value.is_sold = true;
     
-    // Отправляем системное сообщение о продаже
     if (websocket.value?.readyState === WebSocket.OPEN) {
       const messageData = { 
         message_text: 'Автомобиль продан.',
@@ -645,7 +487,6 @@ async function confirmDeal() {
 async function submitReview() {
   if (isSubmittingReview.value || !deal.value || !reviewText.value.trim() || !reviewRating.value) return;
   
-  // Validate rating is between 1 and 5
   const rating = Number(reviewRating.value);
   if (rating < 1 || rating > 5) {
     errorMessage.value = 'Оценка должна быть от 1 до 5';
@@ -663,12 +504,11 @@ async function submitReview() {
     const response = await api.post('/reviews/create', reviewData);
     review.value = response.data;
     
-    // Отправляем системное сообщение об отзыве
     if (websocket.value?.readyState === WebSocket.OPEN) {
       const messageData = { 
         message_text: 'Покупатель оставил отзыв о продавце.',
         is_system: true,
-        review: response.data // Добавляем данные отзыва в сообщение
+        review: response.data 
       };
       websocket.value.send(JSON.stringify(messageData));
     }
@@ -707,7 +547,7 @@ const isUpdatingReview = ref(false);
 function editReview() {
   editReviewText.value = review.value.review_text;
   editReviewRating.value = review.value.rating;
-  showViewReviewDialog.value = false; // Закрываем окно просмотра
+  showViewReviewDialog.value = false;
   showEditReviewDialog.value = true;
 }
 
@@ -739,16 +579,14 @@ async function updateReview() {
     review.value = response.data;
     showEditReviewDialog.value = false;
     
-    // Отправляем системное сообщение об обновлении отзыва
     if (websocket.value?.readyState === WebSocket.OPEN) {
       const messageData = { 
         message_text: 'Отзыв был обновлен.',
         is_system: true,
-        review: response.data // Добавляем обновленные данные отзыва
+        review: response.data 
       };
       websocket.value.send(JSON.stringify(messageData));
     } else {
-      // Если WebSocket закрыт, пробуем переподключиться
       const { carUuid, otherUserUuid } = route.params;
       if (carUuid && otherUserUuid) {
         await connectWebSocket(carUuid, otherUserUuid);
@@ -762,21 +600,17 @@ async function updateReview() {
   }
 }
 
-// Обработка входящих WebSocket сообщений
 function handleWebSocketMessage(event) {
   try {
     const data = JSON.parse(event.data);
     
-    // Если сообщение содержит данные отзыва, обновляем локальный отзыв
     if (data.review) {
       review.value = data.review;
       hasReview.value = true;
     }
     
-    // Добавляем сообщение в список
     messages.value.push(data);
     
-    // Прокручиваем к последнему сообщению
     nextTick(() => {
       if (messagesContainer.value) {
         messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight;

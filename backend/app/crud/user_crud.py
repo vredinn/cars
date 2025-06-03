@@ -1,10 +1,8 @@
 from pydantic import EmailStr
-from sqlalchemy.orm import Session, selectinload
+from sqlalchemy.orm import Session
 from passlib.context import CryptContext
 from uuid import UUID, uuid4
-from fastapi_pagination.ext.sqlalchemy import paginate
-from fastapi_pagination import Params
-from sqlalchemy import asc, desc
+from sqlalchemy import desc
 from pathlib import Path
 from typing import Optional
 from sqlalchemy.sql import or_
@@ -19,7 +17,6 @@ UPLOAD_DIR = Path("uploads/car_images")
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# ================ User CRUD ================
 def get_user_id_by_uuid(db: Session, user_uuid: UUID):
     user = db.query(m.User).filter(m.User.uuid == user_uuid).first()
     return user.id if user else None

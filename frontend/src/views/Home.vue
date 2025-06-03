@@ -17,20 +17,17 @@
       </template>
     </Suspense>
 
-    <!-- Секция с брендами -->
     <section class="py-12 container mx-auto px-4 bg-base-100">
       <div class="flex justify-between items-center mb-10">
         <h2 class="text-3xl font-bold">Бренды</h2>
       </div>
 
-      <!-- Пока грузится -->
       <div v-if="isLoadingBrands" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-6">
         <div v-for="n in 6" :key="n" class="flex flex-col items-center animate-pulse">
           <div class="w-full aspect-square rounded-full bg-gray-300"></div>
         </div>
       </div>
 
-      <!-- Когда загрузилось -->
       <div v-else class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-6">
         <router-link :to="`/catalog?brand_id=${brand.id}`" v-for="brand in brands" :key="brand.id"
           class="flex flex-col items-center">
@@ -44,12 +41,10 @@
 
     </section>
 
-    <!-- Популярные объявления -->
     <section class="container mx-auto px-4 bg-base-100 relative">
       <h2 class="text-3xl font-bold text-center mb-10">Популярные объявления</h2>
 
       <div ref="carousel" class="carousel w-full rounded-box space-x-4 p-4 scroll-p-4 bg-base-200">
-        <!-- Skeleton loader for cars -->
         <template v-if="isLoadingCars">
           <div v-for="n in 4" :key="n" class="carousel-item card btn btn-soft p-0 h-100 w-70">
             <div class="skeleton h-[200px] w-full"></div>
@@ -67,7 +62,6 @@
           </div>
         </template>
 
-        <!-- Actual cars -->
         <template v-else>
           <router-link v-for="(car, uuid) in popularCars" :key="uuid" :to="`/car/${car.uuid}`"
             class="card carousel-item btn btn-soft p-0 h-100 w-70 transition-all duration-250">
@@ -100,7 +94,6 @@
         </template>
       </div>
 
-      <!-- Навигационные кнопки -->
       <div class="flex justify-center gap-6 mt-4">
         <button @click="prevSlide" :class="{ 'btn-disabled': !canScrollLeft }"
           class="btn btn-neutral btn-circle w-[60px] h-[40px] min-h-[40px]">
@@ -119,17 +112,13 @@
       </div>
     </section>
 
-    <!-- Новая секция "Получите справедливую цену" -->
     <section class="py-20 container mx-auto px-4 bg-base-100">
-      <!-- Верхняя часть: изображение и текст -->
       <div class="flex flex-col lg:flex-row mb-16">
-        <!-- Изображение машины (левая часть) -->
         <div class="lg:w-1/2 shadow-md rounded-none relative">
           <img src="/src/assets/cars/Background.jpg" alt="Продажа автомобиля"
             class="absolute inset-0 w-full h-full object-cover rounded-t-[24px] lg:rounded-none lg:rounded-l-[24px]">
         </div>
 
-        <!-- Текст (правая часть) -->
         <div
           class="lg:w-1/2 flex flex-col justify-center bg-base-300 rounded-b-[24px] lg:rounded-none lg:rounded-r-[24px] p-4">
           <h2 class="text-3xl font-bold mb-4">ПОЛУЧИТЕ СПРАВЕДЛИВУЮ ЦЕНУ ЗА СВОЙ АВТОМОБИЛЬ</h2>
@@ -157,7 +146,6 @@
         </div>
       </div>
 
-      <!-- Нижняя часть: статистика -->
       <div class="grid grid-cols-2 md:grid-cols-4 gap-6 bg-base-100">
         <!-- Блоки статистики -->
         <div class=" p-6 rounded-lg text-center font-bold">
@@ -182,7 +170,6 @@
       <h2 class="text-3xl font-bold text-center mb-10">Популярные продавцы</h2>
 
       <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-        <!-- Skeleton loader for sellers -->
         <template v-if="isLoadingUsers">
           <div v-for="n in 4" :key="n" class="card bg-base-300 shadow-md h-[400px] w-full mx-auto">
             <div class="skeleton h-[306px] w-full"></div>
@@ -195,7 +182,6 @@
           </div>
         </template>
 
-        <!-- Actual sellers -->
         <template v-else>
           <div v-for="(user, uuid) in popularUsers" :key="uuid"
             class="card bg-base-300 shadow-md h-[400px] w-full mx-auto">
@@ -228,7 +214,6 @@ import { ref, onMounted, onBeforeUnmount, nextTick, defineAsyncComponent } from 
 const HeroSection = defineAsyncComponent(() => import('@/components/HeroSection.vue'))
 import api from '@/api'
 
-// Состояния
 const brands = ref([])
 const isLoadingBrands = ref(true)
 
@@ -242,8 +227,6 @@ const canScrollLeft = ref(false)
 const canScrollRight = ref(true)
 
 const carousel = ref(null)
-
-// Методы
 
 async function loadBrands() {
   isLoadingBrands.value = true
@@ -332,7 +315,6 @@ function formatDate(dateString) {
   }
 }
 
-// Хуки
 onMounted(() => {
   loadBrands()
   loadPopularCars()

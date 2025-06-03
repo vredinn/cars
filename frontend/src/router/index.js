@@ -107,14 +107,12 @@ router.beforeEach(async (to, from, next) => {
   const auth = useAuthStore()
   const hasAccessToken = !!getCookie('csrf_access_token')
 
-  // Если нет токена и нет пользователя, значит точно не авторизован
   if (!hasAccessToken && !auth.isAuthenticated) {
     if (to.meta.requiresAuth) {
       next({ name: 'Auth', query: { redirect: to.fullPath } })
       return
     }
   }
-  // Если есть токен, но нет пользователя - пробуем получить пользователя
   else if (hasAccessToken && !auth.isAuthenticated) {
     try {
       await auth.fetchUser()
@@ -127,13 +125,11 @@ router.beforeEach(async (to, from, next) => {
     }
   }
 
-  // Если страница скрыта для авторизованных и пользователь авторизован
   if (to.meta.hideForAuth && auth.isAuthenticated) {
     next({ name: 'Home' })
     return
   }
 
-  // Проверка прав администратора
   if (to.meta.requiresAdmin && !auth.user?.is_admin) {
     next({ name: 'Home' })
     return

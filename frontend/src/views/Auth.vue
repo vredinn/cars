@@ -23,7 +23,6 @@
         <button @click="errorMessage = ''" class="btn btn-sm btn-circle btn-ghost ml-auto">✕</button>
       </div>
 
-      <!-- Форма входа -->
       <form v-if="activeTab === 'login'" @submit.prevent="login" class="space-y-4">
         <label class="input validator w-full">
           <svg class="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
@@ -86,7 +85,6 @@
         <button type="submit" class="btn btn-primary w-full">Войти</button>
       </form>
 
-      <!-- Форма регистрации -->
       <form v-else @submit.prevent="register" class="space-y-4">
         <label class="input validator w-full">
           <svg class="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
@@ -249,9 +247,7 @@ const registerForm = ref({
   passwordConfirm: ''
 })
 
-// Очистка данных при переключении табов
 watch(activeTab, () => {
-  // Очищаем формы
   loginForm.value = {
     email: '',
     password: ''
@@ -263,7 +259,6 @@ watch(activeTab, () => {
     password: '',
     passwordConfirm: ''
   }
-  // Очищаем сообщение об ошибке
   errorMessage.value = ''
 })
 
@@ -298,7 +293,6 @@ const register = async () => {
   if (!validatePasswords()) return
 
   try {
-    // Отправляем форму без поля passwordConfirm
     const { passwordConfirm, ...formData } = registerForm.value
     await api.post('/auth/register', formData)
     await auth.fetchUser()

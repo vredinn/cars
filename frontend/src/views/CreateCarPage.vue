@@ -187,7 +187,6 @@
               <div class="validator-hint hidden mt-0">Цвет должен содержать от 2 до 50 символов, только буквы, пробелы и дефис</div>
             </div>
           </div>
-          <!-- Карта -->
           <div class="mb-2">
             <label class="label mb-2">Местоположение</label>
             <div>                
@@ -212,7 +211,6 @@
         </div>
       </div>
 
-      <!-- Кнопка -->
       <div class="pt-4">        
         <div v-if="errorMessage" role="alert" class="alert alert-error alert-soft">
           <span>{{ errorMessage }}</span>
