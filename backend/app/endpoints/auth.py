@@ -23,11 +23,9 @@ def register(user: UserCreate, response: Response, db: Session = Depends(get_db)
     db_user = create_user(db, user)
     user_uuid = str(db_user.uuid)
     
-    # Create access and refresh tokens with CSRF
     access_token, csrf_access = security.create_access_token(user_uuid)
     refresh_token, csrf_refresh = security.create_refresh_token(user_uuid)
     
-    # Create response and set cookies
     response = JSONResponse(content={
         "message": "Регистрация успешна"
     })
@@ -51,11 +49,9 @@ def login(user: UserLogin, response: Response, db: Session = Depends(get_db)):
     
     user_uuid = str(db_user.uuid)
     
-    # Create access and refresh tokens with CSRF
     access_token, csrf_access = security.create_access_token(user_uuid)
     refresh_token, csrf_refresh = security.create_refresh_token(user_uuid)
     
-    # Create response and set cookies
     response = JSONResponse(content={
         "message": "Успешно вошли в систему",
     })
