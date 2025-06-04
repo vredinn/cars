@@ -65,7 +65,7 @@
         <template v-else>
           <router-link v-for="(car, uuid) in popularCars" :key="uuid" :to="`/car/${car.uuid}`"
             class="card carousel-item btn btn-soft p-0 h-100 w-70 transition-all duration-250">
-            <figure class="w-full max-h-[200px] ">
+            <figure class="w-full h-[200px] ">
               <img :src="car.preview_image_url || '/uploads/no_car_image.png'" :alt="car.title"
                 class="w-full h-full object-cover rounded-box">
             </figure>

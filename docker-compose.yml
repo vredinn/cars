@@ -1,10 +1,9 @@
-# auto-listings/docker-compose.yml
 services:
   db:
     image: postgres:15
     env_file: .env
     volumes:
-      - ./db/db_data:/var/lib/postgresql/data # монтируем локальную директорию
+      - ./db/db_data:/var/lib/postgresql/data
     networks:
       - app_network
     ports:
@@ -16,7 +15,7 @@ services:
       - db
     env_file: .env
     volumes:
-      - ./backend:/app # монтируем код с хоста
+      - ./backend:/app
     networks:
       - app_network
     ports:

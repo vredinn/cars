@@ -69,7 +69,7 @@
                   :step="1"
                   required
                   :validator-hint="`Год должен быть между 1900 и ${currentYear}`"
-                  class="validator"
+                  className="validator"
                 />
               </div>
 
@@ -81,7 +81,7 @@
                   :step="1"
                   required
                   validator-hint="Цена должна быть положительным числом"
-                  class="validator"
+                  className="validator"
                 />
               </div>
 
@@ -166,7 +166,7 @@
                   :step="0.1"
                   required
                   validator-hint="Объем двигателя должен быть от 0.1 до 10.0 литров"
-                  class="validator"
+                  className="validator"
                 />
               </div>
 
@@ -179,7 +179,7 @@
                   :step="1"
                   required
                   validator-hint="Мощность должна быть от 1 до 2000 л.с."
-                  class="validator"
+                  className="validator"
                 />
               </div>
 
@@ -191,7 +191,7 @@
                   :step="1"
                   required
                   validator-hint="Пробег не может быть отрицательным"
-                  class="validator"
+                  className="validator"
                 />
               </div>
 
@@ -241,7 +241,7 @@
         </div>
 
         <div class="pt-4">
-          <div v-if="errorMessage" role="alert" class="alert alert-error alert-soft">
+          <div v-if="errorMessage" role="alert" class="alert alert-error alert-soft mb-2">
             <span>{{ errorMessage }}</span>
             <button @click="errorMessage = ''" class="btn btn-sm btn-circle btn-ghost ml-auto">✕</button>
           </div>
@@ -454,8 +454,8 @@ function addFiles(fileList) {
       errorMessage.value = 'Поддерживаются только изображения'
       continue
     }
-    if (previews.value.length >= 10) {
-      errorMessage.value = 'Максимум 10 изображений'
+    if (previews.value.length >= 30) {
+      errorMessage.value = 'Максимум 30 изображений'
       return
     }
     files.value.push(file)

@@ -1,17 +1,15 @@
 <template>
   <div>
-    <div class="flex justify-between items-center mb-4">
+    <div class="flex flex-col sm:flex-row justify-between items-center gap-2 mb-4 mt-2">
       <h2 class="font-bold">Модели</h2>
-      <div class="flex items-center space-x-4">
-        <div class="relative">
-          <input
-            type="text"
-            v-model="searchQuery"
-            placeholder="Поиск по названию..."
-            class="input input-bordered"
-            @input="handleSearch"
-          />
-        </div>
+      <div class="flex px-4 gap-2 items-center w-full">
+        <input
+          type="text"
+          v-model="searchQuery"
+          placeholder="Поиск по названию..."
+          class="input input-bordered m-0 w-full"
+          @input="handleSearch"
+        />
         <button class="btn btn-primary" @click="showAddModal = true">Добавить модель</button>
       </div>
     </div>

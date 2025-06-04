@@ -1,6 +1,6 @@
 <template>
   <div class="moderations">
-    <div class="flex justify-between items-center mb-6">
+    <div class="flex flex-col sm:flex-row gap-2 justify-between items-center mb-6">
       <h2 class="font-bold">Модерация объявлений</h2>
       <div class="flex items-center space-x-4">
           <span class="badge badge-warning py-4">
@@ -198,14 +198,13 @@ const confirmReject = async () => {
     return
   }
 
-  try {
-    await api.put(`/moderation/${selectedItem.value.car.id}`, {
+  try {    await api.put(`/moderation/${selectedItem.value.car.id}`, {
       status: 'Отклонено',
       moderator_comment: rejectReason.value.trim()
     })
     await fetchModerations()
     showNotification('Объявление отклонено', 'success')
-    closeRejectDialog()
+    closeRejectModal()
   } catch (error) {
     console.error('Failed to reject car:', error)
     showNotification('Не удалось отклонить объявление', 'error')

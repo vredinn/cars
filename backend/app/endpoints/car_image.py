@@ -11,7 +11,7 @@ import crud
 import io
 
 
-ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png"]
+ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/tiff", "image/bmp"]
 MAX_IMAGE_SIZE = 20 * 1024 * 1024
 UPLOAD_DIR = Path("uploads/car_images")
 CAR_IMAGE_WIDTH = 416 * 3
@@ -43,7 +43,7 @@ async def create_car_image(
         raise HTTPException(status_code=404, detail="Машина не найдена")
 
     if file.content_type not in ALLOWED_IMAGE_TYPES:
-        raise HTTPException(status_code=400, detail="Допустимы только JPEG и PNG")
+        raise HTTPException(status_code=400, detail="Допустимы только файлы изображений")
 
     file.file.seek(0, io.SEEK_END)
     if file.file.tell() > MAX_IMAGE_SIZE:
@@ -69,7 +69,7 @@ async def create_car_image(
 
 @router.delete("/{image_id}", description="Удалить изображение машины по ID")
 def delete_car_image(image_id: int, db: Session = Depends(get_db), user: User = Depends(security.require_user)):
-    if (not crud.is_car_image_owner(db, image_id, user.id or user.is_admin)):
+    if (not (crud.is_car_image_owner(db, image_id, user.id) or user.is_admin)):
         raise HTTPException(status_code=403, detail="Вы не являетесь владельцем изображения")
     if not crud.delete_car_image(db, image_id):
         raise HTTPException(status_code=404, detail="Изображение не найдено")

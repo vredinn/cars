@@ -22,7 +22,7 @@
               <p>Email: {{ user.email }}</p>
               <p>Телефон: {{ user.phone }}</p>
               <p>Регистрация: {{ formatDate(user.registration_date) }}</p>
-              <div v-if="isOwnProfile" class="mt-4">
+              <div v-if="isOwnProfile || authStore.user?.is_admin" class="mt-4">
                 <router-link :to="`/profile/edit/${user.uuid}`" class="btn btn-primary">
                   Редактировать профиль
                 </router-link>

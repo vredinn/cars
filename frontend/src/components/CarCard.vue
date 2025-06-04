@@ -21,9 +21,8 @@
               }"
             >
               {{ getModerationStatusDisplay(car.moderation_status) }}
-            </span>
-          </h3>
-          <p>
+            </span></h3>          <p>
+            <AddressDisplay :lat="car.latitude" :lng="car.longitude" />,
             {{ car.engine_power }} л.с. {{ car.fuel_type }}, {{ car.engine_capacity }} л,
             {{ car.steering_side }} руль, {{ car.drive_type }} привод
           </p>
@@ -77,6 +76,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import api from '@/api'
+import AddressDisplay from '@/components/AddressDisplay.vue'
 
 const props = defineProps({
   car: Object

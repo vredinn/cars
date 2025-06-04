@@ -1,5 +1,5 @@
 <template>
-  <div class="join w-full">
+  <div :class="['join w-full', className]">
     <button 
       type="button"
       :class="[
@@ -44,6 +44,10 @@ const props = defineProps({
     type: Number,
     required: false,
     default: null
+  },
+  className: {
+    type: String,
+    default: ''
   },
   min: {
     type: Number,
@@ -114,7 +118,8 @@ const increase = () => {
   const currentValue = parseFloat(localValue.value) || 0
   const newValue = currentValue + props.step
   if (newValue <= props.max) {
-    localValue.value = newValue
+    const decimals = props.step.toString().split('.')[1]?.length || 0
+    localValue.value = Number(newValue.toFixed(decimals))
   }
 }
 
@@ -122,7 +127,8 @@ const decrease = () => {
   const currentValue = parseFloat(localValue.value) || 0
   const newValue = currentValue - props.step
   if (newValue >= props.min) {
-    localValue.value = newValue
+    const decimals = props.step.toString().split('.')[1]?.length || 0
+    localValue.value = Number(newValue.toFixed(decimals))
   }
 }
 

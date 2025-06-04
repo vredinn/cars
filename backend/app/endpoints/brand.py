@@ -10,7 +10,7 @@ from database import get_db
 from schemas import Brand, BrandCreate
 import crud
 
-ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png"]
+ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/tiff", "image/bmp"]
 MAX_IMAGE_SIZE = 20 * 1024 * 1024
 
 BRANDS_DIR = Path("brand_logos")
@@ -20,8 +20,8 @@ router = APIRouter(prefix="/brands", tags=["Бренды (марки) автом
 
 
 @router.get("/", response_model=List[Brand], description="Получить список всех брендов")
-def get_brands(db: Session = Depends(get_db)):
-    return crud.get_brands(db)
+def get_brands(search: str = None, db: Session = Depends(get_db)):
+    return crud.get_brands(db, search=search)
 
 
 @router.get("/{brand_id}", response_model=Brand, description="Получить информацию о бренде по ID")
@@ -40,7 +40,7 @@ def create_brand(brand: BrandCreate, db: Session = Depends(get_db)):
 @router.post("/upload", response_model=str, dependencies=[Depends(require_admin)], description="Загрузить изображение бренда (только для администраторов)")
 async def upload_brand_logo(file: UploadFile = File(...)):
     if file.content_type not in ALLOWED_IMAGE_TYPES:
-        raise HTTPException(status_code=400, detail="Допустимы только JPEG и PNG")
+        raise HTTPException(status_code=400, detail="Допустимы только файлы изображений")
 
     file.file.seek(0, io.SEEK_END)
     if file.file.tell() > MAX_IMAGE_SIZE:

@@ -17,8 +17,8 @@ from config import settings
 
 router = APIRouter(prefix="/users", tags=["Пользователи"])
 
-ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png"]
-MAX_IMAGE_SIZE = 5 * 1024 * 1024  
+ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/tiff", "image/bmp"]
+MAX_IMAGE_SIZE = 5 * 1024 * 1024
 UPLOAD_DIR = Path("uploads/avatars")
 AVATAR_SIZE = 512  
 
@@ -119,7 +119,7 @@ async def upload_avatar(
         raise HTTPException(status_code=404, detail="Пользователь не найден")
     
     if file.content_type not in ALLOWED_IMAGE_TYPES:
-        raise HTTPException(status_code=400, detail="Допустимы только JPEG и PNG")
+        raise HTTPException(status_code=400, detail="Допустимы только файлы изображений")
     
     file.file.seek(0, io.SEEK_END)
     if file.file.tell() > MAX_IMAGE_SIZE:

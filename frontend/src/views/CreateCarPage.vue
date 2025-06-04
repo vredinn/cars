@@ -211,7 +211,7 @@
         </div>
       </div>
 
-      <div class="pt-4">        
+      <div class="my-2">        
         <div v-if="errorMessage" role="alert" class="alert alert-error alert-soft">
           <span>{{ errorMessage }}</span>
           <button @click="errorMessage=''" class="btn btn-sm btn-circle btn-ghost ml-auto">✕</button>
@@ -323,7 +323,14 @@ function handleDrop(event) {
 
 function addFiles(fileList) {
   for (const file of fileList) {
-    if (!file.type.startsWith('image/')) continue
+    if (!file.type.startsWith('image/')) {
+      errorMessage.value = 'Поддерживаются только изображения'
+      continue
+    }
+    if (previews.value.length >= 30) {
+      errorMessage.value = 'Максимум 30 изображений'
+      return
+    }
     files.value.push(file)
     previews.value.push(URL.createObjectURL(file))
   }

@@ -1,8 +1,17 @@
 <template>
-  <div>
-    <div class="flex justify-between items-center mb-4">
+  <div>    
+    <div class="flex flex-col sm:flex-row justify-between items-center gap-2 mb-4 mt-2">
       <h2 class="font-bold">Марки</h2>
-      <button class="btn btn-primary" @click="showAddModal = true">Добавить марку</button>
+      <div class="flex px-4 gap-2 items-center w-full">
+        <input
+          type="text"
+          v-model="searchQuery"
+          placeholder="Поиск по названию..."
+          class="input input-bordered m-0 w-full"
+          @input="handleSearch"
+        />
+        <button class="btn btn-primary" @click="showAddModal = true">Добавить марку</button>
+      </div>
     </div>
 
     <div class="overflow-x-auto">
@@ -95,16 +104,34 @@ import api from '@/api'
 import { useFiltersStore } from '@/stores/filters'
 
 const filtersStore = useFiltersStore()
-const brands = computed(() => filtersStore.brands)
 const showAddModal = ref(false)
 const editMode = ref(false)
 const form = ref({ id: null, name: '', image_url: '' })
 let file = null
 const previewImage = ref(null)
 const brandToDelete = ref(null)
+const searchQuery = ref('')
+const brandsList = ref([])
+
+const brands = computed(() => {
+  if (!searchQuery.value) {
+    return filtersStore.brands
+  }
+  return brandsList.value
+})
+
+const handleSearch = async () => {
+  try {
+    const { data } = await api.get('/brands/', { params: { search: searchQuery.value } })
+    brandsList.value = data
+  } catch (error) {
+    console.error('Error searching brands:', error)
+  }
+}
 
 const fetchBrands = async () => {
   await filtersStore.loadAll()
+  brandsList.value = filtersStore.brands
 }
 
 const handleFile = (event) => {

@@ -3,8 +3,11 @@ import models as m
 from schemas import (
     BrandCreate
 )
-def get_brands(db: Session):
-    return db.query(m.Brand).all()
+def get_brands(db: Session, search: str = None):
+    query = db.query(m.Brand)
+    if search:
+        query = query.filter(m.Brand.name.ilike(f"%{search}%"))
+    return query.all()
 
 def get_brand(db: Session, brand_id: int):
     return db.query(m.Brand).filter(m.Brand.id == brand_id).first()

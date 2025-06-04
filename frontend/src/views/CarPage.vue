@@ -30,7 +30,7 @@
         </div>
         <div>
           
-          <div v-if="car.is_sold" class="badge badge-error w-full mb-2">Продано</div>
+          <div v-if="car.is_sold" class="text-lg p-4 badge badge-error w-full mb-2">Продано</div>
           <div class="w-full rounded-xl overflow-hidden">
             <img :src="currentImage || '/uploads/no_car_image.png'"
               class="w-full h-96 object-contain cursor-pointer bg-black rounded" 
@@ -264,7 +264,7 @@
 
     <dialog id="imageModal" class="modal" :open="isModalOpen" @click.self="closeModal">
       <div
-        class="modal-box p-0 relative w-auto max-w-none rounded-none flex flex-col bg-base-300 backdrop-blur h-[100dvh] w-[90dvw]">
+        class="modal-box p-0 relative max-w-none rounded-none flex flex-col bg-base-300 backdrop-blur h-[100dvh] w-full">
         <button @click="closeModal" class="absolute top-2 right-2 btn btn-circle btn-primary btn-sm z-20" aria-label="Закрыть">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />

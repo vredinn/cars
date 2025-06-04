@@ -1,16 +1,14 @@
 <template>
   <div class="users">
-    <div class="flex justify-between items-center mb-6">
+    <div class="flex flex-col sm:flex-row justify-between items-center gap-2 mb-4 mt-2 px-4">
       <h2 class="font-bold">Пользователи</h2>
-      <div class="relative">
-        <input
-          type="text"
-          v-model="searchQuery"
-          placeholder="Поиск..."
-          class="input"
-          @input="handleSearch"
-        />
-      </div>
+      <input
+        type="text"
+        v-model="searchQuery"
+        placeholder="Поиск..."
+        class="input input-bordered m-0 w-full"
+        @input="handleSearch"
+      />
     </div>
 
     <div class="overflow-x-auto">
